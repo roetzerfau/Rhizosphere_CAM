@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state
+inputMat = 'Input/testMain250.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 75  ;    
+numOuterIt  = 2000  ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -98,9 +98,9 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 
 
 %% Creating Initial Root
-rootCells_n_initial = 1;
+rootCells_n_initial = 0;
 rootCells_n_current = rootCells_n_initial;
-rootCells_growingRate = 5;
+rootCells_growingRate = 2;
 
 centerOfDomain = g.NX/2;
 rootVector = 0 * ones(g.numT, 1); 
@@ -111,9 +111,9 @@ coord_root_ = g.coordV(rootInd_v,:);
 coord_root = mean(coord_root_);
 
 rootParticleList = {[rootInd]};
-rootVector(rootInd) = 1;
+%rootVector(rootInd) = 1;
 %in bulk vector alles drin
-bulkVector(rootInd) = 1;
+%bulkVector(rootInd) = 1;
 
 stencil_root = stencil( g.NX, g.NX, rootInd, g.NX-2);%1 
 vertices_ = (g.V0T(stencil_root,:));
@@ -187,30 +187,69 @@ printInfoTUM(0,bulkVector,POMconcVector, concPOMAgent, edgeChargeVector, POMsoli
 sumAgent = sum(concAgent);
 
 for k = 1 : numOuterIt
-%% Growing Root   
-if(k < 0.66 * numOuterIt )
+%% Growing Root
+rootCells_n_new = rootCells_growingRate * k;
+%if(k < 0.66 * numOuterIt )
     rootCells_n_expected = rootCells_n_initial + rootCells_growingRate * k;
-else
-    rootCells_n_expected = rootCells_n_expected - rootCells_growingRate;
-end
+%else
+  %  rootCells_n_expected = rootCells_n_expected - rootCells_growingRate;
+%end
 %if(rootCells_n_expected > rootCells_n_current)
     
 % Mit Stencil        
      
 %     for ind = 1:rootCells_n_expected
 %          rootVector(stencil_root(ind)) = 1;
+%           bulkVector(trapezNum(I(ind)))= 1;
 %     end
 % Mit Konzentrisch
-for ind = 1:rootCells_n_expected
-     rootVector(trapezNum(I(ind))) = 1;
-     bulkVector(trapezNum(I(ind)))= 1;
-end
+% for ind = 1:rootCells_n_expected
+%      rootVector(trapezNum(I(ind))) = 1;
+%      bulkVector(trapezNum(I(ind)))= 1;
+% end
 % if(rootCells_n_expected < rootCells_n_current)
 %      rootVector(trapezNum(I(rootCells_n_expected:rootCells_n_current))) = 0;
 %      bulkVector(trapezNum(I(rootCells_n_expected:rootCells_n_current)))= 0;
 % end
-% rootCells_n_current = rootCells_n_expected;
+%rootCells_n_current = rootCells_n_expected;
+%vielleicht noch mit Stencil gucken, ob Cellen direkt verbunden
+if(k < 0.66 * numOuterIt )
+    rootCell_index = 1;
+    for ind = 1:rootCells_growingRate
+        isnewRootCellFound = 0;
+        while ~isnewRootCellFound 
+            if(rootCell_index > g.NX^2)
+                fprintf('Root too big for domain \n');
+                break;
+            end
+            entry = rootVector(trapezNum(I(rootCell_index)));
+            if(entry == 0 && bulkVector(trapezNum(I(rootCell_index)))== 0)
+                rootVector(trapezNum(I(rootCell_index))) = 1;
+                bulkVector(trapezNum(I(rootCell_index))) = 1;
+                isnewRootCellFound = 1;
+            end
+            rootCell_index = rootCell_index +1;
 
+
+        end
+    end
+else
+    rootCell_index = size(I,1);
+    for ind = 1:rootCells_growingRate
+        islatestRootCellFound = 0;
+        while ~islatestRootCellFound 
+            if(rootVector(trapezNum(I(rootCell_index))) == 1)
+                rootVector(trapezNum(I(rootCell_index))) = 0;
+                bulkVector(trapezNum(I(rootCell_index))) = 0;
+                islatestRootCellFound = 1;
+            end
+             rootCell_index = rootCell_index -1;
+        end
+       
+    end
+    
+    
+end
 %vertices of Trap
 %g.V0T
 %coord of vertices 
@@ -386,7 +425,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1% && (k <= 5 || mod(k,100) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 && (k <= 5 || mod(k,100) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
