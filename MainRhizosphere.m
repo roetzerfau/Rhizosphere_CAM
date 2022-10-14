@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 2000  ;    
+numOuterIt  = 4000  ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -101,6 +101,7 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 rootCells_n_initial = 0;
 rootCells_n_current = rootCells_n_initial;
 rootCells_growingRate = 2;
+isFirstRootCell = 1;
 
 centerOfDomain = g.NX/2;
 rootVector = 0 * ones(g.numT, 1); 
@@ -219,17 +220,35 @@ if(k < 0.66 * numOuterIt )
         isnewRootCellFound = 0;
         while ~isnewRootCellFound 
             if(rootCell_index > g.NX^2)
-                fprintf('Root too big for domain \n');
+                fprintf('No free Space found \n');
+                break;
+            end
+            if(rootCell_index < 0)
+                fprintf('Root disappeared \n');
                 break;
             end
             entry = rootVector(trapezNum(I(rootCell_index)));
-            if(entry == 0 && bulkVector(trapezNum(I(rootCell_index)))== 0)
+            entry_sten = stencil(g.NX,g.NX,trapezNum(I(rootCell_index)),1);
+%             if(isFirstRootCell)
+%                 isRootCellConnected = 1;
+%             else
+%                 s = sum(rootVector(entry_sten),'all');
+%                 if(s > 0)
+%                     isRootCellConnected = 1;
+%                 else
+%                     isRootCellConnected = 0;
+%                 end
+%             end
+            
+            if(entry == 0 && bulkVector(trapezNum(I(rootCell_index)))== 0 )%&& isRootCellConnected
                 rootVector(trapezNum(I(rootCell_index))) = 1;
                 bulkVector(trapezNum(I(rootCell_index))) = 1;
                 isnewRootCellFound = 1;
             end
             rootCell_index = rootCell_index +1;
-
+            if(isFirstRootCell && isnewRootCellFound == 1)
+                isFirstRootCell = 0;
+            end
 
         end
     end
