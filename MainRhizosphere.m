@@ -1,5 +1,5 @@
 function MainRhizosphere
-
+clc; clear;
 %% Compiling the C++ Components, necessary to determine the particle size distribution
 % mex particleSizeDistribution.cpp;
 
@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/testMain250.mat'; % contains initial state
+inputMat = 'Input/example_20.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 4000  ;    
+numOuterIt  = 100  ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -98,9 +98,10 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 
 
 %% Creating Initial Root
+rootNr = 1;
 rootCells_n_initial = 0;
 rootCells_n_current = rootCells_n_initial;
-rootCells_growingRate = 2;
+rootCells_growingRate = 1;
 isFirstRootCell = 1;
 
 centerOfDomain = g.NX/2;
@@ -111,7 +112,8 @@ rootInd_v = g.V0T(rootInd,:);
 coord_root_ = g.coordV(rootInd_v,:);
 coord_root = mean(coord_root_);
 
-rootParticleList = {[rootInd]};
+rootParticleList = {[]};
+rootPressureEdgeVector = zeros(g.numCE,1);
 %rootVector(rootInd) = 1;
 %in bulk vector alles drin
 %bulkVector(rootInd) = 1;
@@ -150,6 +152,7 @@ distance = sqrt(...
 % visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', 0, 2);
 % visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', 0, 2);
 % visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', 0, 2);
+visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector, 'cellType', 'solu', 0);
@@ -214,19 +217,18 @@ rootCells_n_new = rootCells_growingRate * k;
 % end
 %rootCells_n_current = rootCells_n_expected;
 %vielleicht noch mit Stencil gucken, ob Cellen direkt verbunden
-if(k < 0.66 * numOuterIt )
-    rootCell_index = 1;
+a = find(rootVector(trapezNum(I)) == 0);
+if(k < 1 * numOuterIt )
+    rootCell_index = a(1);
     for ind = 1:rootCells_growingRate
         isnewRootCellFound = 0;
+        count = 0;
         while ~isnewRootCellFound 
             if(rootCell_index > g.NX^2)
                 fprintf('No free Space found \n');
                 break;
             end
-            if(rootCell_index < 0)
-                fprintf('Root disappeared \n');
-                break;
-            end
+
             entry = rootVector(trapezNum(I(rootCell_index)));
             entry_sten = stencil(g.NX,g.NX,trapezNum(I(rootCell_index)),1);
 %             if(isFirstRootCell)
@@ -241,10 +243,18 @@ if(k < 0.66 * numOuterIt )
 %             end
             
             if(entry == 0 && bulkVector(trapezNum(I(rootCell_index)))== 0 )%&& isRootCellConnected
+                %count = count + 1;
+              %  if(count > 1)
+                 
+               % end
                 rootVector(trapezNum(I(rootCell_index))) = 1;
                 bulkVector(trapezNum(I(rootCell_index))) = 1;
+                rootParticleList{rootNr} = [rootParticleList{rootNr},trapezNum(I(rootCell_index))];
                 isnewRootCellFound = 1;
+            else
+                   fprintf('ahhhhhhhh--------------------------------------------------\n')
             end
+           
             rootCell_index = rootCell_index +1;
             if(isFirstRootCell && isnewRootCellFound == 1)
                 isFirstRootCell = 0;
@@ -257,9 +267,14 @@ else
     for ind = 1:rootCells_growingRate
         islatestRootCellFound = 0;
         while ~islatestRootCellFound 
+            if(rootCell_index < 1)
+                fprintf('Root disappeared \n');
+                break;
+            end
             if(rootVector(trapezNum(I(rootCell_index))) == 1)
                 rootVector(trapezNum(I(rootCell_index))) = 0;
                 bulkVector(trapezNum(I(rootCell_index))) = 0;
+                rootParticleList{rootNr} = rootParticleList{rootNr}(rootParticleList{rootNr} ~=trapezNum(I(rootCell_index)));
                 islatestRootCellFound = 1;
             end
              rootCell_index = rootCell_index -1;
@@ -269,6 +284,19 @@ else
     
     
 end
+a = find(rootVector(trapezNum(I)) == 0);
+%rootVector_next(trapezNum(I(a(1:rootCells_growingRate)))) = 1;
+st = stencil( g.NX, g.NX, trapezNum(I(a(1:rootCells_growingRate))), 1);
+%rootParticleList_next = rootParticleList;
+%rootParticleList_next{rootNr} = [rootParticleList{rootNr},trapezNum(I(a(1:rootCells_growingRate)))];
+
+
+[rootSurfaceEdgeList] = getSolidSurfaceEdges(g,rootParticleList, rootVector);
+rootPressureEdgeVector(:) = 0;
+%rootPressureEdgeVector(rootSurfaceEdgeList{rootNr}) = 1;
+growingCellEdges = g.CE0T(st,:);
+pressEdgesInd= intersect(rootSurfaceEdgeList{rootNr},growingCellEdges );
+rootPressureEdgeVector(pressEdgesInd) = 1;
 %vertices of Trap
 %g.V0T
 %coord of vertices 
@@ -345,9 +373,11 @@ for solidParticle = 1 : length( solidParticleList )
 %   apply CAM for single solid building unit
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+        rootVector, rootPressureEdgeVector,...
         solidParticleList{ solidParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+        rootVector, rootPressureEdgeVector, ...
         NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -364,9 +394,11 @@ for POMParticle = 1 : length( POMParticleList )
     % apply CAM for single POM particle
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+        rootVector, rootPressureEdgeVector,...
         POMParticleList{ POMParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector,particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+        rootVector, rootPressureEdgeVector, ...
         NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -374,17 +406,20 @@ end
 % tic
 
 %% Movement of aggregates
-if false
+if true
 % T_start = tic;
 bigJumping = 1;
 if bigJumping == 1
     
 % identify all aggregates consisting of solid building units and POM
 % particles
-[particleList, particleContent] = particleInfoTUM(bulkVector, solidParticleList, POMParticleList);
+[particleList, particleContent] = particleInfoTUM(bulkVector-rootVector, solidParticleList, POMParticleList, rootParticleList);
 for particle = 1 : length( particleList )
     particleSize = length( particleList{ particle } ); 
     if(size(particleContent{particle},1)<2)% kein Verbund
+        continue
+    end
+    if(size(particleContent{particle},1) == 10)% contains root
         continue
     end
     test_ind = particleList{particle}(1);
@@ -398,11 +433,14 @@ for particle = 1 : length( particleList )
         continue
     end
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
-        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, changedList,~] = ...
+        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+        rootVector, rootPressureEdgeVector,...
+        changedList,~] = ...
         moveParticles( particleSize, bigParticleStencilLayers_individual, g, bulkVector, bulkTypeVector, ... 
         particleTypeVector, POMVector, POMconcVector, POMageVector, concAgent, ...
-        concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, NZd , ...
-        fileID ,particleList{ particle },sumAgent,4,0, attraction_type);  
+        concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,  ...
+        rootVector, rootPressureEdgeVector, ...    
+        NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type);  
   
 
     if test_ind ~= changedList(1) % Listen müssen angepasst werden
@@ -444,7 +482,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1 && (k <= 5 || mod(k,100) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 %&& (k <= 5 || mod(k,10) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
@@ -454,6 +492,7 @@ T2 = tic;
 % %     visualizeDataEdges(g, concAgent, 'conc', 'agent', k);
 %     visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2);
 %     visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', k, 2);
+    visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', k,2);
 %     visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', k, 2);
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 

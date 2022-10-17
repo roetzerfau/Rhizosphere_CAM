@@ -1,7 +1,7 @@
 function [ bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
-     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, particleList ,flag] = ...
+     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, rootVector, rootPressureEdgeVector, particleList ,flag] = ...
     moveParticles( bulkSize , stencilLayers , g , bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector,...
-    POMageVector, concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, NZd , fileID, ...
+    POMageVector, concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, rootVector , rootPressureEdgeVector , NZd , fileID, ...
     particleList ,sumAgent,typeflag,stencil_type, attraction_type, particle_index)
 
 numBulkOld = sum( bulkVector );
@@ -99,14 +99,17 @@ if ~isempty( candidates )
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*reactiveSurfaceVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  solidPOMmemoryAttr = (bulkVector(candidates( i , k ))* POMVector(neighbours( 1 , m )) * edgeChargeVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*edgeChargeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr]);     
+                                 pressureAttr = (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootPressureEdgeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
+                                 * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
+                         
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr]) - pressureAttr * 100000;     
                                  if(solidPOMreactiveSurfAttr > 0 && j == 1)
                                      solidPOMreactiveEdgeIndicator = 1;
                                  end
                                  if(solidPOMmemoryAttr > 0 && j == 1)
                                      solidPOMmemoryEdgeIndicator = 1;
                                  end
-    
+
                        end % switch attraction_type                       
                    end % for l
                 end % for k 
@@ -117,7 +120,10 @@ if ~isempty( candidates )
         
         % find the maximum of each column and its corresponding index
         [maximo , indMax] = max( aim( : ) );
-        if maximo == 0 && stencil_type == 1 && aim(1)==maximo
+        if aim(1)==maximo && maximo < 0
+           fprintf('dableiben \n')
+        end
+        if maximo <= 0 && stencil_type == 1 && aim(1)==maximo
             flag = 1;
             bulkVector =bulkVector_before;
             POMVector = POMVector_before;
@@ -129,6 +135,7 @@ if ~isempty( candidates )
             concAgent=concAgent_before;
             concPOMAgent = concPOMAgent_before;
             POMagentAge = POMagentAge_before;
+
             return 
             
         end
