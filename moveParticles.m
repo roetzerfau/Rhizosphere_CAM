@@ -28,12 +28,12 @@ if movement == 1
 %% Movement: finding candidates
 
 candidates = particleList;
-% fprintf('Size of particle: %d ', length(candidates))
+% fprintf('Size of partisparsecle: %d ', length(candidates))
 time2 = tic;
 if ~isempty( candidates ) 
     solidPOMreactiveEdgeIndicator = 0;
     solidPOMmemoryEdgeIndicator = 0;
-    
+    pressureEdgeIndicator =  0;
 %% Movement: finding aims
     helping = zeros( size( candidates , 1 ) , 2 * stencilLayers * ( stencilLayers + 1 ) + 1 , size( candidates , 2 ) );
     % AnzKand x AnzNachbarn(stencil) x Kandgröße
@@ -103,6 +103,9 @@ if ~isempty( candidates )
                                  * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                          
                                  aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr]) - pressureAttr * 100000;     
+                                 if(pressureAttr > 0 && j == 1)
+                                     pressureEdgeIndicator = 1;
+                                 end
                                  if(solidPOMreactiveSurfAttr > 0 && j == 1)
                                      solidPOMreactiveEdgeIndicator = 1;
                                  end
@@ -120,10 +123,7 @@ if ~isempty( candidates )
         
         % find the maximum of each column and its corresponding index
         [maximo , indMax] = max( aim( : ) );
-        if aim(1)==maximo && maximo < 0
-           fprintf('dableiben \n')
-        end
-        if maximo <= 0 && stencil_type == 1 && aim(1)==maximo
+        if maximo == 0 && stencil_type == 1 && aim(1)==maximo
             flag = 1;
             bulkVector =bulkVector_before;
             POMVector = POMVector_before;
@@ -141,7 +141,7 @@ if ~isempty( candidates )
         end
         
         % enable random breaking up
-        % if current position is the most attractive
+        % if current position is the most&& maximo < 0 attractive
 %         if aim(1)==maximo
             if solidPOMmemoryEdgeIndicator == 1
                randNum = randi(100,1);
@@ -165,7 +165,12 @@ if ~isempty( candidates )
                    [maximo , indMax] = max( aim( : ) );
                end
             end
-        
+            if pressureEdgeIndicator == 1
+                fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
+                aim(1) = -1;
+                aim( aim >= 0 ) = 0; 
+                [maximo , indMax] = max( aim( : ) );
+            end
         end
 %         end
         

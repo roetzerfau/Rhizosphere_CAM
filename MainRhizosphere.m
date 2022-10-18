@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 100  ;    
+numOuterIt  = 250  ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -112,6 +112,7 @@ rootInd_v = g.V0T(rootInd,:);
 coord_root_ = g.coordV(rootInd_v,:);
 coord_root = mean(coord_root_);
 
+rootGraph = graph;
 rootParticleList = {[]};
 rootPressureEdgeVector = zeros(g.numCE,1);
 %rootVector(rootInd) = 1;
@@ -218,7 +219,7 @@ rootCells_n_new = rootCells_growingRate * k;
 %rootCells_n_current = rootCells_n_expected;
 %vielleicht noch mit Stencil gucken, ob Cellen direkt verbunden
 a = find(rootVector(trapezNum(I)) == 0);
-if(k < 1 * numOuterIt )
+if(k < 0.66 * numOuterIt )
     rootCell_index = a(1);
     for ind = 1:rootCells_growingRate
         isnewRootCellFound = 0;
@@ -253,6 +254,8 @@ if(k < 1 * numOuterIt )
                 isnewRootCellFound = 1;
             else
                    fprintf('ahhhhhhhh--------------------------------------------------\n')
+           %VIELLEICHT IST AUCH DAS Problem, dass Postiioten bereits
+           %übersprungen werden, also am Anfang. wir werden sehen
             end
            
             rootCell_index = rootCell_index +1;
@@ -284,6 +287,7 @@ else
     
     
 end
+
 a = find(rootVector(trapezNum(I)) == 0);
 %rootVector_next(trapezNum(I(a(1:rootCells_growingRate)))) = 1;
 st = stencil( g.NX, g.NX, trapezNum(I(a(1:rootCells_growingRate))), 1);
