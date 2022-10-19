@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/BlankDomain_250.mat'; % contains initial state
+inputMat = 'Input/testMain250.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -101,8 +101,8 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 rootNr = 1;
 rootCells_n_initial = 0;
 rootCellsCurrentAmount = rootCells_n_initial;
-rootCells_growingRate = 1;
-rootCells_shrinkingRate = -1;
+rootCells_growingRate = 5;
+rootCells_shrinkingRate = -5;
 rootCellsExpectedAmount = rootCellsCurrentAmount + rootCells_growingRate;
 isRootGrowing = true;
 
@@ -144,10 +144,11 @@ clear adj diagVec1 diagVec2 diagVec3 diagVec4
 %find nearest pore space to center of domain 
 centerOfDomain = g.NX/2;
 rootIntialCellInd = centerOfDomain * g.NX + centerOfDomain;
-d = distances(rootGraph);
-d = d(rootIntialCellInd,:);
+%d = distances(rootGraph);
+%d = d(rootIntialCellInd,:);
+[TR,d] = shortestpathtree(rootGraph,rootIntialCellInd);
 [sortedd, I] = sort(d);
-j =find(rootVector(I) == 0,1);
+j =find(bulkVector(I) == 0,1);
 rootNewCellsInd = I(j);
 rootIntialCellInd = I(j);
 rootDeadCellsInd = [];
@@ -262,8 +263,9 @@ if(rootGrowingPotential>0)
     rootFreeCellsInd = find(rootVector ~= 1);
     %sort the potential new rootCells by their possibility to grow
     %(distance to initial source cell)
-    d = distances(rootGraph);
-    d = d(rootFreeCellsInd,rootIntialCellInd);
+    %d = distances(rootGraph);
+    %d = d(rootFreeCellsInd,rootIntialCellInd);
+    [TR,d] = shortestpathtree(rootGraph,rootFreeCellsInd,rootIntialCellInd);
     [sortedd, I] = sort(d);
     rootFreeCellsInd = rootFreeCellsInd(I);
     if(size(rootFreeCellsInd)<size(rootGrowingPotential,1))
@@ -287,8 +289,9 @@ elseif(rootGrowingPotential<0)
     %sort the potential new rootCells by their possibility to grow
     %(distance to initial source cell)
     rootcurrentCellsInd = rootParticleList{rootNr};
-    d = distances(rootGraph);
-    d = d(rootcurrentCellsInd,rootIntialCellInd);
+    %d = distances(rootGraph);
+    %d = d(rootcurrentCellsInd,rootIntialCellInd);
+    [TR,d] = shortestpathtree(rootGraph,rootcurrentCellsInd,rootIntialCellInd);
     [sortedd, I] = sort(d);
     rootcurrentCellsInd = rootcurrentCellsInd(I);
     rootDeadCellsInd = rootcurrentCellsInd(end:end +1 + rootGrowingPotential);
@@ -306,7 +309,7 @@ end
 %erst versuchen sachen zu setzen, danach neue Nachbarn berechnen und
 %PressureEdges machen
 %beim ersten mal rootNeighbourCellsInd definitv auf etwas richtiges setzen
-if false
+if true
 %% Doing the POM decay
 if POMdecayFlag == 1
 
