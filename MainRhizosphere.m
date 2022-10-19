@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state
+inputMat = 'Input/BlankDomain_250.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -100,54 +100,65 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 %% Creating Initial Root
 rootNr = 1;
 rootCells_n_initial = 0;
-rootCells_n_current = rootCells_n_initial;
+rootCellsCurrentAmount = rootCells_n_initial;
 rootCells_growingRate = 1;
-isFirstRootCell = 1;
+rootCells_shrinkingRate = -1;
+rootCellsExpectedAmount = rootCellsCurrentAmount + rootCells_growingRate;
+isRootGrowing = true;
 
-centerOfDomain = g.NX/2;
-rootVector = 0 * ones(g.numT, 1); 
-rootInd = centerOfDomain * g.NX + centerOfDomain;
-
-rootInd_v = g.V0T(rootInd,:);
-coord_root_ = g.coordV(rootInd_v,:);
-coord_root = mean(coord_root_);
-
-rootGraph = graph;
+rootVector = 0 * ones(g.numT, 1);
 rootParticleList = {[]};
 rootPressureEdgeVector = zeros(g.numCE,1);
-%rootVector(rootInd) = 1;
-%in bulk vector alles drin
-%bulkVector(rootInd) = 1;
 
-stencil_root = stencil( g.NX, g.NX, rootInd, g.NX-2);%1 
-vertices_ = (g.V0T(stencil_root,:));
-vertices = reshape(transpose(vertices_),1,[]);
-coord = g.coordV(vertices,:);
-coord_t = coord;
-coord = transpose(coord);
-coord = reshape(coord,2,4,[]);
-coord = mean(coord,2);
-coord = transpose(coord(:,:));
-%coord1 = reshape(coord,4,2,[]);
-distance = sqrt(...
-    (coord(:,1)-coord_root(1)).^2 +...
-    (coord(:,2)-coord_root(2)).^2);
+N = g.NX;
+notConnectedEdgesValue = N*N;
+
+% [I,J]=ndgrid(1:N,1:N);
+% IJ=[I(:),J(:)];
+% D=pdist2(IJ,IJ);
+% A=(D>=0.001 & D<=sqrt(2)*1.001).*D .*notConnectedEdgesValue; %adjacency matrix
+
+diagVec1 = sparse(repmat([ones(N-1, 1); 0], N, 1));  % Make the first diagonal vector
+                                             %   (for horizontal connections)
+diagVec1 = diagVec1(1:end-1);                % Remove the last value
+diagVec2 = sparse([0; diagVec1(1:(N*(N-1)))] * sqrt(2));       % Make the second diagonal vector
+                                             %   (for anti-diagonal connections)
+diagVec3 = sparse(ones(N*(N-1), 1));                 % Make the third diagonal vector
+                                             %   (for vertical connections)
+diagVec4 = sparse(diagVec2(2:end-1));                % Make the fourth diagonal vector
+                                             %   (for diagonal connections)
+adj = diag(diagVec1, 1)+...                  % Add the diagonals to a zero matrix
+      diag(diagVec2, N-1)+...
+      diag(diagVec3, N)+...
+      diag(diagVec4, N+1);
+adj = adj+adj.';                             % Add the matrix to a transposed copy of
+                                             %   itself to make it symmetric
+
+adj = adj .*notConnectedEdgesValue;
+
+%ff = sum(adj == A,'all')
+
+rootGraph = graph(adj);
+clear adj diagVec1 diagVec2 diagVec3 diagVec4
+ 
+%find nearest pore space to center of domain 
+centerOfDomain = g.NX/2;
+rootIntialCellInd = centerOfDomain * g.NX + centerOfDomain;
+d = distances(rootGraph);
+d = d(rootIntialCellInd,:);
+[sortedd, I] = sort(d);
+j =find(rootVector(I) == 0,1);
+rootNewCellsInd = I(j);
+rootIntialCellInd = I(j);
+rootDeadCellsInd = [];
 
 
+indices = 1:(N*N);
+indices = reshape(indices,[N N]);
 
-trapezNum = 1:g.numT;
-vertices = reshape(transpose(g.V0T(trapezNum,:)),1,[]);
-coord = transpose(g.coordV(vertices,:));
-coord = reshape(coord,2,4,[]);
-coord = mean(coord,2);
-coord = transpose(coord(:,:));
-distance = sqrt(...
-    (coord(:,1)-coord_root(1)).^2 +...
-    (coord(:,2)-coord_root(2)).^2);
-
-[B,I] = sort(distance);
-%erst mit Stencil nachbarn gucken und dann nochmal mit distance zu mitte
-%sortieren
+%Obstacle
+%bulkVector(N * N/4: N* (N/4+1)) = 1;
+%bulkVector(N * N/2 + N/2 +3:N * N/2 + N/2 +10) = 1;
 %% Creating Initial Distribution of Bulk and Biomass                        %% Can be changed
 % visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2);
 % visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', 0, 2);
@@ -185,128 +196,117 @@ freePOMparticlesOld = freePOMparticles;
 numFreePOMparticles = length(indFreePOMparticles);
 %%%
 
-printInfoTUM(0,bulkVector,POMconcVector, concPOMAgent, edgeChargeVector, POMsolidEdgeList,...
-    numFreePOMparticles, numEdgeTypes, totalPOMinputConc, totalPOMoutputConc, sumExcessPOM, POMagentInput,...
-    POMocclusion_total, POMocclusion_attractive);
+%printInfoTUM(0,bulkVector,POMconcVector, concPOMAgent, edgeChargeVector, POMsolidEdgeList,...
+    %numFreePOMparticles, numEdgeTypes, totalPOMinputConc, totalPOMoutputConc, sumExcessPOM, POMagentInput,...
+    %POMocclusion_total, POMocclusion_attractive);
 
 sumAgent = sum(concAgent);
 
 for k = 1 : numOuterIt
 %% Growing Root
-rootCells_n_new = rootCells_growingRate * k;
-%if(k < 0.66 * numOuterIt )
-    rootCells_n_expected = rootCells_n_initial + rootCells_growingRate * k;
-%else
-  %  rootCells_n_expected = rootCells_n_expected - rootCells_growingRate;
-%end
-%if(rootCells_n_expected > rootCells_n_current)
-    
-% Mit Stencil        
-     
-%     for ind = 1:rootCells_n_expected
-%          rootVector(stencil_root(ind)) = 1;
-%           bulkVector(trapezNum(I(ind)))= 1;
-%     end
-% Mit Konzentrisch
-% for ind = 1:rootCells_n_expected
-%      rootVector(trapezNum(I(ind))) = 1;
-%      bulkVector(trapezNum(I(ind)))= 1;
-% end
-% if(rootCells_n_expected < rootCells_n_current)
-%      rootVector(trapezNum(I(rootCells_n_expected:rootCells_n_current))) = 0;
-%      bulkVector(trapezNum(I(rootCells_n_expected:rootCells_n_current)))= 0;
-% end
-%rootCells_n_current = rootCells_n_expected;
-%vielleicht noch mit Stencil gucken, ob Cellen direkt verbunden
-a = find(rootVector(trapezNum(I)) == 0);
-if(k < 0.66 * numOuterIt )
-    rootCell_index = a(1);
-    for ind = 1:rootCells_growingRate
-        isnewRootCellFound = 0;
-        count = 0;
-        while ~isnewRootCellFound 
-            if(rootCell_index > g.NX^2)
-                fprintf('No free Space found \n');
-                break;
-            end
 
-            entry = rootVector(trapezNum(I(rootCell_index)));
-            entry_sten = stencil(g.NX,g.NX,trapezNum(I(rootCell_index)),1);
-%             if(isFirstRootCell)
-%                 isRootCellConnected = 1;
-%             else
-%                 s = sum(rootVector(entry_sten),'all');
-%                 if(s > 0)
-%                     isRootCellConnected = 1;
-%                 else
-%                     isRootCellConnected = 0;
-%                 end
-%             end
+if isRootGrowing
+    for i = 1:size(rootNewCellsInd)
+        if(bulkVector(rootNewCellsInd(i)) == 0)
+            neighInd = neighbors(rootGraph, rootNewCellsInd(i));    
+            rootBorderCellsInd = intersect(neighInd,rootParticleList{rootNr});
             
-            if(entry == 0 && bulkVector(trapezNum(I(rootCell_index)))== 0 )%&& isRootCellConnected
-                %count = count + 1;
-              %  if(count > 1)
-                 
-               % end
-                rootVector(trapezNum(I(rootCell_index))) = 1;
-                bulkVector(trapezNum(I(rootCell_index))) = 1;
-                rootParticleList{rootNr} = [rootParticleList{rootNr},trapezNum(I(rootCell_index))];
-                isnewRootCellFound = 1;
-            else
-                   fprintf('ahhhhhhhh--------------------------------------------------\n')
-           %VIELLEICHT IST AUCH DAS Problem, dass Postiioten bereits
-           %übersprungen werden, also am Anfang. wir werden sehen
-            end
-           
-            rootCell_index = rootCell_index +1;
-            if(isFirstRootCell && isnewRootCellFound == 1)
-                isFirstRootCell = 0;
-            end
+            h = rootNewCellsInd(i) * ones(size(rootBorderCellsInd,1),1);
+            edgeInd = findedge(rootGraph, rootBorderCellsInd, h);
 
+            %nur van neumman weiterwachsen -> man dürfte nur Kanten mit 1 teilen
+            rootGraph.Edges.Weight(edgeInd) = rootGraph.Edges.Weight(edgeInd)./notConnectedEdgesValue;
+        
+            rootVector(rootNewCellsInd(i)) = 1;
+            bulkVector(rootNewCellsInd(i)) = 1;
+            rootParticleList{rootNr} = ...
+            [rootParticleList{rootNr} rootNewCellsInd(i)];
+        else
+            fprintf('Cell cant grow \n');
         end
-    end
+        
+    end    
 else
-    rootCell_index = size(I,1);
-    for ind = 1:rootCells_growingRate
-        islatestRootCellFound = 0;
-        while ~islatestRootCellFound 
-            if(rootCell_index < 1)
-                fprintf('Root disappeared \n');
-                break;
-            end
-            if(rootVector(trapezNum(I(rootCell_index))) == 1)
-                rootVector(trapezNum(I(rootCell_index))) = 0;
-                bulkVector(trapezNum(I(rootCell_index))) = 0;
-                rootParticleList{rootNr} = rootParticleList{rootNr}(rootParticleList{rootNr} ~=trapezNum(I(rootCell_index)));
-                islatestRootCellFound = 1;
-            end
-             rootCell_index = rootCell_index -1;
-        end
-       
+    for i = 1:size(rootDeadCellsInd)
+        
+            neighInd = neighbors(rootGraph, rootDeadCellsInd(i));    
+            rootNeighborCellsInd = neighInd(~ismember(neighInd,rootParticleList{rootNr}));
+            
+            h = rootDeadCellsInd(i) * ones(size(rootNeighborCellsInd,1),1);
+            edgeInd = findedge(rootGraph, rootNeighborCellsInd, h);
+
+            %nur van neumman weiterwachsen -> man dürfte nur Kanten mit 1 teilen
+            rootGraph.Edges.Weight(edgeInd) = rootGraph.Edges.Weight(edgeInd).*notConnectedEdgesValue;
+            
+            rootVector(rootDeadCellsInd(i)) = 0;
+            bulkVector(rootDeadCellsInd(i)) = 0;
+            rootParticleList{rootNr} = ...
+            rootParticleList{rootNr}(rootParticleList{rootNr} ~=rootDeadCellsInd(i));
+        
     end
     
     
 end
+rootCellsCurrentAmount = size(rootParticleList{rootNr},2);
+if(k < 0.66 * numOuterIt )
+    rate = rootCells_growingRate;
+else
+    rate = rootCells_shrinkingRate;
+end
 
-a = find(rootVector(trapezNum(I)) == 0);
-%rootVector_next(trapezNum(I(a(1:rootCells_growingRate)))) = 1;
-st = stencil( g.NX, g.NX, trapezNum(I(a(1:rootCells_growingRate))), 1);
-%rootParticleList_next = rootParticleList;
-%rootParticleList_next{rootNr} = [rootParticleList{rootNr},trapezNum(I(a(1:rootCells_growingRate)))];
+rootCellsExpectedAmount = rootCellsExpectedAmount + rate;
+rootGrowingPotential = rootCellsExpectedAmount - rootCellsCurrentAmount;
+if(rootGrowingPotential>0)
+    isRootGrowing = true;
+    %-------------------------------
+    rootFreeCellsInd = find(rootVector ~= 1);
+    %sort the potential new rootCells by their possibility to grow
+    %(distance to initial source cell)
+    d = distances(rootGraph);
+    d = d(rootFreeCellsInd,rootIntialCellInd);
+    [sortedd, I] = sort(d);
+    rootFreeCellsInd = rootFreeCellsInd(I);
+    if(size(rootFreeCellsInd)<size(rootGrowingPotential,1))
+        rootGrowingPotential = size(rootFreeCellsInd,1);
+    end
+    rootNewCellsInd = rootFreeCellsInd(1:rootGrowingPotential);
 
+    %--------------------------------------
+    st = stencil( g.NX, g.NX,rootNewCellsInd , 1);
 
-[rootSurfaceEdgeList] = getSolidSurfaceEdges(g,rootParticleList, rootVector);
-rootPressureEdgeVector(:) = 0;
-%rootPressureEdgeVector(rootSurfaceEdgeList{rootNr}) = 1;
-growingCellEdges = g.CE0T(st,:);
-pressEdgesInd= intersect(rootSurfaceEdgeList{rootNr},growingCellEdges );
-rootPressureEdgeVector(pressEdgesInd) = 1;
-%vertices of Trap
-%g.V0T
-%coord of vertices 
-%g.coordV
-%end
+    [rootSurfaceEdgeList] = getSolidSurfaceEdges(g,rootParticleList, rootVector);
+    rootPressureEdgeVector(:) = 0;
+    %rootPressureEdgeVector(rootSurfaceEdgeList{rootNr}) = 1;
+    growingCellEdges = g.CE0T(st,:);
+    pressEdgesInd= intersect(rootSurfaceEdgeList{rootNr},growingCellEdges );
+    rootPressureEdgeVector(pressEdgesInd) = 1;
 
+elseif(rootGrowingPotential<0)
+    isRootGrowing = false;
+    %-------------------------------
+    %sort the potential new rootCells by their possibility to grow
+    %(distance to initial source cell)
+    rootcurrentCellsInd = rootParticleList{rootNr};
+    d = distances(rootGraph);
+    d = d(rootcurrentCellsInd,rootIntialCellInd);
+    [sortedd, I] = sort(d);
+    rootcurrentCellsInd = rootcurrentCellsInd(I);
+    rootDeadCellsInd = rootcurrentCellsInd(end:end +1 + rootGrowingPotential);
+    rootPressureEdgeVector(:) = 0;
+else
+end
+%----------------------------------------------
+%alle cellen außer root
+%distances mit rootGraph berechen
+%alle RootCellen rauschmeißen
+%sortieren
+%dann 
+
+%abfolge:
+%erst versuchen sachen zu setzen, danach neue Nachbarn berechnen und
+%PressureEdges machen
+%beim ersten mal rootNeighbourCellsInd definitv auf etwas richtiges setzen
+if false
 %% Doing the POM decay
 if POMdecayFlag == 1
 
@@ -465,6 +465,7 @@ end
 end
 
 fprintf('Time for relocation: %d \n', toc(T_start))
+end
 end
 %%
 T2 = tic;

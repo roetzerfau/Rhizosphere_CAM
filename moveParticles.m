@@ -145,6 +145,7 @@ if ~isempty( candidates )
 %         if aim(1)==maximo
             if solidPOMmemoryEdgeIndicator == 1
                randNum = randi(100,1);
+               randNum = 0;
                if randNum > 95
                    aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
@@ -152,6 +153,7 @@ if ~isempty( candidates )
                end
             elseif solidPOMreactiveEdgeIndicator == 1
                randNum = randi(100,1);
+               randNum = 0;
                if randNum > 90
                    aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
@@ -159,6 +161,7 @@ if ~isempty( candidates )
                end
             else
                randNum = randi(100,1);
+               randNum = 0;
                if randNum > 75
 %                    aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
