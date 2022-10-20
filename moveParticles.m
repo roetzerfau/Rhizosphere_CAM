@@ -143,38 +143,38 @@ if ~isempty( candidates )
         % enable random breaking up
         % if current position is the most&& maximo < 0 attractive
 %         if aim(1)==maximo
-            if solidPOMmemoryEdgeIndicator == 1
+        if solidPOMmemoryEdgeIndicator == 1
                randNum = randi(100,1);
-               randNum = 0;
+               %randNum = 0;
                if randNum > 95
                    aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-            elseif solidPOMreactiveEdgeIndicator == 1
+        elseif solidPOMreactiveEdgeIndicator == 1
                randNum = randi(100,1);
-               randNum = 0;
+               %randNum = 0;
                if randNum > 90
                    aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-            else
+        elseif pressureEdgeIndicator == 1
+                fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
+                aim(1) = -1;
+                aim( aim >= 0 ) = 0; 
+                [maximo , indMax] = max( aim( : ) );
+        else
                randNum = randi(100,1);
-               randNum = 0;
+               %randNum = 0;
                if randNum > 75
 %                    aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-            end
-            if pressureEdgeIndicator == 1
-                fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
-                aim(1) = -1;
-                aim( aim >= 0 ) = 0; 
-                [maximo , indMax] = max( aim( : ) );
-            end
-        end
+         end
+
+     end
 %         end
         
         % find aims with maximal value for each candidate ( might be more than one )

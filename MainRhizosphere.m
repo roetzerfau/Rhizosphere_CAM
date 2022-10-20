@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 250  ;    
+numOuterIt  = 1000  ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -101,8 +101,8 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 rootNr = 1;
 rootCells_n_initial = 0;
 rootCellsCurrentAmount = rootCells_n_initial;
-rootCells_growingRate = 5;
-rootCells_shrinkingRate = -5;
+rootCells_growingRate = 10;
+rootCells_shrinkingRate = -10;
 rootCellsExpectedAmount = rootCellsCurrentAmount + rootCells_growingRate;
 isRootGrowing = true;
 
@@ -169,7 +169,7 @@ visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdge
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector, 'cellType', 'solu', 0);
-visualizeDataSub(g, rootVector, 'root', 'root', 0);
+%visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
 numEdgeTypesPOMparticles =  countEdgeTypesPOMparticles(g, bulkVector, POMVector,...
@@ -490,7 +490,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1 %&& (k <= 5 || mod(k,10) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 && (k <= 20 || mod(k,10) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
@@ -505,7 +505,7 @@ T2 = tic;
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
      %visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k);
-     visualizeDataSub(g, rootVector, 'root', 'root', k);
+     %visualizeDataSub(g, rootVector, 'root', 'root', k);
     end
 
 %% Some posprocessing: Ignore for now
