@@ -7,13 +7,13 @@ load(inputMat, 'bulkVector', 'bulkTypeVector', 'edgeChargeVector', 'particleList
     'particleTypeVector', 'POMconcVector', 'POMParticleList', 'POMVector', ...
       'reactiveSurfaceVector');
 % load(inputMat);
-bulkVector = sparse(bulkVector);
-bulkTypeVector = sparse(bulkTypeVector);
-edgeChargeVector = sparse(edgeChargeVector);
-particleTypeVector = sparse(particleTypeVector);
-POMconcVector = sparse(POMconcVector);
-POMVector = sparse(POMVector);
-reactiveSurfaceVector = sparse(reactiveSurfaceVector);
+bulkVector = (bulkVector);
+bulkTypeVector = (bulkTypeVector);
+edgeChargeVector = (edgeChargeVector);
+particleTypeVector = (particleTypeVector);
+POMconcVector = (POMconcVector);
+POMVector = (POMVector);
+reactiveSurfaceVector = (reactiveSurfaceVector);
 
 
 numSquares = size(bulkVector,1);
@@ -27,9 +27,9 @@ g = createDomainFolded(sizeStruc, sizeStruc, sizeStruc, 0, intBound, upBound);
 
 % initialize vectors
 POMageVector = POMVector;
-concAgent       = sparse(0*ones( g.numE , 1 ));   
-concPOMAgent = sparse(0*ones( g.numCE , 1 )); 
-POMagentAge = sparse(0*ones( g.numCE , 1 )); 
+concAgent       = (0*ones( g.numE , 1 ));   
+concPOMAgent = (0*ones( g.numCE , 1 )); 
+POMagentAge = (0*ones( g.numCE , 1 )); 
 
 % create list of unseparable solid particles directly from particleTypeVector 
 solidParticleList = particleList;
