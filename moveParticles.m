@@ -160,7 +160,7 @@ if ~isempty( candidates )
                    [maximo , indMax] = max( aim( : ) );
                end
         elseif pressureEdgeIndicator == 1
-                fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
+                %fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
                 aim(1) = -1;
                 aim( aim >= 0 ) = 0; 
                 [maximo , indMax] = max( aim( : ) );

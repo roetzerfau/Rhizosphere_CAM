@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/testMain250.mat'; % contains initial state
+inputMat = 'Input/example_20.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 1000  ;    
+numOuterIt  = 1000 ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -111,7 +111,7 @@ rootParticleList = {[]};
 rootPressureEdgeVector = zeros(g.numCE,1);
 
 N = g.NX;
-notConnectedEdgesValue = N*N;
+notConnectedEdgesValue = N*N * 2;
 
 % [I,J]=ndgrid(1:N,1:N);
 % IJ=[I(:),J(:)];
@@ -154,6 +154,9 @@ rootIntialCellInd = I(j);
 rootDeadCellsInd = [];
 
 
+
+
+
 indices = 1:(N*N);
 indices = reshape(indices,[N N]);
 
@@ -168,7 +171,7 @@ indices = reshape(indices,[N N]);
 visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
-visualizeDataSub(g, bulkVector + POMVector + rootVector, 'cellType', 'solu', 0);
+visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', 0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -207,8 +210,18 @@ for k = 1 : numOuterIt
 %% Growing Root
 
 if isRootGrowing
-    for i = 1:size(rootNewCellsInd)
-        if(bulkVector(rootNewCellsInd(i)) == 0)
+    for i = 1:numel(rootNewCellsInd)
+        st = stencil(N,N,rootNewCellsInd(i),1);
+        if(k ~= 1)
+            isCellNeighboredRoot = sum(ismember(st(2:end),rootParticleList{rootNr}),'all') > 0;
+            if(isCellNeighboredRoot == 0)
+                %fprintf('geht nicht')
+            end
+        else
+            isCellNeighboredRoot = true;
+        end
+        
+        if(bulkVector(rootNewCellsInd(i)) == 0 && isCellNeighboredRoot)
             neighInd = neighbors(rootGraph, rootNewCellsInd(i));    
             rootBorderCellsInd = intersect(neighInd,rootParticleList{rootNr});
             
@@ -220,15 +233,15 @@ if isRootGrowing
         
             rootVector(rootNewCellsInd(i)) = 1;
             bulkVector(rootNewCellsInd(i)) = 1;
-            rootParticleList{rootNr} = ...
-            [rootParticleList{rootNr} rootNewCellsInd(i)];
+            rootParticleList{rootNr} = [rootParticleList{rootNr} rootNewCellsInd(i)];
         else
-            fprintf('Cell cant grow \n');
+            %fprintf('Cell cant grow \n');
         end
         
     end    
 else
-    for i = 1:size(rootDeadCellsInd)
+    
+    for i = 1:numel(rootDeadCellsInd)
         
             neighInd = neighbors(rootGraph, rootDeadCellsInd(i));    
             rootNeighborCellsInd = neighInd(~ismember(neighInd,rootParticleList{rootNr}));
@@ -241,21 +254,24 @@ else
             
             rootVector(rootDeadCellsInd(i)) = 0;
             bulkVector(rootDeadCellsInd(i)) = 0;
-            rootParticleList{rootNr} = ...
-            rootParticleList{rootNr}(rootParticleList{rootNr} ~=rootDeadCellsInd(i));
+            rootParticleList{rootNr} = rootParticleList{rootNr}(rootParticleList{rootNr} ~= rootDeadCellsInd(i));
         
     end
     
     
 end
 rootCellsCurrentAmount = size(rootParticleList{rootNr},2);
-if(k < 0.66 * numOuterIt )
+if(k < 0.5 * numOuterIt )
     rate = rootCells_growingRate;
 else
     rate = rootCells_shrinkingRate;
+    rootCellsExpectedAmount = rootCellsCurrentAmount;
 end
 
 rootCellsExpectedAmount = rootCellsExpectedAmount + rate;
+if(rootCellsExpectedAmount <=0)
+    rootCellsExpectedAmount = 0;
+end
 rootGrowingPotential = rootCellsExpectedAmount - rootCellsCurrentAmount;
 if(rootGrowingPotential>0)
     isRootGrowing = true;
@@ -266,9 +282,15 @@ if(rootGrowingPotential>0)
     %d = distances(rootGraph);
     %d = d(rootFreeCellsInd,rootIntialCellInd);
     [TR,d] = shortestpathtree(rootGraph,rootFreeCellsInd,rootIntialCellInd);
+    
     [sortedd, I] = sort(d);
+    
     rootFreeCellsInd = rootFreeCellsInd(I);
-    if(size(rootFreeCellsInd)<size(rootGrowingPotential,1))
+    %a= size(rootFreeCellsInd,1)
+    %rootFreeCellsInd = rootFreeCellsInd( d <= notConnectedEdgesValue);
+    %c = sum(d <= notConnectedEdgesValue, 'all')
+    %b = size(rootFreeCellsInd,1)
+    if(size(rootFreeCellsInd,1) < rootGrowingPotential)
         rootGrowingPotential = size(rootFreeCellsInd,1);
     end
     rootNewCellsInd = rootFreeCellsInd(1:rootGrowingPotential);
@@ -286,17 +308,28 @@ if(rootGrowingPotential>0)
 elseif(rootGrowingPotential<0)
     isRootGrowing = false;
     %-------------------------------
-    %sort the potential new rootCells by their possibility to grow
-    %(distance to initial source cell)
+    %theoretisch geht auch einfach die umgekehrte reihenfolge in rootParticleList
     rootcurrentCellsInd = rootParticleList{rootNr};
+    if(numel(rootcurrentCellsInd) < abs(rootGrowingPotential))
+        rootGrowingPotential = - numel(rootcurrentCellsInd);
+    end
+    if(numel(rootcurrentCellsInd) == 0)
+        fprintf('wurzel weg') 
+    end
     %d = distances(rootGraph);
     %d = d(rootcurrentCellsInd,rootIntialCellInd);
-    [TR,d] = shortestpathtree(rootGraph,rootcurrentCellsInd,rootIntialCellInd);
-    [sortedd, I] = sort(d);
-    rootcurrentCellsInd = rootcurrentCellsInd(I);
-    rootDeadCellsInd = rootcurrentCellsInd(end:end +1 + rootGrowingPotential);
+    
+    %umgekehrte Reihenfolge
+    rootDeadCellsInd = rootcurrentCellsInd(end + rootGrowingPotential +1:end);%end + rootGrowingPotential:end
     rootPressureEdgeVector(:) = 0;
+%     [TR,d] = shortestpathtree(rootGraph,rootcurrentCellsInd,rootIntialCellInd);
+%     [sortedd, I] = sort(d);
+%     rootcurrentCellsInd = rootcurrentCellsInd(I);
+%     rootDeadCellsInd = rootcurrentCellsInd(end + rootGrowingPotential:end);
+%     rootPressureEdgeVector(:) = 0;
 else
+    rootDeadCellsInd = [];
+    rootNewCellsInd = [];
 end
 %----------------------------------------------
 %alle cellen außer root
@@ -494,7 +527,7 @@ T2 = tic;
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
-    visualizeDataSub(g, bulkVector + POMVector + + rootVector, 'cellType', 'solu', k);
+    visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', k);
 %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  
 % %     visualizeDataEdges(g, concAgent, 'conc', 'agent', k);
