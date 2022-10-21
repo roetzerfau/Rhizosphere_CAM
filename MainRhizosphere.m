@@ -109,7 +109,7 @@ isRootGrowing = true;
 rootVector = 0 * ones(g.numT, 1);
 rootParticleList = {[]};
 rootPressureEdgeVector = zeros(g.numCE,1);
-
+rootMucilageVector = zeros(g.numCE,1);
 N = g.NX;
 notConnectedEdgesValue = N*N * 2;
 
@@ -261,6 +261,13 @@ else
     
 end
 rootCellsCurrentAmount = size(rootParticleList{rootNr},2);
+[rootSurfaceEdgeList] = getSolidSurfaceEdges(g,rootParticleList, rootVector);
+if(isRootGrowing)
+    rootMucilageVector(rootSurfaceEdgeList{rootNr}) = 1;
+else
+    rootMucilageVector(:) = 0;
+end
+
 if(k < 0.5 * numOuterIt )
     rate = rootCells_growingRate;
 else
@@ -298,7 +305,7 @@ if(rootGrowingPotential>0)
     %--------------------------------------
     st = stencil( g.NX, g.NX,rootNewCellsInd , 1);
 
-    [rootSurfaceEdgeList] = getSolidSurfaceEdges(g,rootParticleList, rootVector);
+    
     rootPressureEdgeVector(:) = 0;
     %rootPressureEdgeVector(rootSurfaceEdgeList{rootNr}) = 1;
     growingCellEdges = g.CE0T(st,:);
@@ -417,7 +424,7 @@ for solidParticle = 1 : length( solidParticleList )
         solidParticleList{ solidParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
-        rootVector, rootPressureEdgeVector, ...
+        rootVector, rootPressureEdgeVector, rootMucilageVector, ...
         NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -438,7 +445,7 @@ for POMParticle = 1 : length( POMParticleList )
         POMParticleList{ POMParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector,particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
-        rootVector, rootPressureEdgeVector, ...
+        rootVector, rootPressureEdgeVector, rootMucilageVector, ...
         NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -479,7 +486,7 @@ for particle = 1 : length( particleList )
         moveParticles( particleSize, bigParticleStencilLayers_individual, g, bulkVector, bulkTypeVector, ... 
         particleTypeVector, POMVector, POMconcVector, POMageVector, concAgent, ...
         concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,  ...
-        rootVector, rootPressureEdgeVector, ...    
+        rootVector, rootPressureEdgeVector, rootMucilageVector, ...    
         NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type);  
   
 
