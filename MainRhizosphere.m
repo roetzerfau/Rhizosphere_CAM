@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/testMain250.mat'; % contains initial state
+inputMat = 'Input/example_20.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 1000 ;    
+numOuterIt  = 100 ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -101,13 +101,15 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 rootNr = 1;
 rootCells_n_initial = 0;
 rootCellsCurrentAmount = rootCells_n_initial;
-rootCells_growingRate = 10;
-rootCells_shrinkingRate = -10;
+rootCells_growingRate = 4;
+rootCells_shrinkingRate = -4;
 rootCellsExpectedAmount = rootCellsCurrentAmount + rootCells_growingRate;
 isRootGrowing = true;
 
 rootVector = 0 * ones(g.numT, 1);
+rootWithConnectedBulk = 0 * ones(g.numT, 1);
 rootParticleList = {[]};
+rootPressureDistribution = 0 * ones(g.numT, 1);
 rootPressureEdgeVector = zeros(g.numCE,1);
 rootMucilageVector = zeros(g.numCE,1);
 N = g.NX;
@@ -172,6 +174,8 @@ visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdge
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', 0);
+visualizeDataSub(g, rootWithConnectedBulk, 'cellType', 'rootWithConnectedBulk', 0);
+visualizeDataSub(g, rootPressureDistribution, 'cellType', 'rootPressureDistribution', 0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -301,7 +305,7 @@ if(rootGrowingPotential>0)
         rootGrowingPotential = size(rootFreeCellsInd,1);
     end
     rootNewCellsInd = rootFreeCellsInd(1:rootGrowingPotential);
-
+    pressurePointsInd = rootNewCellsInd;
     %--------------------------------------
     st = stencil( g.NX, g.NX,rootNewCellsInd , 1);
 
@@ -311,7 +315,41 @@ if(rootGrowingPotential>0)
     growingCellEdges = g.CE0T(st,:);
     pressEdgesInd= intersect(rootSurfaceEdgeList{rootNr},growingCellEdges );
     rootPressureEdgeVector(pressEdgesInd) = 1;
-
+    %-------------------------------------------------------
+    % Pressure Distributoin
+    [X,Y] = meshgrid(1:N, 1:N);
+    rootPressureDistribution(:) = 0;
+    rootPressureDistribution = reshape(rootPressureDistribution, [N N]);
+    for i = 1:numel(pressurePointsInd)
+        
+        
+        X_0 = X(pressurePointsInd(i));
+        Y_0 = Y(pressurePointsInd(i));
+        F = -((X-X_0).^2 + (Y-Y_0).^2) +10 ;
+        rootPressureDistribution = rootPressureDistribution + F;
+    end
+    
+    rootPressureDistribution = reshape(rootPressureDistribution, [N*N 1]);
+    rootPressureDistribution = normalize(rootPressureDistribution,'range',[0 1]);
+    %rootPressureDistribution = reshape(rootPressureDistribution, [N N]);
+    %surf(X,Y,rootPressureDistribution);
+    %---------------------------------------------------------------------------------
+    %Mit wurzel verbundenMatch1
+    bulkVector_bw = (reshape(bulkVector, [N N]));
+   
+   % imshow(bulkVector_bw);
+    CC = bwconncomp(bulkVector_bw, 4);
+    %oo = cellfun(@(m)ismember(m,rootIntialCellInd),CC.PixelIdxList, 'UniformOutput', false);
+    oo = cellfun(@(m) m == rootIntialCellInd,CC.PixelIdxList, 'UniformOutput', false);
+    %Match = cellfun(@(c) find(c == rootIntialCellInd), CC.PixelIdxList, 'uniform', false);
+    Match1 = cellfun(@sum, oo);
+    Match = find(Match1 == 1);
+    if(~isempty(Match))
+    rootPlusConnectedBulkInd  =  CC.PixelIdxList{Match};
+    rootWithConnectedBulk(:)= 0;
+    rootWithConnectedBulk(rootPlusConnectedBulkInd) = 1;
+    end
+    A = 12;
 elseif(rootGrowingPotential<0)
     isRootGrowing = false;
     %-------------------------------
@@ -424,7 +462,7 @@ for solidParticle = 1 : length( solidParticleList )
         solidParticleList{ solidParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
-        rootVector, rootPressureEdgeVector, rootMucilageVector, ...
+        rootVector, rootPressureEdgeVector, rootPressureDistribution,rootMucilageVector, ...
         NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -445,7 +483,7 @@ for POMParticle = 1 : length( POMParticleList )
         POMParticleList{ POMParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector,particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
-        rootVector, rootPressureEdgeVector, rootMucilageVector, ...
+        rootVector,rootPressureEdgeVector,  rootPressureDistribution,rootMucilageVector, ...
         NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -486,7 +524,7 @@ for particle = 1 : length( particleList )
         moveParticles( particleSize, bigParticleStencilLayers_individual, g, bulkVector, bulkTypeVector, ... 
         particleTypeVector, POMVector, POMconcVector, POMageVector, concAgent, ...
         concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,  ...
-        rootVector, rootPressureEdgeVector, rootMucilageVector, ...    
+        rootVector, rootPressureEdgeVector,  rootPressureDistribution, rootMucilageVector, ...    
         NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type);  
   
 
@@ -535,7 +573,10 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', k);
-%     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
+visualizeDataSub(g, rootWithConnectedBulk, 'cellType', 'rootWithConnectedBulk', k);
+visualizeDataSub(g, rootPressureDistribution, 'cellType', 'rootPressureDistribution', k);
+    
+    %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  
 % %     visualizeDataEdges(g, concAgent, 'conc', 'agent', k);
 %     visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2);
