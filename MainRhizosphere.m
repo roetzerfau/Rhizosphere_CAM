@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state
+inputMat = 'Input/testMain250.mat'; % contains initial state
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 200 ;    
+numOuterIt  = 1000 ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -101,8 +101,8 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 rootNr = 1;
 rootCells_n_initial = 0;
 rootCellsCurrentAmount = rootCells_n_initial;
-rootCells_growingRate = 4;
-rootCells_shrinkingRate = -4;
+rootCells_growingRate = 15;
+rootCells_shrinkingRate = -15;
 rootCellsExpectedAmount = rootCellsCurrentAmount + rootCells_growingRate;
 isRootGrowing = true;
 
@@ -170,7 +170,7 @@ indices = reshape(indices,[N N]);
 % visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', 0, 2);
 % visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', 0, 2);
 % visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', 0, 2);
-visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
+%visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', 0);
@@ -217,6 +217,8 @@ if isRootGrowing
     for i = 1:numel(rootNewCellsInd)
         st = stencil(N,N,rootNewCellsInd(i),1);
         if(k ~= 1)
+            %look if continuous growing without holes or skipped
+            %connections
             isCellNeighboredRoot = sum(ismember(st(2:end),rootParticleList{rootNr}),'all') > 0;
             if(isCellNeighboredRoot == 0)
                 %fprintf('geht nicht')
@@ -272,7 +274,7 @@ else
     rootMucilageVector(:) = 0;
 end
 
-if(k < 0.5 * numOuterIt )
+if(k < 0.8 * numOuterIt )
     rate = rootCells_growingRate;
 else
     rate = rootCells_shrinkingRate;
@@ -325,7 +327,8 @@ if(rootGrowingPotential>0)
         
         X_0 = X(pressurePointsInd(i));
         Y_0 = Y(pressurePointsInd(i));
-        F = -((X-X_0).^2 + (Y-Y_0).^2) +10 ;
+        F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/10)^2 ;
+        F(F < 0) = 0;
         rootPressureDistributionVector = rootPressureDistributionVector + F;
     end
     
@@ -352,7 +355,10 @@ if(rootGrowingPotential>0)
     %-------------------------------------------------------------
     % Combine Pressure mit Connected with Root
     rootPressureDistributionVector = rootPressureDistributionVector.* rootWithConnectedBulk;
+    %todo
+    %rootPressureDistributionVector(rootPressureDistributionVector > 0) = normalize(rootPressureDistributionVector(rootPressureDistributionVector > 0),'range',[0 1]);
     
+    A = 12;
 elseif(rootGrowingPotential<0)
     isRootGrowing = false;
     %-------------------------------
@@ -458,7 +464,8 @@ for solidParticle = 1 : length( solidParticleList )
     % (=particleSize)
 %     bigParticleStencilLayers_individual = 1;
     bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
-    
+    meanPressure = mean(rootPressureDistributionVector(solidParticleList{ solidParticle }));
+    bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
 %   apply CAM for single solid building unit
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
@@ -479,7 +486,8 @@ for POMParticle = 1 : length( POMParticleList )
     % calculate stencil of POM particle depending on its area
 %     bigParticleStencilLayers_individual = 1;
     bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
-    
+     meanPressure = mean(rootPressureDistributionVector(POMParticleList{ POMParticle }));
+    bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
     % apply CAM for single POM particle
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
@@ -514,6 +522,9 @@ for particle = 1 : length( particleList )
     test_ind = particleList{particle}(1);
     
     bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+    meanPressure = mean(rootPressureDistributionVector( particleList{ particle }));
+    bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
+    
     % bigParticleStencilLayers_individual = 1;
     if particleSize > 20000
         bigParticleStencilLayers_individual = 0;
@@ -585,7 +596,7 @@ visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDis
 % %     visualizeDataEdges(g, concAgent, 'conc', 'agent', k);
 %     visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2);
 %     visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', k, 2);
-    visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', k,2);
+   % visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', k,2);
 %     visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', k, 2);
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 

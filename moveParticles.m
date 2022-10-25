@@ -107,7 +107,7 @@ if ~isempty( candidates )
                                  %* ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  pressureAttr = (bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m ))) ...
                                  * ( ~any( candidates( i , : ) == neighbours( 1 , m ))); 
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 100]) - pressureAttr;     
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 100]) - pressureAttr * 10;     
                                  if(pressureAttr > 0 && j == 1)
                                      pressureEdgeIndicator = 1;
                                  end
