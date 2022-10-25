@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 100 ;    
+numOuterIt  = 200 ;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -109,7 +109,7 @@ isRootGrowing = true;
 rootVector = 0 * ones(g.numT, 1);
 rootWithConnectedBulk = 0 * ones(g.numT, 1);
 rootParticleList = {[]};
-rootPressureDistribution = 0 * ones(g.numT, 1);
+rootPressureDistributionVector = 0 * ones(g.numT, 1);
 rootPressureEdgeVector = zeros(g.numCE,1);
 rootMucilageVector = zeros(g.numCE,1);
 N = g.NX;
@@ -175,7 +175,7 @@ visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdge
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', 0);
 visualizeDataSub(g, rootWithConnectedBulk, 'cellType', 'rootWithConnectedBulk', 0);
-visualizeDataSub(g, rootPressureDistribution, 'cellType', 'rootPressureDistribution', 0);
+visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -318,21 +318,21 @@ if(rootGrowingPotential>0)
     %-------------------------------------------------------
     % Pressure Distributoin
     [X,Y] = meshgrid(1:N, 1:N);
-    rootPressureDistribution(:) = 0;
-    rootPressureDistribution = reshape(rootPressureDistribution, [N N]);
+    rootPressureDistributionVector(:) = 0;
+    rootPressureDistributionVector = reshape(rootPressureDistributionVector, [N N]);
     for i = 1:numel(pressurePointsInd)
         
         
         X_0 = X(pressurePointsInd(i));
         Y_0 = Y(pressurePointsInd(i));
         F = -((X-X_0).^2 + (Y-Y_0).^2) +10 ;
-        rootPressureDistribution = rootPressureDistribution + F;
+        rootPressureDistributionVector = rootPressureDistributionVector + F;
     end
     
-    rootPressureDistribution = reshape(rootPressureDistribution, [N*N 1]);
-    rootPressureDistribution = normalize(rootPressureDistribution,'range',[0 1]);
-    %rootPressureDistribution = reshape(rootPressureDistribution, [N N]);
-    %surf(X,Y,rootPressureDistribution);
+    rootPressureDistributionVector = reshape(rootPressureDistributionVector, [N*N 1]);
+    rootPressureDistributionVector = normalize(rootPressureDistributionVector,'range',[0 1]);
+    %rootPressureDistributionVector = reshape(rootPressureDistributionVector, [N N]);
+    %surf(X,Y,rootPressureDistributionVector);
     %---------------------------------------------------------------------------------
     %Mit wurzel verbundenMatch1
     bulkVector_bw = (reshape(bulkVector, [N N]));
@@ -349,7 +349,10 @@ if(rootGrowingPotential>0)
     rootWithConnectedBulk(:)= 0;
     rootWithConnectedBulk(rootPlusConnectedBulkInd) = 1;
     end
-    A = 12;
+    %-------------------------------------------------------------
+    % Combine Pressure mit Connected with Root
+    rootPressureDistributionVector = rootPressureDistributionVector.* rootWithConnectedBulk;
+    
 elseif(rootGrowingPotential<0)
     isRootGrowing = false;
     %-------------------------------
@@ -367,6 +370,7 @@ elseif(rootGrowingPotential<0)
     %umgekehrte Reihenfolge
     rootDeadCellsInd = rootcurrentCellsInd(end + rootGrowingPotential +1:end);%end + rootGrowingPotential:end
     rootPressureEdgeVector(:) = 0;
+    rootPressureDistributionVector(:) = 0;
 %     [TR,d] = shortestpathtree(rootGraph,rootcurrentCellsInd,rootIntialCellInd);
 %     [sortedd, I] = sort(d);
 %     rootcurrentCellsInd = rootcurrentCellsInd(I);
@@ -462,7 +466,7 @@ for solidParticle = 1 : length( solidParticleList )
         solidParticleList{ solidParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
-        rootVector, rootPressureEdgeVector, rootPressureDistribution,rootMucilageVector, ...
+        rootVector, rootPressureEdgeVector, rootPressureDistributionVector,rootMucilageVector, ...
         NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -483,7 +487,7 @@ for POMParticle = 1 : length( POMParticleList )
         POMParticleList{ POMParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
         g, bulkVector, bulkTypeVector,particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
-        rootVector,rootPressureEdgeVector,  rootPressureDistribution,rootMucilageVector, ...
+        rootVector,rootPressureEdgeVector,  rootPressureDistributionVector,rootMucilageVector, ...
         NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type);  
 
 end
@@ -524,7 +528,7 @@ for particle = 1 : length( particleList )
         moveParticles( particleSize, bigParticleStencilLayers_individual, g, bulkVector, bulkTypeVector, ... 
         particleTypeVector, POMVector, POMconcVector, POMageVector, concAgent, ...
         concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,  ...
-        rootVector, rootPressureEdgeVector,  rootPressureDistribution, rootMucilageVector, ...    
+        rootVector, rootPressureEdgeVector,  rootPressureDistributionVector, rootMucilageVector, ...    
         NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type);  
   
 
@@ -573,8 +577,8 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', k);
-visualizeDataSub(g, rootWithConnectedBulk, 'cellType', 'rootWithConnectedBulk', k);
-visualizeDataSub(g, rootPressureDistribution, 'cellType', 'rootPressureDistribution', k);
+visualizeDataSub(g, rootWithConnectedBulk, 'cellType', 'rootWithConnectedBulk', k-1);
+visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k-1);
     
     %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  
