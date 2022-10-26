@@ -103,7 +103,7 @@ rootCells_n_initial = 0;
 rootCellsCurrentAmount = rootCells_n_initial;
 rootCells_growingRate = 15;
 rootCells_shrinkingRate = -15;
-rootCellsExpectedAmount = rootCellsCurrentAmount + rootCells_growingRate;
+rootCellsExpectedAmount = rootCellsCurrentAmount;
 isRootGrowing = true;
 
 rootVector = 0 * ones(g.numT, 1);
@@ -327,7 +327,7 @@ if(rootGrowingPotential>0)
         
         X_0 = X(pressurePointsInd(i));
         Y_0 = Y(pressurePointsInd(i));
-        F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/10)^2 ;
+        F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/4)^2 ;
         F(F < 0) = 0;
         rootPressureDistributionVector = rootPressureDistributionVector + F;
     end
@@ -337,7 +337,7 @@ if(rootGrowingPotential>0)
     %rootPressureDistributionVector = reshape(rootPressureDistributionVector, [N N]);
     %surf(X,Y,rootPressureDistributionVector);
     %---------------------------------------------------------------------------------
-    %Mit wurzel verbundenMatch1
+    %Mit pressure verbundenMatch1
     bulkVector_bw = (reshape(bulkVector, [N N]));
    
    % imshow(bulkVector_bw);
@@ -353,8 +353,14 @@ if(rootGrowingPotential>0)
     rootWithConnectedBulk(rootPlusConnectedBulkInd) = 1;
     end
     %-------------------------------------------------------------
+    
     % Combine Pressure mit Connected with Root
-    rootPressureDistributionVector = rootPressureDistributionVector.* rootWithConnectedBulk;
+    pressureArea = rootWithConnectedBulk;
+    pressureArea(pressurePointsInd) = 1;
+    pressureArea(rootParticleList{rootNr}) = 0;
+    rootPressureDistributionVector = rootPressureDistributionVector.*pressureArea;
+    
+    
     %todo
     %rootPressureDistributionVector(rootPressureDistributionVector > 0) = normalize(rootPressureDistributionVector(rootPressureDistributionVector > 0),'range',[0 1]);
     
@@ -372,7 +378,6 @@ elseif(rootGrowingPotential<0)
     end
     %d = distances(rootGraph);
     %d = d(rootcurrentCellsInd,rootIntialCellInd);
-    
     %umgekehrte Reihenfolge
     rootDeadCellsInd = rootcurrentCellsInd(end + rootGrowingPotential +1:end);%end + rootGrowingPotential:end
     rootPressureEdgeVector(:) = 0;

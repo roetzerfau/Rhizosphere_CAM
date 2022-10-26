@@ -33,7 +33,7 @@ time2 = tic;
 if ~isempty( candidates ) 
     solidPOMreactiveEdgeIndicator = 0;
     solidPOMmemoryEdgeIndicator = 0;
-    pressureEdgeIndicator =  0;
+    growingRootCell = 0;
 %% Movement: finding aims
     helping = zeros( size( candidates , 1 ) , 2 * stencilLayers * ( stencilLayers + 1 ) + 1 , size( candidates , 2 ) );
     % AnzKand x AnzNachbarn(stencil) x Kandgröße
@@ -100,16 +100,16 @@ if ~isempty( candidates )
                                  solidPOMmemoryAttr = (bulkVector(candidates( i , k ))* POMVector(neighbours( 1 , m )) * edgeChargeVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*edgeChargeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  
-                                 %solidRootMucilageAttr =  (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootMucilageVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
-                                 %* ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
-                                 solidRootMucilageAttr = 0;
+                                 solidRootMucilageAttr =  (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootMucilageVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
+                                 * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
+                                 %solidRootMucilageAttr = 0;
                                  %pressureAttr = (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootPressureEdgeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
                                  %* ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  pressureAttr = (bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m ))) ...
                                  * ( ~any( candidates( i , : ) == neighbours( 1 , m ))); 
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 100]) - pressureAttr * 10;     
-                                 if(pressureAttr > 0 && j == 1)
-                                     pressureEdgeIndicator = 1;
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) - pressureAttr * 11;     
+                                 if(pressureAttr == 1 && j == 1)
+                                     growingRootCell = 1;
                                  end
                                  if(solidPOMreactiveSurfAttr > 0 && j == 1)
                                      solidPOMreactiveEdgeIndicator = 1;
@@ -164,11 +164,11 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-%         elseif pressureEdgeIndicator == 1
-%                 %fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
-%                 aim(1) = -1;
-%                 aim( aim >= 0 ) = 0; 
-%                 [maximo , indMax] = max( aim( : ) );
+        elseif growingRootCell == 1
+                %fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
+                aim(1) = -1;
+                aim( aim >= 0 ) = 0; 
+                [maximo , indMax] = max( aim( : ) );
         else
                randNum = randi(100,1);
                %randNum = 0;
