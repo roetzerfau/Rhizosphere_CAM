@@ -105,10 +105,12 @@ if ~isempty( candidates )
                                  %solidRootMucilageAttr = 0;
                                  %pressureAttr = (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootPressureEdgeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
                                  %* ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
-                                 pressureAttr = (bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m ))) ...
-                                 * ( ~any( candidates( i , : ) == neighbours( 1 , m ))); 
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) - pressureAttr * 11;     
-                                 if(pressureAttr == 1 && j == 1)
+                                 pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
+                                      * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
+                                    % (bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m ))))...
+                                
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) - pressureAttr * 10;     
+                                 if(rootPressureDistributionVector(candidates( i , k ))  == 1 && j == 1)
                                      growingRootCell = 1;
                                  end
                                  if(solidPOMreactiveSurfAttr > 0 && j == 1)

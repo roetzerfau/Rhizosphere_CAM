@@ -171,7 +171,7 @@ indices = reshape(indices,[N N]);
 % visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', 0, 2);
 % visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', 0, 2);
 %visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
-visualizeDataEdges(g, rootMucilageVector, 'pressureEdges', 'rootMucilageVector', 0,2);
+visualizeDataEdges(g, rootMucilageVector, 'MucilageEdges', 'rootMucilageVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector, 'cellType', 'solu', 0);
@@ -553,7 +553,7 @@ for particle = 1 : length( particleList )
         bigParticleStencilLayers_individual = 0;
     end
     if bigParticleStencilLayers_individual == 0
-        continuevisualizeDataEdges(g, rootMucilageVector, 'pressureEdges', 'rootMucilageVector', k,2);
+        continue
     end
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
@@ -620,7 +620,7 @@ visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDis
 %     visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2);
 %     visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', k, 2);
    % visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', k,2);
-   visualizeDataEdges(g, rootMucilageVector, 'pressureEdges', 'rootMucilageVector', k,2);
+   visualizeDataEdges(g, rootMucilageVector, 'MucilageEdges', 'rootMucilageVector', k,2);
 %     visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', k, 2);
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
