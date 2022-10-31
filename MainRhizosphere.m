@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 250;    
+numOuterIt  = 100;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -58,9 +58,9 @@ parameters.rootGrowingRate = 1.05;
 parameters.rootShrinkingRate = 0.95;
 
 
-parameters.minConcMucilage = 0.1;
+parameters.minConcMucilage = 0.5;
 parameters.mucilageGrowingRate = 1.05;
-parameters.mucilageDecayRate = 0.0096;
+parameters.mucilageDecayRate = 0.096;%
 
 
 % add parameters concerning aging
@@ -116,6 +116,7 @@ rootParticleList = {[]};
 rootPressureDistributionVector = 0 * ones(g.numT, 1);
 rootPressureEdgeVector = zeros(g.numCE,1);
 rootMucilageVector = 0 * ones(g.numT, 1);
+mucilageConcVector = 0 * ones(g.numT, 1);
 N = g.NX;
 notConnectedEdgesValue = N*N * 2;
 
@@ -264,6 +265,27 @@ if isRootGrowing
     end    
 else
     
+%     for i = 1:numel(rootDeadCellsInd)
+%         
+%             neighInd = neighbors(rootGraph, rootDeadCellsInd(i));    
+%             rootNeighborCellsInd = neighInd(~ismember(neighInd,rootParticleList{rootNr}));
+%             
+%             h = rootDeadCellsInd(i) * ones(size(rootNeighborCellsInd,1),1);
+%             edgeInd = findedge(rootGraph, rootNeighborCellsInd, h);
+% 
+%             %nur van neumman weiterwachsen -> man dürfte nur Kanten mit 1 teilen
+%             if(rootGraph.Edges.Weight(edgeInd) < sqrt(2) * 1.1)
+%                 rootGraph.Edges.Weight(edgeInd) = rootGraph.Edges.Weight(edgeInd).*notConnectedEdgesValue;
+%             end
+%             rootVector(rootDeadCellsInd(i)) = 0;
+%             bulkVector(rootDeadCellsInd(i)) = 0;
+%             rootParticleList{rootNr} = rootParticleList{rootNr}(rootParticleList{rootNr} ~= rootDeadCellsInd(i));
+%         
+%     end
+    
+    [mucilageConcVector, rootVector, rootParticleList] = calculateMucilageDecay(g, parameters, bulkVector, rootVector, rootParticleList, mucilageConcVector);
+    rootDeadCellsInd = find( ( rootVector == 1 ) &  ( mucilageConcVector == 0 ) );
+    
     for i = 1:numel(rootDeadCellsInd)
         
             neighInd = neighbors(rootGraph, rootDeadCellsInd(i));    
@@ -281,8 +303,6 @@ else
             rootParticleList{rootNr} = rootParticleList{rootNr}(rootParticleList{rootNr} ~= rootDeadCellsInd(i));
         
     end
-    
-    
 end
 
 relMap = calculateRelativeDistanceMap(g,rootGraph,rootParticleList,rootVector,rootIntialCellInd);
@@ -293,6 +313,7 @@ rootCellsCurrentAmount = size(rootParticleList{rootNr},2);
 if(isRootGrowing)
     rootMucilageVector(:) = 0;
     rootMucilageVector = relMap.*rootVector >= 0.5;
+    mucilageConcVector = rootVector;
     %rootMucilageVector(rootSurfaceEdgeList{rootNr}) = 1;
 else
     rootMucilageVector(:) = 0;
@@ -636,6 +657,7 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector + rootMucilageVector * 5, 'cellType', 'solu', k);
+     visualizeDataSub(g, mucilageConcVector, 'cellType', 'conc', k);
     visualizeDataSub(g, relMap, 'cellType', 'relDist', k);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', k-1);
 visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k-1);
