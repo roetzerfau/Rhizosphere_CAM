@@ -100,8 +100,8 @@ if ~isempty( candidates )
                                  solidPOMmemoryAttr = (bulkVector(candidates( i , k ))* POMVector(neighbours( 1 , m )) * edgeChargeVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*edgeChargeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  
-                                 solidRootMucilageAttr =  (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootMucilageVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
-                                 * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
+                                 solidRootMucilageAttr =  (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
+                                  ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  %solidRootMucilageAttr = 0;
                                  %pressureAttr = (bulkVector(candidates( i , k )) * rootVector(neighbours( 1 , m )) * rootPressureEdgeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) ...
                                  %* ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
