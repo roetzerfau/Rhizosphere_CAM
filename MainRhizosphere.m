@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % 'randomPOMinputShapes'
 
 % Number of Time Steps
-numOuterIt  = 100;    
+numOuterIt  = 150;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -110,13 +110,17 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 %% Creating Initial Root
 
 rootVector = 0 * ones(g.numT, 1);
-relMap = 0 * ones(g.numT, 1);
-pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
 rootParticleList = {[]};
-rootPressureDistributionVector = 0 * ones(g.numT, 1);
-rootPressureEdgeVector = zeros(g.numCE,1);
 rootMucilageVector = 0 * ones(g.numT, 1);
 mucilageConcVector = 0 * ones(g.numT, 1);
+
+relMap = 0 * ones(g.numT, 1);
+pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
+
+rootPressureDistributionVector = 0 * ones(g.numT, 1);
+rootPressureEdgeVector = zeros(g.numCE,1);
+
+
 N = g.NX;
 notConnectedEdgesValue = N*N * 2;
 
@@ -312,7 +316,7 @@ rootCellsCurrentAmount = size(rootParticleList{rootNr},2);
 [rootSurfaceEdgeList] = getSolidSurfaceEdges(g,rootParticleList, rootVector);
 if(isRootGrowing)
     rootMucilageVector(:) = 0;
-    rootMucilageVector = relMap.*rootVector >= 0.5;
+    rootMucilageVector = relMap.*rootVector >= 0.66;
     mucilageConcVector = rootVector;
     %rootMucilageVector(rootSurfaceEdgeList{rootNr}) = 1;
 else
