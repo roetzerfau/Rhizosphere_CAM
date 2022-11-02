@@ -1,14 +1,13 @@
-function relDistanceMap = calculateRelativeDistanceMap(g,rootGraph,particleList, particleVector, rootInitialCellInd)
+function relDistanceMap = calculateRelativeDistanceMap(g,graph,particleList, particleVector, referenceCellInd)
     
     %relDistanceMap = zeros(size(particleVector));
     borderpoints = getParticleSurface(g,particleList, particleVector);
-    borderpoints = borderpoints{1};
     d_b = zeros(numel(particleVector),numel(borderpoints));
     for i = 1:numel(borderpoints)
-        d = distances(rootGraph, borderpoints(i));
+        d = distances(graph, borderpoints(i));
 %         img = reshape(d, [g.NX g.NX]);
 %         imshow(img, [])
-        d_max = d(rootInitialCellInd);
+        d_max = d(referenceCellInd);
         d = d./d_max;
         d(d>1) = 1;
         d_b(:,i) = d;

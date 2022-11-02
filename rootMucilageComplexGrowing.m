@@ -1,28 +1,13 @@
-function [rootComplexGraph, bulkVector, rootVector, mucilageVector, rootComplexParticleList, rootPressureDistributionVector] = ...
-rootMucilageComplexGrowing(g, parameters, rootComplexGraph, bulkVector, rootVector, mucilageVector, rootComplexParticleList,  rootSourceCell, rootNr)
-
-    %% Calculate Growing
+function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector] = ...
+rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  rootComplexList, amountNewCells)
     
-%     currentAmountRootComplexCells = numel(rootComplexParticleList{rootNr});
-%     
-%     newAmountRootComplexCells = ceil(currentAmountRootCells * (parameters.rootGrowingRate + );
-%     
-    
-    currentAmountRootCells = sum(rootVector, 'all');
-    currentAmountMucilageCells = sum(mucilageVector, 'all');
-    
-    
-    newAmountRootCells = ceil(currentAmountRootCells * parameters.rootGrowingRate);
-    diffAmountRootCells = currentAmountRootCells - newAmountRootCells;
-    
-    newAmountMucilageCells = ceil(currentAmountMucilageCells * parameters.mucilageGrowingRate);
-    diffAmountMucilageCells = currentAmountMucilageCells - newAmountMucilageCells;
-    
-    amountNewCells = diffAmountRootCells + diffAmountMucilageCells;
-    
+    N = g.NX;
+    rootSourceCell = rootComplexList(1);
+    notConnectedEdgesValue = N* N * 2;
+   
     %% Calculate possible Cells for Growing
     
-    freeCellsInd = find((rootVector + mucilageVector) ~= 1);
+    freeCellsInd = find((rootComplexVector) ~= 1);
     
     [TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
     
@@ -33,19 +18,18 @@ rootMucilageComplexGrowing(g, parameters, rootComplexGraph, bulkVector, rootVect
     %
     i = 1;
     newCellsInd = [];
-    while(amountNewCells >= numel(newCellsInd))
+    while(amountNewCells > numel(newCellsInd) && numel(freeCellsInd) >= i)
             st = stencil(g.NX,g.NX,freeCellsInd(i),1);
             %look if continuous growing without holes or skipped
             %connections
-            isCellNeighboredRoot = sum(ismember(st(2:end),rootComplexParticleList{rootNr}),'all') > 0;
-            if(isCellNeighboredRoot == 0)
-                continue;
+            isCellNeighboredRoot = sum(ismember(st(2:end),rootComplexList),'all') > 0;
+            if(isCellNeighboredRoot == 0)               
                 %fprintf('geht nicht')
             end
 
             if(bulkVector(freeCellsInd(i)) == 0 && isCellNeighboredRoot)
                 neighInd = neighbors(rootComplexGraph, freeCellsInd(i));    
-                rootBorderCellsInd = intersect(neighInd,rootComplexParticleList{rootNr});
+                rootBorderCellsInd = intersect(neighInd,rootComplexList);
 
                 h = freeCellsInd(i) * ones(size(rootBorderCellsInd,1),1);
                 edgeInd = findedge(rootComplexGraph, rootBorderCellsInd, h);
@@ -56,27 +40,29 @@ rootMucilageComplexGrowing(g, parameters, rootComplexGraph, bulkVector, rootVect
                     rootComplexGraph.Edges.Weight(edgeInd) = rootComplexGraph.Edges.Weight(edgeInd)./notConnectedEdgesValue;
                 end
                 bulkVector(freeCellsInd(i)) = 1;
-                rootComplexParticleList{rootNr} = [rootComplexParticleList{rootNr} freeCellsInd(i)];
+                rootComplexList = [rootComplexList freeCellsInd(i)];
                 newCellsInd = [newCellsInd freeCellsInd(i)];
             else
                 %fprintf('Cell cant grow \n');
             end
             i = i+1;      
     end 
-    %% Distinction between mucilage and root
-    %totalAmountCells = numel(rootComplexParticleList{rootNr});
-    
-    
-    
+
     
     
     
     %% Cells which couldnt grow are converted to pressure points
-    visitedFreeCells = 1:i;
-    growedFreeCells = (find(freeCellsInd == newCellsInd));
-    pressurePointsInd = freeCellsInd(visitedFreeCells ~= growedFreeCells);
-    
-    
+    visitedFreeCells = 1:i-1;
+    if(numel(newCellsInd) == 0)
+        pressurePointsInd = freeCellsInd;
+    else
+        growedFreeCells = sum(freeCellsInd == newCellsInd,2);
+        %pressurePointsInd = freeCellsInd(visitedFreeCells ~= growedFreeCells);
+        pressurePointsInd = freeCellsInd(visitedFreeCells);
+        pressurePointsInd = freeCellsInd(~growedFreeCells(visitedFreeCells));
+    end
+    pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
+    rootPressureDistributionVector = 0 * ones(g.numT, 1);
     %die zellen die nicht wachsen konnten druckpunkte
     %die freien cellen aus array rausmachen, die nächsten als Druckpunkte
     %Mit pressurePoints verbunden
@@ -117,7 +103,7 @@ rootMucilageComplexGrowing(g, parameters, rootComplexGraph, bulkVector, rootVect
     % Combine Pressure mit Connected with Root
     pressureArea = pressurePointsConnectedBulk;
     pressureArea(pressurePointsInd) = 1;
-    pressureArea(rootComplexParticleList{rootNr}) = 0;
+    pressureArea(rootComplexList) = 0;
     rootPressureDistributionVector = rootPressureDistributionVector.*pressureArea;
     
     
