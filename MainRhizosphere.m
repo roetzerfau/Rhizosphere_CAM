@@ -117,6 +117,8 @@ creatingInitialRootComplex(g, bulkVector);
 end
 bulkVector = bulkVector + rootVector + mucilageVector;
 rootPressureDistributionVector = zeros(g.numT, 1);
+borderpointsVector =  zeros(g.numT, 1);
+relMap = zeros(g.numT, 1);
 %Obstacle
 %bulkVector(N * N/4: N* (N/4+1)) = 1;
 %bulkVector(N * N/2 + N/2 +3:N * N/2 + N/2 +10) = 1;
@@ -129,7 +131,9 @@ rootPressureDistributionVector = zeros(g.numT, 1);
 %visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
-visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector + mucilageVector * 5, 'cellType', 'solu', 0);
+visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', 0);
+visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', 0);
+visualizeDataSub(g,  relMap, 'cellType', 'relM  ap', 0);
 %visualizeDataSub(g, relMap, 'cellType', 'relDist', 0);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', 0);
 visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
@@ -195,12 +199,7 @@ else
 end
 
 %% Distinction between mucilage and root
-%totalAmountCells = numel(rootComplexParticleList{rootNr});
-
-relMap = calculateRelativeDistanceMap(g,rootComplexGraph,rootComplexList,rootVector + mucilageVector ,rootComplexList(1));
-rootVector(rootComplexList) = relMap(rootComplexList) >=q;
-mucilageVector(rootComplexList) = relMap(rootComplexList) <q;
-
+[rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
 if true
 %% Doing the POM decay
 if POMdecayFlag == 1
@@ -391,9 +390,11 @@ T2 = tic;
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
-    visualizeDataSub(g, bulkVector + POMVector + rootVector + rootVector + mucilageVector * 5, 'cellType', 'solu', k);
+    visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k);
      visualizeDataSub(g, mucilageConcVector, 'cellType', 'conc', k);
-   % visualizeDataSub(g, relMap, 'cellType', 'relDist', k);
+     visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', k);
+    visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
+   
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', k-1);
 visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k-1);
     
