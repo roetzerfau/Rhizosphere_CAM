@@ -1,66 +1,69 @@
-function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector] = ...
+function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector , optimalFutureRootComplexList] = ...
 rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  rootComplexList, amountNewCells)
     
     N = g.NX;
     rootSourceCell = rootComplexList(1);
     notConnectedEdgesValue = N* N * 2;
-   
-    %% Calculate possible Cells for Growing
-    
-    freeCellsInd = find((rootComplexVector) ~= 1);
-    
-    [TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
-    
-    [sortedd, I] = sort(d);
-    
-    freeCellsInd = freeCellsInd(I);
-    
-    %
-    i = 1;
     newCellsInd = [];
-    while(amountNewCells > numel(newCellsInd) && numel(freeCellsInd) >= i)
-            st = stencil(g.NX,g.NX,freeCellsInd(i),1);
-            %look if continuous growing without holes or skipped
-            %connections
-            isCellNeighboredRoot = sum(ismember(st(2:end),rootComplexList),'all') > 0;
-            if(isCellNeighboredRoot == 0)               
-                %fprintf('geht nicht')
-            end
-
-            if(bulkVector(freeCellsInd(i)) == 0 && isCellNeighboredRoot)
-                neighInd = neighbors(rootComplexGraph, freeCellsInd(i));    
-                rootBorderCellsInd = intersect(neighInd,rootComplexList);
-
-                h = freeCellsInd(i) * ones(size(rootBorderCellsInd,1),1);
-                edgeInd = findedge(rootComplexGraph, rootBorderCellsInd, h);
-
-                %nur van neumman weiterwachsen -> man dürfte nur Kanten mit 1 teilen
-                %TODO sicher stellen dass überall richtige Werte
-                if(rootComplexGraph.Edges.Weight(edgeInd) >= sqrt(2) * 1.1)
-                    rootComplexGraph.Edges.Weight(edgeInd) = rootComplexGraph.Edges.Weight(edgeInd)./notConnectedEdgesValue;
-                end
-                bulkVector(freeCellsInd(i)) = 1;
-                rootComplexList = [rootComplexList freeCellsInd(i)];
-                newCellsInd = [newCellsInd freeCellsInd(i)];
-            else
-                %fprintf('Cell cant grow \n');
-            end
-            i = i+1;      
-    end 
-
+    %% Calculate possible Cells for Growing
+    % übereinstimung amountCell von freeCells mit borderpoints 
+    %diese wachsen, rest Druckpunkte
+    %neue Borderpunkte
+    % flaggen  connect mit Borderpoint pore -> wachsen
+    %          connect mit Borderpoint bulk -> druckpunkt   
+    %nach jedem durchgang updaten
+    %
+    %
     
-    
+    for i = 1:amountNewCells
+        % Suchen
+        freeCellsInd = find((rootComplexVector) ~= 1);
+        
+        [TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
+
+        [sortedd, I] = sort(d);
+        freeCellsInd = freeCellsInd(I);
+        
+        outerborder = sortedd < notConnectedEdgesValue * 1.1;%so könnte man theoretisch auch weit entferntest border pixel findne
+        outerborderInd = freeCellsInd(outerborder);
+        
+        newCellInd = outerborderInd(bulkVector(outerborderInd) == 0);
+        if(numel(newCellInd) ~= 0)
+            newCellInd = newCellInd(1);
+        else
+            %newCellInd = freeCellsInd(end);
+            newCellInd = [];
+            break;
+        end
+        
+        % Markieren
+        neighInd = neighbors(rootComplexGraph, newCellInd);    
+        rootBorderCellsInd = intersect(neighInd,rootComplexList);
+
+        h = newCellInd * ones(size(rootBorderCellsInd,1),1);
+        edgeInd = findedge(rootComplexGraph, rootBorderCellsInd, h);
+
+        %nur van neumman weiterwachsen -> man dürfte nur Kanten mit 1 teilen
+        %TODO sicher stellen dass überall richtige Werte
+        if(rootComplexGraph.Edges.Weight(edgeInd) >= sqrt(2) * 1.1)
+            rootComplexGraph.Edges.Weight(edgeInd) = rootComplexGraph.Edges.Weight(edgeInd)./notConnectedEdgesValue;
+        end
+        bulkVector(newCellInd) = 1;
+        rootComplexList = [rootComplexList newCellInd];
+        newCellsInd = [newCellsInd newCellInd];
+        
+        
+    end
+    if(numel(newCellInd) == 0)
+        t = max(amountNewCells, numel(outerborderInd));
+        pressurePointsInd = outerborderInd(1:t);   
+    else
+        k = find(freeCellsInd == newCellInd);
+        pressurePointsInd = freeCellsInd(1:k-1);   
+    end
     
     %% Cells which couldnt grow are converted to pressure points
-    visitedFreeCells = 1:i-1;
-    if(numel(newCellsInd) == 0)
-        pressurePointsInd = freeCellsInd;
-    else
-        growedFreeCells = sum(freeCellsInd == newCellsInd,2);
-        %pressurePointsInd = freeCellsInd(visitedFreeCells ~= growedFreeCells);
-        pressurePointsInd = freeCellsInd(visitedFreeCells);
-        pressurePointsInd = freeCellsInd(~growedFreeCells(visitedFreeCells));
-    end
+    
     pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
     rootPressureDistributionVector = 0 * ones(g.numT, 1);
     %die zellen die nicht wachsen konnten druckpunkte
@@ -105,13 +108,13 @@ rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  
     pressureArea(pressurePointsInd) = 1;
     pressureArea(rootComplexList) = 0;
     rootPressureDistributionVector = rootPressureDistributionVector.*pressureArea;
-    
-    
+    %weiß nicht ob nötig:
+    rootPressureDistributionVector(pressurePointsInd) = 1;
     %todo
     %rootPressureDistributionVector(rootPressureDistributionVector > 0) = normalize(rootPressureDistributionVector(rootPressureDistributionVector > 0),'range',[0 1]);
     
     
-    
+    optimalFutureRootComplexList = union(rootComplexList, pressurePointsInd);
     
     
     

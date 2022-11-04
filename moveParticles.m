@@ -107,7 +107,7 @@ if ~isempty( candidates )
                                  pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
                                       * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
                                   
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) - pressureAttr * 10;     
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) - pressureAttr * 15;     
                                  if(rootPressureDistributionVector(candidates( i , k ))  == 1 && j == 1)
                                      growingRootComplexCell = 1;
                                  end
