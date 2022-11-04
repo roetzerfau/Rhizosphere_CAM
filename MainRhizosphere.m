@@ -55,7 +55,7 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 % without attractive neighbor for N consecutive steps are relocated
 
 
-parameters.rootGrowingRate = 1.05;
+parameters.rootGrowingRate = 1.1;
 parameters.rootShrinkingRate = 0.95;
 
 
@@ -201,7 +201,10 @@ end
 %Randpunkten/mucilagee andockpunkte kennzeichnen
 %% Distinction between mucilage and root
 [rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
+a = sum(rootVector, 'all');
+b = sum(mucilageVector, 'all');
 %%compute futur attraktion points/mucilage
+nextMucilageBorderVector = zeros(g.numT, 1);
 if(q > 0)
     nextRootComplexVector = zeros(g.numT, 1);
     nextRootComplexVector(nextRootComplexList) = 1;
@@ -384,7 +387,7 @@ T2 = tic;
 % uDG(find((bulkVector == 1) & (particleTypeVector == 0)),1) = 2;
 
     %alt
-    if plot_frequency == 0 && k == numOuterItzeros(g.numT, 1);
+    if plot_frequency == 0 && k == numOuterItzeros(g.numT, 1)
 %     uLagr       = projectDG2LagrangeSub( uDG );
     visualizeDataSub(g, bulkVector + POMVector + rootVector, 'cellType', 'solu', k);
     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);

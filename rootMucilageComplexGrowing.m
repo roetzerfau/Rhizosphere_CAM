@@ -14,7 +14,8 @@ rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  
     %nach jedem durchgang updaten
     %
     %
-    
+    %Vielleicht nach jedem Wachstumsschritt move Particle von Partivle
+    %direkt am Wachstum dran 
     for i = 1:amountNewCells
         % Suchen
         freeCellsInd = find((rootComplexVector) ~= 1);
@@ -26,6 +27,13 @@ rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  
         
         outerborder = sortedd < notConnectedEdgesValue * 1.1;%so könnte man theoretisch auch weit entferntest border pixel findne
         outerborderInd = freeCellsInd(outerborder);
+        %outerborderInd(1) wenn da particle dran, dann moveParticle
+        %pro Zeitschritt:
+        % - es soll nur an der Wurzelbroder was wachsen
+        % es soll bei jedem wachsen, etwas weggestoßen werdne wenn nötig
+        occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
+        
+        
         
         newCellInd = outerborderInd(bulkVector(outerborderInd) == 0);
         if(numel(newCellInd) ~= 0)
