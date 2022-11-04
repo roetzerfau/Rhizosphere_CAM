@@ -1,10 +1,20 @@
-function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector , optimalFutureRootComplexList] = ...
-rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  rootComplexList, amountNewCells)
-    
+function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector , optimalFutureRootComplexList,...
+    bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
+    concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
+    POMParticleList, solidParticleList] = rootMucilageComplexGrowing...
+    (g, rootComplexGraph, bulkVector, rootComplexVector,  rootComplexList, amountNewCells,...
+    bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
+    concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
+    POMParticleList, solidParticleList,...
+     attraction_type)
+
     N = g.NX;
     rootSourceCell = rootComplexList(1);
     notConnectedEdgesValue = N* N * 2;
     newCellsInd = [];
+    %das ielleicht noch besser machen wie im haupteil
+    nextMucilageBorderVector = mucilageVector;
+    rootPressureDistributionVector = 0 * ones(g.numT, 1);
     %% Calculate possible Cells for Growing
     % übereinstimung amountCell von freeCells mit borderpoints 
     %diese wachsen, rest Druckpunkte
@@ -16,6 +26,7 @@ rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  
     %
     %Vielleicht nach jedem Wachstumsschritt move Particle von Partivle
     %direkt am Wachstum dran 
+
     for i = 1:amountNewCells
         % Suchen
         freeCellsInd = find((rootComplexVector) ~= 1);
@@ -31,9 +42,51 @@ rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  
         %pro Zeitschritt:
         % - es soll nur an der Wurzelbroder was wachsen
         % es soll bei jedem wachsen, etwas weggestoßen werdne wenn nötig
-        occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
+        
+        k = find((bulkVector(outerborderInd) == 0),1,'first');
+        pushaway = 0;
+        if(~isempty(k))
+            if(k > 1)
+            pushaway = 1;
+            end
+        else
+            pushaway = 1;
+            k = numel(outerborderInd);
+        end
         
         
+        if(pushaway)
+           
+            occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
+            for j = 1:k-1
+                
+                rootPressureDistributionVector(occupiedCellsInd(j)) = 1;
+                oo = cellfun(@(x) x==occupiedCellsInd(j), solidParticleList, 'UniformOutput', 0);
+                Match1 = cellfun(@sum, oo);
+                solidParticle = find(Match1 == 1);
+
+                if(~isempty(solidParticle))
+                    particleSize = length( solidParticleList{ solidParticle } ); 
+
+                    fileID =0;
+                    NZd = g.NX;
+                    bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+                    [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+                        nextMucilageBorderVector, rootPressureDistributionVector,...
+                        solidParticleList{ solidParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
+                        g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+                        nextMucilageBorderVector, rootPressureDistributionVector, ...
+                        NZd , fileID ,solidParticleList{ solidParticle },0,4,0, attraction_type);  
+
+                   erfolg = bulkVector( occupiedCellsInd(j)) == 0;
+                   if(erfolg == 1)
+                       break;
+                   end
+                end
+            end
+        end
         
         newCellInd = outerborderInd(bulkVector(outerborderInd) == 0);
         if(numel(newCellInd) ~= 0)
@@ -73,7 +126,7 @@ rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootComplexVector,  
     %% Cells which couldnt grow are converted to pressure points
     
     pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
-    rootPressureDistributionVector = 0 * ones(g.numT, 1);
+    rootPressureDistributionVector(:) = 0;
     %die zellen die nicht wachsen konnten druckpunkte
     %die freien cellen aus array rausmachen, die nächsten als Druckpunkte
     %Mit pressurePoints verbunden
