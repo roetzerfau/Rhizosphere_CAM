@@ -106,16 +106,20 @@ if ~isempty( candidates )
                                
                                  pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
                                       * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
-                                  
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) - pressureAttr * 20    ;     
-                                 if(rootPressureDistributionVector(candidates( i , k ))  == 1 && j == 1)
-                                     growingRootComplexCell = 1;
+                                 if(pressureAttr == 0)
+                                    aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]);    
+                                 else
+                                      aim( j ) = aim( j ) - pressureAttr * 10; 
                                  end
-                                 if(solidPOMreactiveSurfAttr > 0 && j == 1)
-                                     solidPOMreactiveEdgeIndicator = 1;
-                                 end
-                                 if(solidPOMmemoryAttr > 0 && j == 1)
-                                     solidPOMmemoryEdgeIndicator = 1;
+                                 if(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
+                                     aim( j ) = -Inf;
+                                 else
+                                     if(solidPOMreactiveSurfAttr > 0 && j == 1)
+                                         solidPOMreactiveEdgeIndicator = 1;
+                                     end
+                                     if(solidPOMmemoryAttr > 0 && j == 1)
+                                         solidPOMmemoryEdgeIndicator = 1;
+                                     end
                                  end
 
                        end % switch attraction_type                       
@@ -153,7 +157,7 @@ if ~isempty( candidates )
                %randNum = 0;
                if randNum > 95
                    aim(1) = -1;
-                   aim( aim >= 0 ) = 0; 
+                   aim( aim >= 0 ) = 0;     
                    [maximo , indMax] = max( aim( : ) );
                end
         elseif solidPOMreactiveEdgeIndicator == 1
@@ -164,11 +168,6 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-        elseif growingRootComplexCell == 1
-                %fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
-                aim(1) = -1;
-                aim( aim >= 0 ) = 0; 
-                [maximo , indMax] = max( aim( : ) );
         else
                randNum = randi(100,1);
                %randNum = 0;
@@ -177,7 +176,12 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-         end
+        end
+%         if growingRootComplexCell == 1
+%             %fprintf('pressureEdgeIndicator~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
+%             aim(1) = -1000;
+%             [maximo , indMax] = max( aim( : ) );
+%         end
 
      end
 %         end

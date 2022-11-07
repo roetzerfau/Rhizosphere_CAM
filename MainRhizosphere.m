@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat
+inputMat = 'Input/testMain250.mat'; % contains initial state testMain250.mat
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -191,6 +191,7 @@ amountNewCells = diffAmountRootCells + diffAmountMucilageCells;
 q = parameters.mucilageGrowingRate/(parameters.mucilageGrowingRate + parameters.rootGrowingRate);
 %bilanz
 if(amountNewCells > 0)
+    T_growing = tic;
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector, nextRootComplexList...
      bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
@@ -200,6 +201,7 @@ if(amountNewCells > 0)
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
     POMParticleList, solidParticleList,...
     attraction_type);
+    fprintf('Time for RootGrowing: %d \n', toc(T_growing))
 elseif(amountNewCells < 0)
     
 else

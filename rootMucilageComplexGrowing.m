@@ -47,19 +47,18 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         pushaway = 0;
         if(~isempty(k))
             if(k > 1)
-            pushaway = 1;
+                pushaway = 1;
             end
         else
             pushaway = 1;
             k = numel(outerborderInd);
         end
-        
-        
+        fprintf('k %d \n', k)
         if(pushaway)
            
             occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
             for j = 1:k-1
-                
+                rootPressureDistributionVector(:) = 0;
                 rootPressureDistributionVector(occupiedCellsInd(j)) = 1;
                 
                 
@@ -72,7 +71,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                     fileID =0;
                     NZd = g.NX;
-                    bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+                    bigParticleStencilLayers_individual = 5;
                     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
                         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
                         nextMucilageBorderVector, rootPressureDistributionVector,...
@@ -84,6 +83,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                    erfolg = bulkVector( occupiedCellsInd(j)) == 0;
                    if(erfolg == 1)
+                       fprintf('erfolg j %d \n',j)
                        break;
                    end
                 end
@@ -97,7 +97,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                     fileID =0;
                     NZd = g.NX;
-                    bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+                    bigParticleStencilLayers_individual = 5;
                     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
                         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
                         nextMucilageBorderVector, rootPressureDistributionVector,...
@@ -109,6 +109,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                    erfolg = bulkVector( occupiedCellsInd(j)) == 0;
                    if(erfolg == 1)
+                       fprintf('erfolg j %d \n',j)
                        break;
                    end
                 end
@@ -139,11 +140,12 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             rootComplexGraph.Edges.Weight(edgeInd) = rootComplexGraph.Edges.Weight(edgeInd)./notConnectedEdgesValue;
         end
         bulkVector(newCellInd) = 1;
+        rootComplexVector(newCellInd) = 1;
         rootComplexList = [rootComplexList newCellInd];
         newCellsInd = [newCellsInd newCellInd];
         
         
-    end
+   end
     if(numel(newCellInd) == 0)
         t = max(amountNewCells, numel(outerborderInd));
         pressurePointsInd = outerborderInd(1:t);   
@@ -185,7 +187,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         
         X_0 = X(pressurePointsConnectBulkInd(i));
         Y_0 = Y(pressurePointsConnectBulkInd(i));
-        F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/4)^2 ;
+        F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/2)^2 ;
         F(F < 0) = 0;
         rootPressureDistributionVector = rootPressureDistributionVector + F;
     end
