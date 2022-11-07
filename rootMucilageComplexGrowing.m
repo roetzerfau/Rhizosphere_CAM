@@ -61,10 +61,12 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             for j = 1:k-1
                 
                 rootPressureDistributionVector(occupiedCellsInd(j)) = 1;
+                
+                
                 oo = cellfun(@(x) x==occupiedCellsInd(j), solidParticleList, 'UniformOutput', 0);
                 Match1 = cellfun(@sum, oo);
                 solidParticle = find(Match1 == 1);
-
+                %solid Particle
                 if(~isempty(solidParticle))
                     particleSize = length( solidParticleList{ solidParticle } ); 
 
@@ -85,6 +87,33 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                        break;
                    end
                 end
+                
+                oo = cellfun(@(x) x==occupiedCellsInd(j), POMParticleList, 'UniformOutput', 0);
+                Match1 = cellfun(@sum, oo);
+                POMParticle = find(Match1 == 1);
+                %POM Particle
+                if(~isempty(POMParticle))
+                    particleSize = length( POMParticleList{ POMParticle } ); 
+
+                    fileID =0;
+                    NZd = g.NX;
+                    bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+                    [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+                        nextMucilageBorderVector, rootPressureDistributionVector,...
+                        POMParticleList{ POMParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
+                        g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+                        nextMucilageBorderVector, rootPressureDistributionVector, ...
+                        NZd , fileID ,POMParticleList{ POMParticle },0,4,0, attraction_type);  
+
+                   erfolg = bulkVector( occupiedCellsInd(j)) == 0;
+                   if(erfolg == 1)
+                       break;
+                   end
+                end
+                
+                
             end
         end
         
