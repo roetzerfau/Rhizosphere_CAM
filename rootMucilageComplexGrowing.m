@@ -15,6 +15,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
     %das ielleicht noch besser machen wie im haupteil
     nextMucilageBorderVector = mucilageVector;
     rootPressureDistributionVector = 0 * ones(g.numT, 1);
+
     %% Calculate possible Cells for Growing
     % übereinstimung amountCell von freeCells mit borderpoints 
     %diese wachsen, rest Druckpunkte
@@ -28,6 +29,8 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
     %direkt am Wachstum dran 
 
     for i = 1:amountNewCells
+        visitedSolidParticles = [];
+        visitedPOMParticles = [];
         % Suchen
         freeCellsInd = find((rootComplexVector) ~= 1);
         
@@ -65,8 +68,10 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                 oo = cellfun(@(x) x==occupiedCellsInd(j), solidParticleList, 'UniformOutput', 0);
                 Match1 = cellfun(@sum, oo);
                 solidParticle = find(Match1 == 1);
+                isTriedToPushAway = ismember(solidParticle, visitedSolidParticles);
                 %solid Particle
-                if(~isempty(solidParticle))
+                if(~isempty(solidParticle) && ~isTriedToPushAway)
+                    visitedSolidParticles = [visitedSolidParticles solidParticle];
                     particleSize = length( solidParticleList{ solidParticle } ); 
 
                     fileID =0;
@@ -91,8 +96,10 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                 oo = cellfun(@(x) x==occupiedCellsInd(j), POMParticleList, 'UniformOutput', 0);
                 Match1 = cellfun(@sum, oo);
                 POMParticle = find(Match1 == 1);
+                isTriedToPushAway = ismember(POMParticle, visitedPOMParticles);
                 %POM Particle
-                if(~isempty(POMParticle))
+                if(~isempty(POMParticle) && ~isTriedToPushAway)
+                    visitedPOMParticles = [visitedPOMParticles POMParticle];
                     particleSize = length( POMParticleList{ POMParticle } ); 
 
                     fileID =0;
@@ -145,7 +152,8 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         newCellsInd = [newCellsInd newCellInd];
         
         
-   end
+    end
+   %todo vielleicht pressurepoint nicht nur an border
     if(numel(newCellInd) == 0)
         t = max(amountNewCells, numel(outerborderInd));
         pressurePointsInd = outerborderInd(1:t);   

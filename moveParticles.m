@@ -103,31 +103,32 @@ if ~isempty( candidates )
                                  
                                  solidRootMucilageAttr =  (bulkVector(candidates( i , k )) * mucilageVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
                                   ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
-                               
-                                 pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
-                                      * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
-                                 if(pressureAttr == 0)
-                                    aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]);    
-                                 else
-                                      aim( j ) = aim( j ) - pressureAttr * 10; 
-                                 end
-                                 if(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
-                                     aim( j ) = -Inf;
-                                 else
-                                     if(solidPOMreactiveSurfAttr > 0 && j == 1)
-                                         solidPOMreactiveEdgeIndicator = 1;
-                                     end
-                                     if(solidPOMmemoryAttr > 0 && j == 1)
-                                         solidPOMmemoryEdgeIndicator = 1;
-                                     end
-                                 end
+                                                                
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]);    
 
-                       end % switch attraction_type                       
+                                 if(solidPOMreactiveSurfAttr > 0 && j == 1)
+                                     solidPOMreactiveEdgeIndicator = 1;
+                                 end
+                                 if(solidPOMmemoryAttr > 0 && j == 1)
+                                     solidPOMmemoryEdgeIndicator = 1;
+                                 end
+                             
+
+                      end % switch attraction_type     
                    end % for l
-                end % for k 
-            else
-                aim(j) = -1;
-            end % helping( i , j , 1 ) ~= candidates( i , 1 ) && helping( i , j , 1 ) ~= 0
+                   if(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
+                     aim( j ) = -Inf;
+                     solidPOMreactiveEdgeIndicator = 0;
+                     solidPOMmemoryEdgeIndicator = 0;
+                   end
+                   if(rootPressureDistributionVector(neighbours( 1 , 1 ))  <= 1 &&...
+                                     rootPressureDistributionVector(neighbours( 1 , 1 ))  >=0)
+                     aim( j ) = aim( j ) - rootPressureDistributionVector(neighbours( 1 , 1 )) * 20; 
+                   end
+               end % for k 
+           else
+              aim(j) = -1;
+           end % helping( i , j , 1 ) ~= candidates( i , 1 ) && helping( i , j , 1 ) ~= 0
         end % for j 
         
         % find the maximum of each column and its corresponding index
