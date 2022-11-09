@@ -3,7 +3,7 @@ function [ bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVec
     moveParticles( bulkSize , stencilLayers , g , bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector,...
     POMageVector, concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
     mucilageVector , rootPressureDistributionVector, NZd , fileID, ...
-    particleList ,sumAgent,typeflag,stencil_type, attraction_type, particle_index)
+    particleList ,sumAgent,typeflag,stencil_type, attraction_type,disablej1, particle_index)
 
 numBulkOld = sum( bulkVector );
 
@@ -51,10 +51,15 @@ if ~isempty( candidates )
         aim = zeros( 1 , size( helping , 2) );
         %aim( : ) = 0;help
         for j = 1 : size( helping , 2 ) % iteriere über nachbarn des kandidaten
+            
             for k = 1 : size( candidates , 2 )
                 % exclude possitions where there is bulk already except for the candidate itself
                 helping( i , j , 1 ) = helping( i , j , 1 ) * ( ( ~bulkVector( helping( i , j , k ) ) ) || ( any( candidates( i , : ) == helping( i , j , k ) ) ) );
             end % for k
+            if(disablej1 == 1 && j ==1)
+                aim( j ) = -Inf;
+                continue;
+            end
             %if helping( i , j , 1 ) ~= candidates( i , 1 ) && helping( i , j , 1 ) ~= 0
             if helping( i , j , 1 ) ~= 0 %potentiell freie Sprungstelle
                 for k = 1 : size( candidates , 2 ) %iteriere über Blöcke des Kandidaten
@@ -105,26 +110,27 @@ if ~isempty( candidates )
                                   ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                                                 
                                  aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]);    
-
-                                 if(solidPOMreactiveSurfAttr > 0 && j == 1)
-                                     solidPOMreactiveEdgeIndicator = 1;
-                                 end
-                                 if(solidPOMmemoryAttr > 0 && j == 1)
-                                     solidPOMmemoryEdgeIndicator = 1;
+                                 pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
+                                      * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
+                            
+                                 
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) * (1-pressureAttr);    
+                               
+                                 
+                                 if(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
+                                     aim( j ) = -Inf;
+                                 else
+                                     if(solidPOMreactiveSurfAttr > 0 && j == 1)
+                                         solidPOMreactiveEdgeIndicator = 1;
+                                     end
+                                     if(solidPOMmemoryAttr > 0 && j == 1)
+                                         solidPOMmemoryEdgeIndicator = 1;
+                                     end
                                  end
                              
 
                       end % switch attraction_type     
                    end % for l
-                   if(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
-                     aim( j ) = -Inf;
-                     solidPOMreactiveEdgeIndicator = 0;
-                     solidPOMmemoryEdgeIndicator = 0;
-                   end
-                   if(rootPressureDistributionVector(neighbours( 1 , 1 ))  <= 1 &&...
-                                     rootPressureDistributionVector(neighbours( 1 , 1 ))  >=0)
-                     aim( j ) = aim( j ) - rootPressureDistributionVector(neighbours( 1 , 1 )) * 20; 
-                   end
                end % for k 
            else
               aim(j) = -1;

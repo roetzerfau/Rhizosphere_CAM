@@ -29,8 +29,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
     %direkt am Wachstum dran 
 
     for i = 1:amountNewCells
-        visitedSolidParticles = [];
-        visitedPOMParticles = [];
+        
         % Suchen
         freeCellsInd = find((rootComplexVector) ~= 1);
         
@@ -47,6 +46,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         % es soll bei jedem wachsen, etwas weggestoßen werdne wenn nötig
         
         k = find((bulkVector(outerborderInd) == 0),1,'first');
+        freeSpots = find((bulkVector(outerborderInd) == 0));
         pushaway = 0;
         if(~isempty(k))
             if(k > 1)
@@ -57,73 +57,115 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             k = numel(outerborderInd);
         end
         fprintf('k %d \n', k)
-        if(pushaway)
-           
-            occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
-            for j = 1:k-1
+        if(pushaway) 
+            visitedSolidParticles = [];
+            visitedPOMParticles = [];
+            for j = 1:k-1    
+                occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
+                %find Connected Component
+                bulkVector_bw = (reshape(bulkVector, [N N]));
+                CC = bwconncomp(bulkVector_bw, 4);
+                oo = cellfun(@(m) m == occupiedCellsInd(j),CC.PixelIdxList, 'UniformOutput', false);
+                Match1 = cellfun(@sum, oo);
+                connectedCompInd = find(Match1 == 1);
+                
+                
+%                 oo = cellfun(@(x) x==occupiedCellsInd(j), solidParticleList, 'UniformOutput', 0);
+%                 Match1 = cellfun(@sum, oo);
+%                 solidParticle = find(Match1 == 1);
+
+                
+                %theoretisch müsste man weit wege Particle zu erst, letzter
+                %der direkt an Wurzel
+                %Find Solid ParticlesInd in this connected Area
+                if(~isempty(connectedCompInd))
+                    oo = cellfun(@(x) ismember(reshape(x',1,[]),CC.PixelIdxList{connectedCompInd}), solidParticleList, 'UniformOutput', false);
+                    Match1 = cellfun(@sum, oo);
+                    solidParticle = find(Match1 >= 1);
+                end
+%                 oo = cellfun(@(x) x==occupiedCellsInd(j), POMParticleList, 'UniformOutput', 0);
+%                 Match1 = cellfun(@sum, oo);
+%                 POMParticle = find(Match1 == 1);
+                
+                %Find POM ParticlesInd in this connected Area
+                if(~isempty(connectedCompInd))
+                oo = cellfun(@(x) ismember(reshape(x',1,[]),CC.PixelIdxList{connectedCompInd}), POMParticleList, 'UniformOutput', false);
+                Match1 = cellfun(@sum, oo);
+                POMParticle = find(Match1 >= 1);
+                end
                 rootPressureDistributionVector(:) = 0;
-                rootPressureDistributionVector(occupiedCellsInd(j)) = 1;
+                rootPressureDistributionVector(freeSpots) = 1;
                 
                 
-                oo = cellfun(@(x) x==occupiedCellsInd(j), solidParticleList, 'UniformOutput', 0);
-                Match1 = cellfun(@sum, oo);
-                solidParticle = find(Match1 == 1);
-                isTriedToPushAway = ismember(solidParticle, visitedSolidParticles);
+                
                 %solid Particle
-                if(~isempty(solidParticle) && ~isTriedToPushAway)
-                    visitedSolidParticles = [visitedSolidParticles solidParticle];
-                    particleSize = length( solidParticleList{ solidParticle } ); 
+                if(~isempty(solidParticle))
+                    isTriedToPushAway = 0;%ismember(solidParticle, visitedSolidParticles);
+                    if(~isTriedToPushAway)
+                        for p = 1:numel(solidParticle)
+                            particleSize = length( solidParticleList{ solidParticle(p) } ); 
 
-                    fileID =0;
-                    NZd = g.NX;
-                    bigParticleStencilLayers_individual = 5;
-                    [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
-                        nextMucilageBorderVector, rootPressureDistributionVector,...
-                        solidParticleList{ solidParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
-                        g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
-                        nextMucilageBorderVector, rootPressureDistributionVector, ...
-                        NZd , fileID ,solidParticleList{ solidParticle },0,4,0, attraction_type);  
+                            fileID =0;
+                            NZd = g.NX;
+                            bigParticleStencilLayers_individual = 5;
+                            [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+                                nextMucilageBorderVector, rootPressureDistributionVector,...
+                                solidParticleList{ solidParticle(p) },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
+                                g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+                                nextMucilageBorderVector, rootPressureDistributionVector, ...
+                                NZd , fileID ,solidParticleList{ solidParticle(p) },0,4,0, attraction_type, 1);  
 
-                   erfolg = bulkVector( occupiedCellsInd(j)) == 0;
-                   if(erfolg == 1)
-                       fprintf('erfolg j %d \n',j)
-                       break;
-                   end
+                           
+                        end
+                       erfolg = bulkVector( occupiedCellsInd(j)) == 0;
+                       if(erfolg == 1)
+                           fprintf('erfolg j %d \n',j)
+                           break;
+                       else
+                           visitedSolidParticles = [visitedSolidParticles solidParticle(p)];
+                       end
+                        
+                    end
                 end
                 
-                oo = cellfun(@(x) x==occupiedCellsInd(j), POMParticleList, 'UniformOutput', 0);
-                Match1 = cellfun(@sum, oo);
-                POMParticle = find(Match1 == 1);
-                isTriedToPushAway = ismember(POMParticle, visitedPOMParticles);
+%                 oo = cellfun(@(x) x==occupiedCellsInd(j), POMParticleList, 'UniformOutput', 0);
+%                 Match1 = cellfun(@sum, oo);
+%                 POMParticle = find(Match1 == 1);
+                
                 %POM Particle
-                if(~isempty(POMParticle) && ~isTriedToPushAway)
-                    visitedPOMParticles = [visitedPOMParticles POMParticle];
-                    particleSize = length( POMParticleList{ POMParticle } ); 
+                if(~isempty(POMParticle))
+                    isTriedToPushAway = 0;%ismember(POMParticle, visitedPOMParticles);
+                    if(~isTriedToPushAway)
+                        for p = 1:numel(POMParticle)
+                            particleSize = length( POMParticleList{ POMParticle(p) } ); 
 
-                    fileID =0;
-                    NZd = g.NX;
-                    bigParticleStencilLayers_individual = 5;
-                    [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
-                        nextMucilageBorderVector, rootPressureDistributionVector,...
-                        POMParticleList{ POMParticle },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
-                        g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                        concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
-                        nextMucilageBorderVector, rootPressureDistributionVector, ...
-                        NZd , fileID ,POMParticleList{ POMParticle },0,4,0, attraction_type);  
-
-                   erfolg = bulkVector( occupiedCellsInd(j)) == 0;
-                   if(erfolg == 1)
-                       fprintf('erfolg j %d \n',j)
-                       break;
-                   end
-                end
-                
-                
-            end
-        end
+                            fileID =0;
+                            NZd = g.NX;
+                            bigParticleStencilLayers_individual = 5;
+                            [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+                                nextMucilageBorderVector, rootPressureDistributionVector,...
+                                POMParticleList{ POMParticle(p) },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
+                                g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+                                nextMucilageBorderVector, rootPressureDistributionVector, ...
+                                NZd , fileID ,POMParticleList{ POMParticle(p) },0,4,0, attraction_type, 1);  
+                        end
+                       erfolg = bulkVector( occupiedCellsInd(j)) == 0;
+                       if(erfolg == 1)
+                           fprintf('erfolg j %d \n',j)
+                           break;
+                        else
+                           visitedPOMParticles = [visitedPOMParticles POMParticle(p)];
+                       end
+                    end   
+                end %POM Particle
+            end %k
+        end %pushaway
+ 
+       
         
         newCellInd = outerborderInd(bulkVector(outerborderInd) == 0);
         if(numel(newCellInd) ~= 0)
@@ -131,7 +173,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         else
             %newCellInd = freeCellsInd(end);
             newCellInd = [];
-            break;
+            break;%villeicht eher continue
         end
         
         % Markieren
@@ -152,7 +194,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         newCellsInd = [newCellsInd newCellInd];
         
         
-    end
+   end
    %todo vielleicht pressurepoint nicht nur an border
     if(numel(newCellInd) == 0)
         t = max(amountNewCells, numel(outerborderInd));
@@ -161,7 +203,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         k = find(freeCellsInd == newCellInd);
         pressurePointsInd = freeCellsInd(1:k-1);   
     end
-    
+    %pressurePointsInd = outerborderInd(:);
     %% Cells which couldnt grow are converted to pressure points
     
     pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
@@ -210,8 +252,8 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
     rootPressureDistributionVector = rootPressureDistributionVector.*pressureArea;
     %weiß nicht ob nötig:
     rootPressureDistributionVector(pressurePointsInd) = 1;
-    %todo
-    %rootPressureDistributionVector(rootPressureDistributionVector > 0) = normalize(rootPressureDistributionVector(rootPressureDistributionVector > 0),'range',[0 1]);
+%     todo
+%     rootPressureDistributionVector(rootPressureDistributionVector > 0) = normalize(rootPressureDistributionVector(rootPressureDistributionVector > 0),'range',[0 1]);
     
     
     optimalFutureRootComplexList = union(rootComplexList, pressurePointsInd);

@@ -9,7 +9,8 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/testMain250.mat'; % contains initial state testMain250.mat
+inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat
+%inputMat = 'FinalConfig/config.50.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -21,9 +22,9 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % every time step, randomly chosen from shapes given by
 % 'randomPOMinputShapes'
 
-inputRoot = '';
+%inputRoot = 'FinalConfig/rootConfig.50.mat';
 % Number of Time Steps
-numOuterIt  = 150;    
+numOuterIt  = 50;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -114,8 +115,9 @@ if false
 else
     [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph] = ...
 creatingInitialRootComplex(g, bulkVector);
-end
 bulkVector = bulkVector + rootVector + mucilageVector;
+end
+
 rootPressureDistributionVector = zeros(g.numT, 1);
 borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
@@ -175,7 +177,7 @@ for k = 1 : numOuterIt
     
 %% Root
 %erst mucilage Decay
-%[mucilageConcVector, rootVector, rootParticleList] = calculateMucilageDecay(g, parameters, bulkVector, rootVector, rootParticleList, mucilageConcVector);
+%[mucilageConcVector, rootVector, rootComplexList] = calculateMucilageDecay(g, parameters, bulkVector, mucilageVector, rootComplexList, mucilageConcVector);
 %root shrinking/growing
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = ceil(currentAmountRootCells * parameters.rootGrowingRate);
@@ -210,11 +212,13 @@ end
 %Randpunkten/mucilagee andockpunkte kennzeichnen
 %% Distinction between mucilage and root
 [rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
+mucilageConcVector(mucilageVector == 1) = 1;
 a = sum(rootVector, 'all');
 b = sum(mucilageVector, 'all');
 %%compute futur attraktion points/mucilage
 nextMucilageBorderVector = zeros(g.numT, 1);
 if(q > 0)
+    %das  vielleicht nicht machen.
     nextRootComplexVector = zeros(g.numT, 1);
     nextRootComplexVector(nextRootComplexList) = 1;
     nextMucilageBorderPoints = getParticleSurface(g,nextRootComplexList, nextRootComplexVector);
@@ -299,7 +303,7 @@ for solidParticle = 1 : length( solidParticleList )
         g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
         nextMucilageBorderVector, rootPressureDistributionVector, ...
-        NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type);  
+        NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type,0);  
 
 end
 
@@ -321,7 +325,7 @@ for POMParticle = 1 : length( POMParticleList )
         g, bulkVector, bulkTypeVector,particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
         nextMucilageBorderVector, rootPressureDistributionVector, ...
-        NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type);  
+        NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type,0);  
 
 end
 
@@ -365,7 +369,7 @@ for particle = 1 : length( particleList )
         particleTypeVector, POMVector, POMconcVector, POMageVector, concAgent, ...
         concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,  ...
         nextMucilageBorderVector, rootPressureDistributionVector, ...    
-        NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type);  
+        NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type,0);  
   
 
     if test_ind ~= changedList(1) % Listen müssen angepasst werden
@@ -482,6 +486,9 @@ numFreePOMparticles = length(indFreePOMparticles);
             'POMVector', 'POMageVector', 'POMParticleList', 'particleList', 'reactiveSurfaceVector', 'particleTypeVector',...
             'removedPOMparticles', 'removedPOMparticlesConc', 'timeRemovedPOMparticles')        
 %         particleList = particleListHelper;
+
+        fileName    = ['FinalConfig/rootConfig','.', num2str(k),'.mat']; 
+        save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph')       
     end
 
     
