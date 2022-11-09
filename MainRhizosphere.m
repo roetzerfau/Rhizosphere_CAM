@@ -10,7 +10,7 @@ attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4:
 
 % Input files
 inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat
-%inputMat = 'FinalConfig/config.50.mat';
+inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,9 +22,9 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % every time step, randomly chosen from shapes given by
 % 'randomPOMinputShapes'
 
-%inputRoot = 'FinalConfig/rootConfig.50.mat';
+inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
-numOuterIt  = 50;    
+numOuterIt  = 100;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -56,14 +56,22 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 % without attractive neighbor for N consecutive steps are relocated
 
 
-parameters.rootGrowingRate = 1.1;
-parameters.rootShrinkingRate = 0.95;
+parameters.rootGrowingRate = 1;
+parameters.rootShrinkingRate = 1;
 
 
 parameters.minConcMucilage = 0.5;
-parameters.mucilageGrowingRate = 1.05;
-parameters.mucilageDecayRate = 0.096;%
+parameters.mucilageGrowingRate = 1;
+parameters.mucilageDecayRate = 0.96;%
 
+
+% parameters.rootGrowingRate = 1.1;
+% parameters.rootShrinkingRate = 0.95;
+% 
+% 
+% parameters.minConcMucilage = 0.5;
+% parameters.mucilageGrowingRate = 1.05;
+% parameters.mucilageDecayRate = 0.096;%
 
 % add parameters concerning aging
 % add parameters for stencil sizes
@@ -110,7 +118,7 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 
 
 %% Creating Initial Root
-if false
+if true
     load(inputRoot,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph');
 else
     [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph] = ...
@@ -176,8 +184,10 @@ sumAgent = sum(concAgent);
 for k = 1 : numOuterIt
     
 %% Root
+%shrinking: wenn 
 %erst mucilage Decay
-%[mucilageConcVector, rootVector, rootComplexList] = calculateMucilageDecay(g, parameters, bulkVector, mucilageVector, rootComplexList, mucilageConcVector);
+[mucilageConcVector, mucilageVector, rootComplexList, bulkVector] = calculateMucilageDecay(g, parameters, bulkVector, mucilageVector, rootComplexList, mucilageConcVector);
+
 %root shrinking/growing
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = ceil(currentAmountRootCells * parameters.rootGrowingRate);
@@ -204,20 +214,23 @@ if(amountNewCells > 0)
     POMParticleList, solidParticleList,...
     attraction_type);
     fprintf('Time for RootGrowing: %d \n', toc(T_growing))
+
+    [rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
+    mucilageConcVector(mucilageVector == 1) = 1;
 elseif(amountNewCells < 0)
     
 else
+    nextRootComplexList = rootComplexList;
 end
 %wegschieben, aber auch höhere Attraktivität an möglichen zukünftigen
 %Randpunkten/mucilagee andockpunkte kennzeichnen
 %% Distinction between mucilage and root
-[rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
-mucilageConcVector(mucilageVector == 1) = 1;
+
 a = sum(rootVector, 'all');
 b = sum(mucilageVector, 'all');
 %%compute futur attraktion points/mucilage
 nextMucilageBorderVector = zeros(g.numT, 1);
-if(q > 0)
+if(false)
     %das  vielleicht nicht machen.
     nextRootComplexVector = zeros(g.numT, 1);
     nextRootComplexVector(nextRootComplexList) = 1;
@@ -225,7 +238,7 @@ if(q > 0)
     nextMucilageBorderVector = zeros(g.numT, 1);
     nextMucilageBorderVector(nextMucilageBorderPoints) = 1;
 end
-
+nextMucilageBorderVector = mucilageVector;
 if true
 %% Doing the POM decay
 if POMdecayFlag == 1
@@ -412,7 +425,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1 && (k <= 20 || mod(k,10) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 && (k <= 20 || mod(k,1) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
@@ -478,7 +491,7 @@ numFreePOMparticles = length(indFreePOMparticles);
 % printInfoTUM(k,bulkVector,POMconcVector, concPOMAgent, edgeChargeVector, POMsolidEdgeList,...
 %     numFreePOMparticles, numEdgeTypes, totalPOMinputConc, totalPOMoutputConc, sumExcessPOM, POMagentInput,...
 %     POMocclusion_total, POMocclusion_attractive);
-    if(k < 50 || mod(k,50) == 0 || k == numOuterIt)
+    if( mod(k,5) == 0 || k == numOuterIt)
 %         particleListHelper = particleList;
         particleList = solidParticleList;
         fileName    = ['FinalConfig/config','.', num2str(k),'.mat']; 

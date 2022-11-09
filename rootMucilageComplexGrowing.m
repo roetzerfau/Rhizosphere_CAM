@@ -62,6 +62,9 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             visitedPOMParticles = [];
             for j = 1:k-1    
                 occupiedCellsInd = outerborderInd(bulkVector(outerborderInd) == 1);
+                if(numel(occupiedCellsInd) < j) %das ist blöd, vielleicht k anders definieren
+                    break;
+                end
                 %find Connected Component
                 bulkVector_bw = (reshape(bulkVector, [N N]));
                 CC = bwconncomp(bulkVector_bw, 4);
@@ -107,7 +110,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                             fileID =0;
                             NZd = g.NX;
-                            bigParticleStencilLayers_individual = 5;
+                            bigParticleStencilLayers_individual = 1;
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
                                 concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
                                 nextMucilageBorderVector, rootPressureDistributionVector,...
@@ -143,7 +146,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                             fileID =0;
                             NZd = g.NX;
-                            bigParticleStencilLayers_individual = 5;
+                            bigParticleStencilLayers_individual = 1;
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
                                 concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
                                 nextMucilageBorderVector, rootPressureDistributionVector,...

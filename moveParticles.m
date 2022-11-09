@@ -34,7 +34,7 @@ time2 = tic;
 if ~isempty( candidates ) 
     solidPOMreactiveEdgeIndicator = 0;
     solidPOMmemoryEdgeIndicator = 0;
-    growingRootComplexCell = 0;
+    particleRootMucilageIndicator = 0;
 %% Movement: finding aims
     helping = zeros( size( candidates , 1 ) , 2 * stencilLayers * ( stencilLayers + 1 ) + 1 , size( candidates , 2 ) );
     % AnzKand x AnzNachbarn(stencil) x Kandgröße
@@ -106,18 +106,20 @@ if ~isempty( candidates )
                                  solidPOMmemoryAttr = (bulkVector(candidates( i , k ))* POMVector(neighbours( 1 , m )) * edgeChargeVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*edgeChargeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  
-                                 solidRootMucilageAttr =  (bulkVector(candidates( i , k )) * mucilageVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
+                                 particleRootMucilageAttr =  (bulkVector(candidates( i , k )) * mucilageVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
                                   ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                                                 
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]);    
+                                 
                                  pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
                                       * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
                             
                                  
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr solidRootMucilageAttr * 15]) * (1-pressureAttr);    
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr particleRootMucilageAttr * 10]) * (1-pressureAttr);    
                                
-                                 
-                                 if(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
+                                 if(particleRootMucilageAttr > 0 && j == 1)
+                                        aim( j ) = +Inf;
+                                        particleRootMucilageIndicator = 1;
+                                 elseif(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
                                      aim( j ) = -Inf;
                                  else
                                      if(solidPOMreactiveSurfAttr > 0 && j == 1)
@@ -127,6 +129,7 @@ if ~isempty( candidates )
                                          solidPOMmemoryEdgeIndicator = 1;
                                      end
                                  end
+
                              
 
                       end % switch attraction_type     
@@ -175,11 +178,13 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
+        elseif particleRootMucilageIndicator == 1
+
         else
                randNum = randi(100,1);
                %randNum = 0;
                if randNum > 75
-%                    aim(1) = -1;
+                   aim(1) = -1;
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
