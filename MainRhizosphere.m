@@ -9,8 +9,8 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat
-inputMat = 'Input/config.90.mat';
+inputMat = 'Input/BlankDomain_20.mat'; % contains initial state testMain250.mat   example_20.mat
+%inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
 % inputPOMmat = 'Input/POMinputTest.mat';
@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % every time step, randomly chosen from shapes given by
 % 'randomPOMinputShapes'
 
-inputRoot = 'Input/rootConfig.90.mat';
+%inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
 numOuterIt  = 100;    
 
@@ -56,22 +56,22 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 % without attractive neighbor for N consecutive steps are relocated
 
 
-parameters.rootGrowingRate = 1;
-parameters.rootShrinkingRate = 1;
-
-
-parameters.minConcMucilage = 0.5;
-parameters.mucilageGrowingRate = 1;
-parameters.mucilageDecayRate = 0.96;%
-
-
-% parameters.rootGrowingRate = 1.1;
-% parameters.rootShrinkingRate = 0.95;
+% parameters.rootGrowingRate = 1;
+% parameters.rootShrinkingRate = 1;
 % 
 % 
 % parameters.minConcMucilage = 0.5;
-% parameters.mucilageGrowingRate = 1.05;
-% parameters.mucilageDecayRate = 0.096;%
+% parameters.mucilageGrowingRate = 1;
+% parameters.mucilageDecayRate = 0.96;%
+
+
+parameters.rootGrowingRate = 1.1;
+parameters.rootShrinkingRate = 0.95;
+
+
+parameters.minConcMucilage = 0.5;
+parameters.mucilageGrowingRate = 1.05;
+parameters.mucilageDecayRate = 0.096;%
 
 % add parameters concerning aging
 % add parameters for stencil sizes
@@ -118,7 +118,7 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 
 
 %% Creating Initial Root
-if true
+if false
     load(inputRoot,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph');
 else
     [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph] = ...
@@ -186,7 +186,7 @@ for k = 1 : numOuterIt
 %% Root
 %shrinking: wenn 
 %erst mucilage Decay
-[mucilageConcVector, mucilageVector, rootComplexList, bulkVector] = calculateMucilageDecay(g, parameters, bulkVector, mucilageVector, rootComplexList, mucilageConcVector);
+%[mucilageConcVector, mucilageVector, rootComplexList, bulkVector] = calculateMucilageDecay(g, parameters, bulkVector, mucilageVector, rootComplexList, mucilageConcVector);
 
 %root shrinking/growing
 currentAmountRootCells = sum(rootVector, 'all');
@@ -207,7 +207,7 @@ if(amountNewCells > 0)
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector, nextRootComplexList...
      bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
-    POMParticleList, solidParticleList] = ...
+    POMParticleList, solidParticleList, newCellsInd] = ...
     rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootVector + mucilageVector, rootComplexList,amountNewCells,...
     bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
