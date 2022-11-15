@@ -73,6 +73,7 @@ parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 1.05;
 parameters.mucilageDecayRate = 0.096;%
 
+parameters.mucilageGrowing = 1;
 % add parameters concerning aging
 % add parameters for stencil sizes
 % add parameters for probabilities of breaking up
@@ -206,7 +207,7 @@ amountNewCells = diffAmountRootCells;
 %behelf
 q = parameters.mucilageGrowingRate/(parameters.mucilageGrowingRate + parameters.rootGrowingRate);
 %bilanz
-if(amountNewCells > 0)
+if(amountNewCells >  0 && k <= 20)
     T_growing = tic;
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector, nextRootComplexList...
      bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
@@ -241,13 +242,18 @@ freeCellsInd = freeCellsInd(I);
 outerborder = sortedd < notConnectedEdgesValue * 1.1;
 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
 outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
+if(k > 30)
+    parameters.mucilageGrowing = 0;
+end
 
-
-
+T_mucilage = tic;
 [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
+fprintf('Time for RootGrowing: %d \n', toc(T_mucilage))
 %------------------------------
-
-
+mucilageParticleList = cell(1,1);
+mucilageParticleList{1} = find(mucilageVector == 1);
+mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
+reactiveSurfaceVector(mucilageSolidEdgeList{1}) = 1;
 
 
 %wegschieben, aber auch höhere Attraktivität an möglichen zukünftigen

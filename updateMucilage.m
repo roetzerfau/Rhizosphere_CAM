@@ -26,13 +26,15 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     %------------------------------------------------------------------------------------------
     %%Wachsen von Zellen am Rand
-    for i = 1:numel(outerRootBorderInd)
-        if( bulkVector(outerRootBorderInd(i)) == 0 )
-        mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + 0.5;
+    if(p.mucilageGrowing == 1)
+        for i = 1:numel(outerRootBorderInd)
+            if( bulkVector(outerRootBorderInd(i)) == 0 )
+            mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + 1.0;
+            end
         end
-    end
-    [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
-     %------------------------------------------------------------------------------------------
+        [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
+    end 
+    %------------------------------------------------------------------------------------------
     
     %(Cellen an Wurzel && freie Zelle) mmüssen Conc 1 haben
     %für jede Zelle wird nächstgelenden verbundene BorderZelle gesucht. 
@@ -70,13 +72,14 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
             mucilageConcVector(nextFreeCellsInd(index)) = min (1, conNFC + overshootValue);
             diffConc = mucilageConcVector(nextFreeCellsInd(index)) - conNFC;
             overshootValue = overshootValue - diffConc;
+            mucilageConcVector(overshootConcInd(i)) = 1 + overshootValue;
         end
     end
     [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
-    
-     [mucilageConcVector] = calculateMucilageDecay(g, p.mucilageDecayRate, bulkVector, mucilageVector, mucilageConcVector);
-     [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
 
+         [mucilageConcVector] = calculateMucilageDecay(g, p.mucilageDecayRate, bulkVector, mucilageVector, mucilageConcVector);
+         [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
+    
     %----------------------------------------------------------------
 end
 
