@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/BlankDomain_20.mat'; % contains initial state testMain250.mat   example_20.mat
+inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -69,7 +69,7 @@ parameters.rootGrowingRate = 1.1;
 parameters.rootShrinkingRate = 0.95;
 
 
-parameters.minConcMucilage = 0.5;
+parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 1.05;
 parameters.mucilageDecayRate = 0.096;%
 
@@ -119,13 +119,14 @@ fileID = fopen( 'Move_bulk_log_file' , 'w' );
 
 %% Creating Initial Root
 if false
-    load(inputRoot,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph');
+    load(inputRoot,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph', 'mucilageGraph');
 else
-    [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph] = ...
+    [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph,mucilageGraph] = ...
 creatingInitialRootComplex(g, bulkVector);
 bulkVector = bulkVector + rootVector + mucilageVector;
 end
-
+global notConnectedEdgesValue;
+notConnectedEdgesValue = g.NX* g.NX * 2;
 rootPressureDistributionVector = zeros(g.numT, 1);
 borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
@@ -142,6 +143,9 @@ relMap = zeros(g.numT, 1);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', 0);
+visualizeDataSub(g, rootVector , 'cellType', 'root', 0);
+visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
+    visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc',0);
 %visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', 0);
 %visualizeDataSub(g,  relMap, 'cellType', 'relM  ap', 0);
 %visualizeDataSub(g, relMap, 'cellType', 'relDist', 0);
@@ -197,7 +201,7 @@ currentAmountMucilageCells = sum(mucilageVector, 'all');
 newAmountMucilageCells = ceil(currentAmountMucilageCells * parameters.mucilageGrowingRate);
 diffAmountMucilageCells = newAmountMucilageCells - currentAmountMucilageCells;
    
-amountNewCells = diffAmountRootCells + diffAmountMucilageCells;
+amountNewCells = diffAmountRootCells;
     
 %behelf
 q = parameters.mucilageGrowingRate/(parameters.mucilageGrowingRate + parameters.rootGrowingRate);
@@ -208,20 +212,44 @@ if(amountNewCells > 0)
      bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
     POMParticleList, solidParticleList, newCellsInd] = ...
-    rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootVector + mucilageVector, rootComplexList,amountNewCells,...
+    rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootVector, rootComplexList, amountNewCells,...
     bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
     POMParticleList, solidParticleList,...
     attraction_type);
     fprintf('Time for RootGrowing: %d \n', toc(T_growing))
 
-    [rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
-    mucilageConcVector(mucilageVector == 1) = 1;
+%     [rootVector, mucilageVector] = getTopologyOfRootMucilageByQuotient(g,rootComplexGraph,rootComplexList, q);
+%     mucilageConcVector(mucilageVector == 1) = 1;
+    rootVector(:) = 0;
+    rootVector(rootComplexList) = 1;
 elseif(amountNewCells < 0)
     
 else
     nextRootComplexList = rootComplexList;
 end
+
+%-----------------------------------
+rootSourceCell = rootComplexList(1);
+freeCellsInd = find((rootVector) ~= 1);
+
+[TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
+
+[sortedd, I] = sort(d);
+freeCellsInd = freeCellsInd(I);
+
+outerborder = sortedd < notConnectedEdgesValue * 1.1;
+%TODO hier vielleicht nochmal eukliduscher Abstand berechnne
+outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
+
+
+
+[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
+%------------------------------
+
+
+
+
 %wegschieben, aber auch höhere Attraktivität an möglichen zukünftigen
 %Randpunkten/mucilagee andockpunkte kennzeichnen
 %% Distinction between mucilage and root
@@ -308,6 +336,7 @@ for solidParticle = 1 : length( solidParticleList )
     bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
     meanPressure = mean(rootPressureDistributionVector(solidParticleList{ solidParticle }));
     bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
+    %bulkMucilageVector = bulkVector + mucilageVector;
 %   apply CAM for single solid building unit
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
@@ -317,7 +346,7 @@ for solidParticle = 1 : length( solidParticleList )
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
         nextMucilageBorderVector, rootPressureDistributionVector, ...
         NZd , fileID ,solidParticleList{ solidParticle },sumAgent,4,0, attraction_type,0);  
-
+     %bulkVector = bulkMucilageVector - mucilageVector;
 end
 
 %% Movement of POM particles
@@ -331,6 +360,7 @@ for POMParticle = 1 : length( POMParticleList )
      meanPressure = mean(rootPressureDistributionVector(POMParticleList{ POMParticle }));
     bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
     % apply CAM for single POM particle
+    %bulkMucilageVector = bulkVector + mucilageVector;
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
         nextMucilageBorderVector, rootPressureDistributionVector,...
@@ -339,7 +369,7 @@ for POMParticle = 1 : length( POMParticleList )
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
         nextMucilageBorderVector, rootPressureDistributionVector, ...
         NZd , fileID , POMParticleList{ POMParticle },sumAgent,4,0, attraction_type,0);  
-
+    %bulkVector = bulkMucilageVector - mucilageVector;
 end
 
 % tic
@@ -352,7 +382,7 @@ if bigJumping == 1
     
 % identify all aggregates consisting of solid building units and POM
 % particles
-[particleList, particleContent] = particleInfoTUM(bulkVector-(rootVector + mucilageVector), solidParticleList, POMParticleList, rootComplexList);
+[particleList, particleContent] = particleInfoTUM(bulkVector-(rootVector), solidParticleList, POMParticleList, rootComplexList);
 for particle = 1 : length( particleList )
     particleSize = length( particleList{ particle } ); 
     if(size(particleContent{particle},1)<2)% kein Verbund
@@ -374,6 +404,7 @@ for particle = 1 : length( particleList )
     if bigParticleStencilLayers_individual == 0
         continue
     end
+    %bulkMucilageVector = bulkVector + mucilageVector;
     [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
         concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
         nextMucilageBorderVector, rootPressureDistributionVector,...
@@ -383,7 +414,7 @@ for particle = 1 : length( particleList )
         concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,  ...
         nextMucilageBorderVector, rootPressureDistributionVector, ...    
         NZd , fileID ,particleList{ particle },sumAgent,4,0, attraction_type,0);  
-  
+   % bulkVector = bulkMucilageVector - mucilageVector;
 
     if test_ind ~= changedList(1) % Listen müssen angepasst werden
         sten_ind = find(stencil(g.NX,g.NX,test_ind,bigParticleStencilLayers_individual)==changedList(1));
@@ -430,6 +461,9 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k);
+    visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc', k);
+    visualizeDataSub(g, rootVector , 'cellType', 'root', k);
+visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', k);
     % visualizeDataSub(g, mucilageConcVector, 'cellType', 'conc', k);
   %   visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', k);
     %visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
@@ -501,7 +535,7 @@ numFreePOMparticles = length(indFreePOMparticles);
 %         particleList = particleListHelper;
 
         fileName    = ['FinalConfig/rootConfig','.', num2str(k),'.mat']; 
-        save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph')       
+        save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph','mucilageGraph')       
     end
 
     

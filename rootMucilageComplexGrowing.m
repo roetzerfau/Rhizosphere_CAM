@@ -63,7 +63,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         cellOfInterestInd = outerborderInd(index);
         cellOfInterestIndVector = [cellOfInterestIndVector, cellOfInterestInd];
         visitedNTimes = sum(cellOfInterestIndVector == cellOfInterestInd);
-        if(visitedNTimes > 2)
+        if(visitedNTimes > 3)
             index = index +1;
             continue;
         end

@@ -1,4 +1,4 @@
-function [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph] = ...
+function [rootVector, mucilageVector, mucilageConcVector, rootComplexList, rootComplexGraph, mucilageGraph] = ...
 creatingInitialRootComplex(g, bulkVector)
 
     N = g.NX;
@@ -27,6 +27,7 @@ creatingInitialRootComplex(g, bulkVector)
     adj = adj .*notConnectedEdgesValue;
 
     rootComplexGraph = graph(adj);
+    mucilageGraph = rootComplexGraph;
     clear adj diagVec1 diagVec2 diagVec3 diagVec4
 
     %find nearest pore space to center of domain 
