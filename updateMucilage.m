@@ -1,4 +1,4 @@
-function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, p, bulkVector, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph)
+function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, p, bulkVector,removedBorderInd, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph)
     
     %----------------------------------------------------------------
     %bei wegschieben, bekommt nächstgelende freie(kein Bulk, beliebige Konzetration) Zelle Con
@@ -8,24 +8,26 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     mucilageAmount_before = sum(mucilageConcVector_before);
     
     %mucilageConcVector(bulkVector == 1) = 0;
-    distributedMucilageInd = find(bulkVector ==1 & mucilageVector ==1);
+    distributedMucilageInd = find(bulkVector ==1 & mucilageConcVector > 0);
     for i = 1:numel(distributedMucilageInd)
-        mucilageConcVector(distributedMucilageInd(i))= 0;
+        
         overshootValue = mucilageConcVector_before(distributedMucilageInd(i));
         nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph,distributedMucilageInd(i), 5, 0);
         if(numel(nextFreeCellsInd) > 0)
+            mucilageConcVector(distributedMucilageInd(i))= 0;
             mucilageConcVector(nextFreeCellsInd(1)) = mucilageConcVector(nextFreeCellsInd(1)) + overshootValue;
         else
             %mucilageConcVector = mucilageConcVector_before;
         end
+        [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end
     mucilageAmount_after = sum(mucilageConcVector);
     if(abs(mucilageAmount_before - mucilageAmount_after) > 0.0001)
           error('Falsch wegdrücken')
     end
-    [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
+    
     %------------------------------------------------------------------------------------------
-    %%Wachsen von Zellen am Rand
+    %% Wachsen von Zellen am Rand
     mucilageConcVector_before = mucilageConcVector;
     mucilageAmount_before = sum(mucilageConcVector_before);
     if(p.mucilageGrowing == 1)
@@ -38,10 +40,15 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     end 
     mucilageAmount_after = sum(mucilageConcVector);
     if(abs(mucilageAmount_before - mucilageAmount_after) > numel(outerRootBorderInd))
-          error('Falsch wegdrücken')
+          error('Falsch wachsen rand')
     end
     %------------------------------------------------------------------------------------------
-    
+    %% geschrumpfte Wurzel
+    if(~isempty(removedBorderInd))
+        for i = 1:numel(removedBorderInd)
+            mucilageConcVector(removedBorderInd(i)) = 1;
+        end
+    end
     %(Cellen an Wurzel && freie Zelle) mmüssen Conc 1 haben
     %für jede Zelle wird nächstgelenden verbundene BorderZelle gesucht. 
     %von den so viel abzapfen bis wieder 1. 
@@ -62,7 +69,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     
     %------------------------------------------------------------------------------------------
     
-    %suche nach von Überschuss -> zelle nächste verbundene Zelle, aber kleiner als 1;
+    %% suche nach von Überschuss -> zelle nächste verbundene Zelle, aber kleiner als 1;
     mucilageConcVector_before = mucilageConcVector;
     mucilageAmount_before = sum(mucilageConcVector_before);
     overshootConcInd = find(mucilageConcVector > 1);
@@ -82,14 +89,21 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
             overshootValue = overshootValue - diffConc;
             mucilageConcVector(overshootConcInd(i)) = 1 + overshootValue;
         end
+        [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end
      mucilageAmount_after = sum(mucilageConcVector);
     if(abs(mucilageAmount_before - mucilageAmount_after) > 0.0001)
-          error('Falsch wegdrücken')
+          error('Falsch überschuss')
     end
-    [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
-
+    
+     mucilageConcVector_before = mucilageConcVector;
+     mucilageAmount_before = sum(mucilageConcVector_before);
      [mucilageConcVector] = calculateMucilageDecay(g, p.mucilageDecayRate, bulkVector, mucilageVector, mucilageConcVector);
+     
+     mucilageAmount_after = sum(mucilageConcVector);
+    if((mucilageAmount_before - mucilageAmount_after) < 0)%hier schauen
+          error('Falsch decay %d \n',mucilageAmount_before - mucilageAmount_after)
+    end
      [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     
     %----------------------------------------------------------------
@@ -109,7 +123,7 @@ function ind = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, 
             %stilll connected, also entweder ist mucilage mi weniger
             %konzentration oder direkter nachbar
             if(isDirectConnected ==1)
-                directConnected = sortedd < notConnectedEdgesValue * 1.1;  
+                directConnected = sortedd < notConnectedEdgesValue * sqrt(2);  
                 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
                 directConnectedInd = freeCellsInd(directConnected);%heeeeeeree
                 ind = directConnectedInd;

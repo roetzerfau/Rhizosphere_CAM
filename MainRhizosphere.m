@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat
+inputMat = 'Input/testMain250.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -24,7 +24,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 
 %inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
-numOuterIt  = 100;    
+numOuterIt  = 1000;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -66,14 +66,22 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 
 
 parameters.rootGrowingRate = 1.1;
-parameters.rootShrinkingRate = 0.95;
+parameters.rootShrinkingRate = 0.9;
 
 
 parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 1.05;
-parameters.mucilageDecayRate = 0.25;%
+parameters.mucilageDecayRate = 0.33;%
 
 parameters.mucilageGrowing = 1;
+
+TrootGrowingBegin = 0;
+TrootGrowingEnd = 80;
+TrootShrinkingBegin = 100;
+TrootShrinkingEnd = 130;
+TmucilageGrowingBegin = 0;
+TmucilageGrowingEnd = 100;
+
 % add parameters concerning aging
 % add parameters for stencil sizes
 % add parameters for probabilities of breaking up
@@ -131,6 +139,7 @@ notConnectedEdgesValue = g.NX* g.NX * 2;
 rootPressureDistributionVector = zeros(g.numT, 1);
 borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
+deadCells = [];
 %Obstacle
 %bulkVector(N * N/4: N* (N/4+1)) = 1;
 %bulkVector(N * N/2 + N/2 +3:N * N/2 + N/2 +10) = 1;
@@ -197,25 +206,32 @@ for k = 1 : numOuterIt
 
 %root shrinking/growing
 currentAmountRootCells = sum(rootVector, 'all');
-newAmountRootCells = ceil(currentAmountRootCells * parameters.rootGrowingRate);
+newAmountRootCells = 0;
+if(TrootGrowingBegin < k && k < TrootGrowingEnd)
+    newAmountRootCells = ceil(currentAmountRootCells * parameters.rootGrowingRate);
+elseif(TrootShrinkingBegin < k && k < TrootShrinkingEnd)
+    newAmountRootCells = ceil(currentAmountRootCells * parameters.rootShrinkingRate);
+else
+    newAmountRootCells = currentAmountRootCells;
+end
 diffAmountRootCells = newAmountRootCells - currentAmountRootCells;
 %dann mucilage wachsen
 currentAmountMucilageCells = sum(mucilageVector, 'all');
 newAmountMucilageCells = ceil(currentAmountMucilageCells * parameters.mucilageGrowingRate);
 diffAmountMucilageCells = newAmountMucilageCells - currentAmountMucilageCells;
    
-amountNewCells = diffAmountRootCells;
+amountChangeCells = diffAmountRootCells;
     
 %behelf
 q = parameters.mucilageGrowingRate/(parameters.mucilageGrowingRate + parameters.rootGrowingRate);
 %bilanz
-if(amountNewCells >  0 && k <= 20)
+if(amountChangeCells >  0)
     T_growing = tic;
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector, nextRootComplexList...
      bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
     POMParticleList, solidParticleList, newCellsInd] = ...
-    rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootVector, rootComplexList, amountNewCells,...
+    rootMucilageComplexGrowing(g, rootComplexGraph, bulkVector, rootVector, rootComplexList, amountChangeCells,...
     bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
     POMParticleList, solidParticleList,...
@@ -226,8 +242,11 @@ if(amountNewCells >  0 && k <= 20)
 %     mucilageConcVector(mucilageVector == 1) = 1;
     rootVector(:) = 0;
     rootVector(rootComplexList) = 1;
-elseif(amountNewCells < 0)
-    
+elseif(amountChangeCells < 0)
+    amountChangeCells = abs(amountChangeCells);
+    deadCells = rootComplexList(end-amountChangeCells:end);
+    [rootComplexGraph, bulkVector, rootVector, rootComplexList] = rootMucilageComplexShrinking(rootComplexGraph, bulkVector, rootVector, rootComplexList, deadCells);
+    %vielleicht doch kein springen in mucialge
 else
     nextRootComplexList = rootComplexList;
 end
@@ -431,15 +450,17 @@ freeCellsInd = find((rootVector) ~= 1);
 [sortedd, I] = sort(d);
 freeCellsInd = freeCellsInd(I);
 
-outerborder = sortedd < notConnectedEdgesValue * 1.1;
+outerborder = sortedd < notConnectedEdgesValue * 1.1;%hier vielleicht falsch ne doch nciht
 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
 outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
-if(k > 30)
+if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
+    parameters.mucilageGrowing = 1;
+else
     parameters.mucilageGrowing = 0;
 end
 
 T_mucilage = tic;
-[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
+[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, deadCells, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
 fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))
 %sumMu = sum(mucilageConcVector)
 %------------------------------
@@ -468,7 +489,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1 && (k <= 20 || mod(k,1) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 && (k <= 20 || mod(k,5) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);

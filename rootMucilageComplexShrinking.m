@@ -1,14 +1,10 @@
-function [rootComplexGraph, bulkVector, rootVector, mucilageVector, rootComplexParticleList, rootPressureDistributionVector] = ...
-    rootMucilageComplexShrinking(g, parameters, rootComplexGraph, bulkVector, rootVector, mucilageVector, rootComplexParticleList,  rootSourceCell, rootNr)
-    
-
- [mucilageConcVector, rootVector, rootParticleList] = calculateMucilageDecay(g, parameters, bulkVector, rootVector, rootParticleList, mucilageConcVector);
-    rootDeadCellsInd = find( ( rootVector == 1 ) &  ( mucilageConcVector == 0 ) );
-    
+function [rootGraph, bulkVector, rootVector, rootParticleList] = ...
+    rootMucilageComplexShrinking(rootGraph, bulkVector, rootVector, rootParticleList,  rootDeadCellsInd)
+    global notConnectedEdgesValue;
     for i = 1:numel(rootDeadCellsInd)
         
             neighInd = neighbors(rootGraph, rootDeadCellsInd(i));    
-            rootNeighborCellsInd = neighInd(~ismember(neighInd,rootParticleList{rootNr}));
+            rootNeighborCellsInd = neighInd(~ismember(neighInd,rootParticleList));
             
             h = rootDeadCellsInd(i) * ones(size(rootNeighborCellsInd,1),1);
             edgeInd = findedge(rootGraph, rootNeighborCellsInd, h);
@@ -19,7 +15,7 @@ function [rootComplexGraph, bulkVector, rootVector, mucilageVector, rootComplexP
             end
             rootVector(rootDeadCellsInd(i)) = 0;
             bulkVector(rootDeadCellsInd(i)) = 0;
-            rootParticleList{rootNr} = rootParticleList{rootNr}(rootParticleList{rootNr} ~= rootDeadCellsInd(i));
+            rootParticleList = rootParticleList(rootParticleList ~= rootDeadCellsInd(i));
         
     end
 
