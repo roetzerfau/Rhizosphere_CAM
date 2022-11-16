@@ -152,6 +152,8 @@ visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
 %visualizeDataSub(g, relMap, 'cellType', 'relDist', 0);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', 0);
 visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
+     visualizeDataSub(g, bulkVector, 'cellType', 'bulk', 0);
+     visualizeDataSub(g, POMVectorr, 'cellType', 'pom',0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -231,31 +233,6 @@ else
 end
 
 %-----------------------------------
-rootSourceCell = rootComplexList(1);
-freeCellsInd = find((rootVector) ~= 1);
-
-[TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
-
-[sortedd, I] = sort(d);
-freeCellsInd = freeCellsInd(I);
-
-outerborder = sortedd < notConnectedEdgesValue * 1.1;
-%TODO hier vielleicht nochmal eukliduscher Abstand berechnne
-outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
-if(k > 30)
-    parameters.mucilageGrowing = 0;
-end
-
-T_mucilage = tic;
-[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
-fprintf('Time for RootGrowing: %d \n', toc(T_mucilage))
-%------------------------------
-mucilageParticleList = cell(1,1);
-mucilageParticleList{1} = find(mucilageVector == 1);
-mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
-reactiveSurfaceVector(mucilageSolidEdgeList{1}) = 1;
-
-
 %wegschieben, aber auch höhere Attraktivität an möglichen zukünftigen
 %Randpunkten/mucilagee andockpunkte kennzeichnen
 %% Distinction between mucilage and root
@@ -328,7 +305,9 @@ POMagentAge = calculatePOMagentAge(parameters, POMagentAge, edgeChargeVector, co
 % end
 
 end
-   
+
+
+
 
 %% Movement of solid building units
 T_start = tic;
@@ -442,6 +421,33 @@ end
 fprintf('Time for relocation: %d \n', toc(T_start))
 end
 end
+
+%% mucilage
+rootSourceCell = rootComplexList(1);
+freeCellsInd = find((rootVector) ~= 1);
+
+[TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
+
+[sortedd, I] = sort(d);
+freeCellsInd = freeCellsInd(I);
+
+outerborder = sortedd < notConnectedEdgesValue * 1.1;
+%TODO hier vielleicht nochmal eukliduscher Abstand berechnne
+outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
+if(k > 30)
+    parameters.mucilageGrowing = 0;
+end
+
+T_mucilage = tic;
+[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
+fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))
+%sumMu = sum(mucilageConcVector)
+%------------------------------
+mucilageParticleList = cell(1,1);
+mucilageParticleList{1} = find(mucilageVector == 1);
+mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
+reactiveSurfaceVector(mucilageSolidEdgeList{1}) = 1;
+
 %%
 T2 = tic;
 
@@ -487,7 +493,8 @@ visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDis
 %     visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', k, 2);
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
-     %visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k);
+     visualizeDataSub(g, bulkVector, 'cellType', 'bulk', k);
+     visualizeDataSub(g, POMVectorr, 'cellType', 'pom', k);
      %visualizeDataSub(g, rootVector, 'root', 'root', k);
     end
 

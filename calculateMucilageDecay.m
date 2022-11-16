@@ -9,7 +9,7 @@ function [mucilageConcVector] = ...
         st = stencil( g.NX, g.NX, ind, 1);
 
         concOld = mucilageConcVector(ind);
-        neigh = (bulkVector +mucilageVector);
+        neigh = (bulkVector + mucilageVector) >= 1;
         decayRate = mucilageDecayRate * (4-sum( neigh(st(2:end))))/4;
         particleVector = bulkVector;
         if( sum(particleVector(st(2:end))) >= 1)

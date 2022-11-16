@@ -162,7 +162,7 @@ if ~isempty( candidates )
         % enable random breaking up
         % if current position is the most&& maximo < 0 attractive
 %         if aim(1)==maximo
-        if solidPOMmemoryEdgeIndicator == 1
+        if solidPOMmemoryEdgeIndicator == 1 && particleRootMucilageIndicator ~=1
                randNum = randi(100,1);
                %randNum = 0;
                if randNum > 95
@@ -170,7 +170,7 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0;     
                    [maximo , indMax] = max( aim( : ) );
                end
-        elseif solidPOMreactiveEdgeIndicator == 1
+        elseif solidPOMreactiveEdgeIndicator == 1 && particleRootMucilageIndicator ~=1
                randNum = randi(100,1);
                %randNum = 0;
                if randNum > 90
