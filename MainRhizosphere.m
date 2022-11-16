@@ -71,7 +71,7 @@ parameters.rootShrinkingRate = 0.95;
 
 parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 1.05;
-parameters.mucilageDecayRate = 0.096;%
+parameters.mucilageDecayRate = 0.25;%
 
 parameters.mucilageGrowing = 1;
 % add parameters concerning aging
@@ -153,7 +153,7 @@ visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', 0);
 visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
      visualizeDataSub(g, bulkVector, 'cellType', 'bulk', 0);
-     visualizeDataSub(g, POMVectorr, 'cellType', 'pom',0);
+     visualizeDataSub(g, POMVector, 'cellType', 'pom',0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -494,7 +494,7 @@ visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDis
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
      visualizeDataSub(g, bulkVector, 'cellType', 'bulk', k);
-     visualizeDataSub(g, POMVectorr, 'cellType', 'pom', k);
+     visualizeDataSub(g, POMVector, 'cellType', 'pom', k);
      %visualizeDataSub(g, rootVector, 'root', 'root', k);
     end
 
