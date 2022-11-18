@@ -47,6 +47,21 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             outerborder = sortedd < notConnectedEdgesValue * 1.1;
             %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
             outerborderInd = freeCellsInd(outerborder);%heeeeeeree 
+            
+            
+            v = g.V0T(rootSourceCell,:);
+            coordSource = mean(g.coordV(v,:),1);
+            
+            d = zeros(numel(outerborderInd),1);
+            for i = 1:numel(outerborderInd)
+                v = g.V0T(outerborderInd(i),:);
+                coord = mean(g.coordV(v,:),1);
+                X = [coord; coordSource];
+                d(i) = pdist(X,'euclidean');
+            end
+            [sortedd, I] = sort(d);
+            outerborderInd = outerborderInd(I);
+            %d = pdist(X,'euclidean');
             freeSpots = find((bulkVector(outerborderInd) == 0));
             %cellOfInterestIndVector = [];%vielleicht auch hier
             if(numel(outerborderInd) == 0)
@@ -64,7 +79,6 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         cellOfInterestIndVector = [cellOfInterestIndVector, cellOfInterestInd];
         visitedNTimes = sum(cellOfInterestIndVector == cellOfInterestInd);
         if(visitedNTimes > 3)
-            index = index +1;
             continue;
         end
         if(numel(newCellsInd) == ceil(requieredAmountNewCells/2))
@@ -181,19 +195,20 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             rootComplexList = [rootComplexList newCellInd];
             newCellsInd = [newCellsInd newCellInd];
             
+            
             index = 0;
             newCellGrowed = 1;
         else
             %klappt nicht 
         end 
     end
- 
-   if(numel(newCellsInd) < requieredAmountNewCells)
-       diff = requieredAmountNewCells - numel(newCellsInd);
-       pressurePointsInd = outerborderInd(:);
-   else
-       pressurePointsInd = [];
-   end
+   pressurePointsInd = setdiff(cellOfInterestIndVector,newCellsInd);
+%    if(numel(newCellsInd) < requieredAmountNewCells)
+%        diff = requieredAmountNewCells - numel(newCellsInd);
+%        pressurePointsInd = outerborderInd(:);
+%    else
+%        pressurePointsInd = [];
+%    end
 
       
     %% Cells which couldnt grow are converted to pressure points

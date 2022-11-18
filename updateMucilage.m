@@ -1,4 +1,4 @@
-function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, p, bulkVector,removedBorderInd, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph)
+function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, p, extraConcAmount, bulkVector,removedBorderInd,  outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph)
     
     %----------------------------------------------------------------
     %bei wegschieben, bekommt nächstgelende freie(kein Bulk, beliebige Konzetration) Zelle Con
@@ -28,27 +28,23 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     
     %------------------------------------------------------------------------------------------
     %% Wachsen von Zellen am Rand
-    mucilageConcVector_before = mucilageConcVector;
-    mucilageAmount_before = sum(mucilageConcVector_before);
+    
     if(p.mucilageGrowing == 1)
         for i = 1:numel(outerRootBorderInd)
             if( bulkVector(outerRootBorderInd(i)) == 0 && mucilageConcVector(outerRootBorderInd(i)) <= 5 )
-               mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + 1.0;
+               mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + extraConcAmount;
             end
         end
         [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end 
-    mucilageAmount_after = sum(mucilageConcVector);
-    if(abs(mucilageAmount_before - mucilageAmount_after) > numel(outerRootBorderInd))
-          error('Falsch wachsen rand')
-    end
+
     %------------------------------------------------------------------------------------------
     %% geschrumpfte Wurzel
-    if(~isempty(removedBorderInd))
-        for i = 1:numel(removedBorderInd)
-            mucilageConcVector(removedBorderInd(i)) = 1;
-        end
-    end
+%     if(~isempty(removedBorderInd))
+%         for i = 1:numel(removedBorderInd)
+%             mucilageConcVector(removedBorderInd(i)) = 1;
+%         end
+%     end
     %(Cellen an Wurzel && freie Zelle) mmüssen Conc 1 haben
     %für jede Zelle wird nächstgelenden verbundene BorderZelle gesucht. 
     %von den so viel abzapfen bis wieder 1. 

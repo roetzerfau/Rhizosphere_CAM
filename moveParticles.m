@@ -114,7 +114,7 @@ if ~isempty( candidates )
                                       * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
                             
                                  
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr particleRootMucilageAttr * 10]) * (1-pressureAttr);    
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr particleRootMucilageAttr * 10]) - pressureAttr * 15;%* (1-pressureAttr);    
                                
                                  if(particleRootMucilageAttr > 0 && j == 1)
                                         aim( j ) = +Inf;

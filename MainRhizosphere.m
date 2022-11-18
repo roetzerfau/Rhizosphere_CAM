@@ -66,21 +66,19 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 
 
 parameters.rootGrowingRate = 1.1;
-parameters.rootShrinkingRate = 0.9;
+parameters.rootShrinkingRate = 0.95;
 
 
 parameters.minConcMucilage = 0.1;
-parameters.mucilageGrowingRate = 1.05;
-parameters.mucilageDecayRate = 0.33;%
-
-parameters.mucilageGrowing = 1;
+parameters.mucilageGrowingRate = 0.05;
+parameters.mucilageDecayRate = 0.96;%
 
 TrootGrowingBegin = 0;
-TrootGrowingEnd = 80;
-TrootShrinkingBegin = 100;
-TrootShrinkingEnd = 130;
+TrootGrowingEnd = 82.5;%80
+TrootShrinkingBegin = 1000;
+TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
-TmucilageGrowingEnd = 100;
+TmucilageGrowingEnd = 82.5;%80
 
 % add parameters concerning aging
 % add parameters for stencil sizes
@@ -153,16 +151,16 @@ deadCells = [];
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', 0);
-visualizeDataSub(g, rootVector , 'cellType', 'root', 0);
-visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
+%visualizeDataSub(g, rootVector , 'cellType', 'root', 0);
+%%visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
     visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc',0);
 %visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', 0);
 %visualizeDataSub(g,  relMap, 'cellType', 'relM  ap', 0);
 %visualizeDataSub(g, relMap, 'cellType', 'relDist', 0);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', 0);
 visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
-     visualizeDataSub(g, bulkVector, 'cellType', 'bulk', 0);
-     visualizeDataSub(g, POMVector, 'cellType', 'pom',0);
+   %  visualizeDataSub(g, bulkVector, 'cellType', 'bulk', 0);
+  %   visualizeDataSub(g, POMVector, 'cellType', 'pom',0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -198,7 +196,7 @@ numFreePOMparticles = length(indFreePOMparticles);
 sumAgent = sum(concAgent);
 
 for k = 1 : numOuterIt
-    
+printf('k %d \n', k)
 %% Root
 %shrinking: wenn 
 %erst mucilage Decay
@@ -225,6 +223,7 @@ amountChangeCells = diffAmountRootCells;
 %behelf
 q = parameters.mucilageGrowingRate/(parameters.mucilageGrowingRate + parameters.rootGrowingRate);
 %bilanz
+rootPressureDistributionVector(:) = 0;
 if(amountChangeCells >  0)
     T_growing = tic;
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector, nextRootComplexList...
@@ -281,11 +280,14 @@ fprintf('Time for POM decay and spreading of agent: %d \n', toc(T_spread))
 
 %% Input of POM particles
 % input of POM particles using specified parameters
+
 if mod(k,parameters.POMinputAfterNsteps) == 0
+    occupiedCells = bulkVector + mucilageVector;
     for inputParticle = 1 : parameters.POMinputNumParticles
-    [bulkVector, bulkTypeVector, POMVector, POMconcVector, POMageVector, POMParticleList, totalPOMinputConc] = placePOMparticleRandomly(g, bulkVector, bulkTypeVector, ...
+    [occupiedCells, bulkTypeVector, POMVector, POMconcVector, POMageVector, POMParticleList, totalPOMinputConc] = placePOMparticleRandomly(g, occupiedCells, bulkTypeVector, ...
         POMVector, POMconcVector, POMageVector, POMParticleList, randomPOMparticles, randomPOMparticlesSizes, totalPOMinputConc);
     end
+    bulkVector = occupiedCells - mucilageVector;
 end
 
 % input of POM particles using 'inputTimeSteps'
@@ -453,14 +455,20 @@ freeCellsInd = freeCellsInd(I);
 outerborder = sortedd < notConnectedEdgesValue * 1.1;%hier vielleicht falsch ne doch nciht
 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
 outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
+conOuterborder = sum(mucilageConcVector(outerRootBorderInd))/numel(outerRootBorderInd);
+if(k > TrootGrowingEnd &&  conOuterborder < 0.75 && TrootShrinkingBegin > k)
+    TrootShrinkingBegin = k;
+    TrootShrinkingEnd = k + 30;
+end
 if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
     parameters.mucilageGrowing = 1;
+    extraConcAmount = ceil(currentAmountRootCells * parameters.mucilageGrowingRate)/numel(outerRootBorderInd);
 else
     parameters.mucilageGrowing = 0;
 end
 
 T_mucilage = tic;
-[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, bulkVector, deadCells, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
+[mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, extraConcAmount, bulkVector, deadCells, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
 fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))
 %sumMu = sum(mucilageConcVector)
 %------------------------------
@@ -494,9 +502,9 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k);
-    visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc', k);
-    visualizeDataSub(g, rootVector , 'cellType', 'root', k);
-visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', k);
+   visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc', k);
+   % visualizeDataSub(g, rootVector , 'cellType', 'root', k);
+%visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', k);
     % visualizeDataSub(g, mucilageConcVector, 'cellType', 'conc', k);
   %   visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', k);
     %visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
@@ -514,8 +522,8 @@ visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDis
 %     visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', k, 2);
 %     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
-     visualizeDataSub(g, bulkVector, 'cellType', 'bulk', k);
-     visualizeDataSub(g, POMVector, 'cellType', 'pom', k);
+     %visualizeDataSub(g, bulkVector, 'cellType', 'bulk', k);
+     %visualizeDataSub(g, POMVector, 'cellType', 'pom', k);
      %visualizeDataSub(g, rootVector, 'root', 'root', k);
     end
 
