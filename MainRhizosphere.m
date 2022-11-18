@@ -22,7 +22,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % every time step, randomly chosen from shapes given by
 % 'randomPOMinputShapes'
 
-%inputRoot = 'Input/rootConfig.90.mat';
+%inputRoot = 'Input/rootConfig.80.mat';
 % Number of Time Steps
 numOuterIt  = 1000;    
 
@@ -78,7 +78,7 @@ TrootGrowingEnd = 82.5;%80
 TrootShrinkingBegin = 1000;
 TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
-TmucilageGrowingEnd = 82.5;%80
+TmucilageGrowingEnd = 0;%80
 
 % add parameters concerning aging
 % add parameters for stencil sizes
@@ -196,7 +196,7 @@ numFreePOMparticles = length(indFreePOMparticles);
 sumAgent = sum(concAgent);
 
 for k = 1 : numOuterIt
-printf('k %d \n', k)
+fprintf('k %d \n', k)
 %% Root
 %shrinking: wenn 
 %erst mucilage Decay
@@ -273,9 +273,11 @@ if true
 if POMdecayFlag == 1
 
 T_spread = tic;
-[bulkVector, bulkTypeVector, POMVector, POMconcVector, POMageVector, concPOMAgent, edgeChargeVector, POMParticleList, POMsolidEdgeList, sumExcessPOM, POMagentInput] = ...
-    calculatePOMdecay(g, parameters, bulkVector, bulkTypeVector, POMVector, POMconcVector, POMageVector, concPOMAgent, edgeChargeVector,...
+occupiedCells = bulkVector + mucilageVector;
+[occupiedCells, bulkTypeVector, POMVector, POMconcVector, POMageVector, concPOMAgent, edgeChargeVector, POMParticleList, POMsolidEdgeList, sumExcessPOM, POMagentInput] = ...
+    calculatePOMdecay(g, parameters, occupiedCells, bulkTypeVector, POMVector, POMconcVector, POMageVector, concPOMAgent, edgeChargeVector,...
     reactiveSurfaceVector, POMParticleList, sumExcessPOM, POMagentInput);
+bulkVector = occupiedCells - mucilageVector;
 fprintf('Time for POM decay and spreading of agent: %d \n', toc(T_spread))
 
 %% Input of POM particles
@@ -465,6 +467,7 @@ if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
     extraConcAmount = ceil(currentAmountRootCells * parameters.mucilageGrowingRate)/numel(outerRootBorderInd);
 else
     parameters.mucilageGrowing = 0;
+    extraConcAmount  = 0;
 end
 
 T_mucilage = tic;
