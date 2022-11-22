@@ -66,19 +66,19 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 
 
 parameters.rootGrowingRate = 1.1;
-parameters.rootShrinkingRate = 0.95;
+parameters.rootShrinkingRate = 0.99;
 
 
 parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 0.05;
-parameters.mucilageDecayRate = 0.96;%
+parameters.mucilageDecayRate = 2.3026;%
 
 TrootGrowingBegin = 0;
 TrootGrowingEnd = 82.5;%80
 TrootShrinkingBegin = 1000;
 TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
-TmucilageGrowingEnd = 0;%80
+TmucilageGrowingEnd = 80;%80
 
 % add parameters concerning aging
 % add parameters for stencil sizes
@@ -138,11 +138,13 @@ rootPressureDistributionVector = zeros(g.numT, 1);
 borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
 deadCells = [];
+mantles = [0,10,20,30,40,50, 60 ,70];
+porosity_table = [];
 %Obstacle
 %bulkVector(N * N/4: N* (N/4+1)) = 1;
 %bulkVector(N * N/2 + N/2 +3:N * N/2 + N/2 +10) = 1;
 
-%% Creating Initial Distribution of Bulk and Biomass                        %% Can be changed
+%% Creating Initial Distribution of Bulk and BiomassFinalConfig                        %% Can be changed
 % visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2);
 % visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', 0, 2);
 % visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', 0, 2);
@@ -153,12 +155,12 @@ deadCells = [];
 visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', 0);
 %visualizeDataSub(g, rootVector , 'cellType', 'root', 0);
 %%visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
-    visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc',0);
+ %   visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc',0);
 %visualizeDataSub(g,  borderpointsVector, 'cellType', 'borderpoints', 0);
 %visualizeDataSub(g,  relMap, 'cellType', 'relM  ap', 0);
 %visualizeDataSub(g, relMap, 'cellType', 'relDist', 0);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', 0);
-visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
+%visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
    %  visualizeDataSub(g, bulkVector, 'cellType', 'bulk', 0);
   %   visualizeDataSub(g, POMVector, 'cellType', 'pom',0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
@@ -457,10 +459,10 @@ freeCellsInd = freeCellsInd(I);
 outerborder = sortedd < notConnectedEdgesValue * 1.1;%hier vielleicht falsch ne doch nciht
 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
 outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
-conOuterborder = sum(mucilageConcVector(outerRootBorderInd))/numel(outerRootBorderInd);
-if(k > TrootGrowingEnd &&  conOuterborder < 0.75 && TrootShrinkingBegin > k)
+occupiedOuterborder = sum(mucilageVector(outerRootBorderInd) + bulkVector(outerRootBorderInd))/(numel(outerRootBorderInd));
+if(k > TrootGrowingEnd  && TrootShrinkingBegin < k &&  (occupiedOuterborder < 0.66 || k > 0.75 * numOuterIt))
     TrootShrinkingBegin = k;
-    TrootShrinkingEnd = k + 30;
+    TrootShrinkingEnd = k + 20;
 end
 if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
     parameters.mucilageGrowing = 1;
@@ -479,7 +481,11 @@ mucilageParticleList = cell(1,1);
 mucilageParticleList{1} = find(mucilageVector == 1);
 mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
 reactiveSurfaceVector(mucilageSolidEdgeList{1}) = 1;
+%% Porosity
 
+[porosity_t] = calculatePorosity(g,mantles,rootVector, bulkVector - rootVector);
+porosity_table = [porosity_table ; porosity_t'];
+writematrix(porosity_table,'FinalConfig/porosity_table.xls')
 %%
 T2 = tic;
 
@@ -505,7 +511,7 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k);
-   visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc', k);
+  % visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc', k);
    % visualizeDataSub(g, rootVector , 'cellType', 'root', k);
 %visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', k);
     % visualizeDataSub(g, mucilageConcVector, 'cellType', 'conc', k);
@@ -513,7 +519,7 @@ T2 = tic;
     %visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
    
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', k-1);
-visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k);
+%visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k);
     
     %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  

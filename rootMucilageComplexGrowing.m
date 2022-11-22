@@ -34,7 +34,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
     cellOfInterestIndVector = [];
     while(freeSpaceStillPossible && numel(newCellsInd) < requieredAmountNewCells)
         if(newCellGrowed)
-            fprintf('newCelllGrowed \n')
+            %fprintf('newCelllGrowed \n')
             newCellGrowed = 0;
          %ahhh euklidisch
             freeCellsInd = find((rootComplexVector) ~= 1);
@@ -69,7 +69,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             end
         end
         index = index +1;
-        fprintf('index %d \n',index)
+        %fprintf('index %d \n',index)
         if(index < numel(outerborderInd))
             freeSpaceStillPossible = 1;  
         else
@@ -138,7 +138,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                         end
                        erfolg = bulkVector(cellOfInterestInd) == 0;
                        if(erfolg == 1)
-                           fprintf('solid erfolg j %d \n',index)                      
+                           %fprintf('solid erfolg j %d \n',index)                      
                        else
                            %visitedSolidParticles = [visitedSolidParticles solidParticle(p)];
                        end
@@ -166,7 +166,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                         end
                        erfolg = bulkVector( cellOfInterestInd) == 0;
                        if(erfolg == 1)
-                           fprintf('Pom erfolg j %d \n',index)
+                          % fprintf('Pom erfolg j %d \n',index)
                         else
                           % visitedPOMParticles = [visitedPOMParticles POMParticle(p)];
                        end
