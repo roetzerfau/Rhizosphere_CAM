@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/testMain250.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat
+inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -17,7 +17,7 @@ randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM par
 % can be used to give very specific POM input, e.g. which was given as an
 % output from different simulation
 
-inputTimeSteps = 'Input/inputParticleNum_125.mat';
+%inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % contains 'inputVector' with info how many POM particle should be added at
 % every time step, randomly chosen from shapes given by
 % 'randomPOMinputShapes'
@@ -48,7 +48,7 @@ parameters.POMagentMin = 0.01; %CAUTION: concPOMagent can be below threshold,
 % below threshold
 parameters.POMagentMax = 1;
 
-parameters.POMinputAfterNsteps = 2000; % POM input is given after every
+parameters.POMinputAfterNsteps = 10; % POM input is given after every
 % N steps (high : 2, low : 10, no: 2000)
 parameters.POMinputNumParticles = 1; % Number of POM particles given as 
 % input after N steps (1 for 250 domain, 4 for 500 domain)
@@ -79,7 +79,7 @@ TrootShrinkingBegin = 1000;
 TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
 TmucilageGrowingEnd = 80;%80
-
+k_start = 0;
 % add parameters concerning aging
 % add parameters for stencil sizes
 % add parameters for probabilities of breaking up
@@ -139,7 +139,7 @@ borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
 deadCells = [];
 mantles = [0,10,20,30,40,50, 60 ,70];
-porosity_table = [];
+porosity_table = zeros(numOuterIt, numel(mantles)-1);
 %Obstacle
 %bulkVector(N * N/4: N* (N/4+1)) = 1;
 %bulkVector(N * N/2 + N/2 +3:N * N/2 + N/2 +10) = 1;
@@ -152,7 +152,7 @@ porosity_table = [];
 %visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
-visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', 0);
+visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k_start);
 %visualizeDataSub(g, rootVector , 'cellType', 'root', 0);
 %%visualizeDataSub(g, mucilageVector , 'cellType', 'mucilage', 0);
  %   visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc',0);
@@ -197,7 +197,7 @@ numFreePOMparticles = length(indFreePOMparticles);
 
 sumAgent = sum(concAgent);
 
-for k = 1 : numOuterIt
+for k = k_start + 1 : numOuterIt
 fprintf('k %d \n', k)
 %% Root
 %shrinking: wenn 
@@ -460,9 +460,9 @@ outerborder = sortedd < notConnectedEdgesValue * 1.1;%hier vielleicht falsch ne 
 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
 outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
 occupiedOuterborder = sum(mucilageVector(outerRootBorderInd) + bulkVector(outerRootBorderInd))/(numel(outerRootBorderInd));
-if(k > TrootGrowingEnd  && TrootShrinkingBegin < k &&  (occupiedOuterborder < 0.66 || k > 0.75 * numOuterIt))
+if(k > TrootGrowingEnd  && TrootShrinkingBegin > k &&  (occupiedOuterborder < 0.66 || k > 0.5 * numOuterIt))
     TrootShrinkingBegin = k;
-    TrootShrinkingEnd = k + 20;
+    TrootShrinkingEnd = k + 50;
 end
 if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
     parameters.mucilageGrowing = 1;
@@ -477,6 +477,7 @@ T_mucilage = tic;
 fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))
 %sumMu = sum(mucilageConcVector)
 %------------------------------
+%TODO auch an root dran 
 mucilageParticleList = cell(1,1);
 mucilageParticleList{1} = find(mucilageVector == 1);
 mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
@@ -484,7 +485,7 @@ reactiveSurfaceVector(mucilageSolidEdgeList{1}) = 1;
 %% Porosity
 
 [porosity_t] = calculatePorosity(g,mantles,rootVector, bulkVector - rootVector);
-porosity_table = [porosity_table ; porosity_t'];
+porosity_table(k,:) = porosity_t';
 writematrix(porosity_table,'FinalConfig/porosity_table.xls')
 %%
 T2 = tic;
