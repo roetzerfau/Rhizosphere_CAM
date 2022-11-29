@@ -31,7 +31,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     
     if(p.mucilageGrowing == 1)
         for i = 1:numel(outerRootBorderInd)
-            if( bulkVector(outerRootBorderInd(i)) == 0 && mucilageConcVector(outerRootBorderInd(i)) <= 5 )
+            if( bulkVector(outerRootBorderInd(i)) == 0)%&& mucilageConcVector(outerRootBorderInd(i)) <= 5
                mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + extraConcAmount;
             end
         end
@@ -74,9 +74,12 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
         %next free cell muss verbunden sein, also border cell
         nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), 1, 1);
         index  = 0;
-        while(overshootValue >=0)
+        while(overshootValue >0)
             index = index + 1;
             if(numel(nextFreeCellsInd) < index)
+                nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), Inf, 1);
+                evenDistributedAmount = sum(mucilageConcVector(nextFreeCellsInd))/(numel(nextFreeCellsInd));
+                mucilageConcVector(nextFreeCellsInd) = evenDistributedAmount;
                 break;
             end
             conNFC = mucilageConcVector(nextFreeCellsInd(index));
@@ -91,7 +94,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     if(abs(mucilageAmount_before - mucilageAmount_after) > 0.0001)
           error('Falsch überschuss')
     end
-    
+    %%calculate Mucilage Decay
      mucilageConcVector_before = mucilageConcVector;
      mucilageAmount_before = sum(mucilageConcVector_before);
      [mucilageConcVector] = calculateMucilageDecay(g, p.mucilageDecayRate, bulkVector, mucilageVector, mucilageConcVector);

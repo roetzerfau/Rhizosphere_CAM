@@ -1,4 +1,4 @@
-function [particleList, particleContent] = particleInfoTUM(bulkVector, solidParticleList, POMParticleList, rootParticleList, fluid)
+function [particleList, particleContent] = particleInfoTUM(bulkVector, solidParticleList, POMParticleList, fluid)
 % function based on BFS
 if nargin == 3
     fluid = 0;
@@ -76,18 +76,6 @@ for particle = 1 : particleCounter
                end
             end
         end
-        
-%         if particleFound ~= 1
-%             for i = 1 : length(rootParticleList)
-%                rowHelper = find(rootParticleList{i} == tmp_particleInd(1) );
-%                if (~isempty(rowHelper))
-%                    row = i;
-%                    flag = 10;
-%                    particleFound = 1;
-%                end
-%             end
-%        end
-
         assert(~isempty(row),'Teilchen nicht gefunden')
         assert(length(row)==1,'Zu viele Teilchen gefunden')
         particleContent{ particle } = [particleContent{particle};[flag,row]];

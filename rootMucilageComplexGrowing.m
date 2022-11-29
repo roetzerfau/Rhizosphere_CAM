@@ -1,10 +1,10 @@
-function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector , optimalFutureRootComplexList,...
+function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector ,...
     bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
-    concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
+    concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector,mucilageVector,...
     POMParticleList, solidParticleList, newCellsInd] = rootMucilageComplexGrowing...
     (g, rootComplexGraph, bulkVector, rootComplexVector,  rootComplexList, requieredAmountNewCells,...
     bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
-    concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector,...
+    concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector,mucilageVector,...
     POMParticleList, solidParticleList,...
      attraction_type)
 
@@ -126,11 +126,11 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                             NZd = g.NX;
                             bigParticleStencilLayers_individual = 1;
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,mucilageSurfaceVector,...
                                 nextMucilageBorderVector, rootPressureDistributionVector,...
                                 solidParticleList{ solidParticle(p) },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
                                 g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,mucilageSurfaceVector, ...
                                 nextMucilageBorderVector, rootPressureDistributionVector, ...
                                 NZd , fileID ,solidParticleList{ solidParticle(p) },0,4,0, attraction_type, 1);  
 
@@ -156,11 +156,11 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                             NZd = g.NX;
                             bigParticleStencilLayers_individual = 1;
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,mucilageSurfaceVector,...
                                 nextMucilageBorderVector, rootPressureDistributionVector,...
                                 POMParticleList{ POMParticle(p) },~] = moveParticles( particleSize, bigParticleStencilLayers_individual,...
                                 g, bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
-                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
+                                concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector,mucilageSurfaceVector, ...
                                 nextMucilageBorderVector, rootPressureDistributionVector, ...
                                 NZd , fileID ,POMParticleList{ POMParticle(p) },0,4,0, attraction_type, 1);  
                         end
@@ -212,67 +212,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
       
     %% Cells which couldnt grow are converted to pressure points
-    
-    pressurePointsConnectedBulk = 0 * ones(g.numT, 1);
-    rootPressureDistributionVector(:) = 0;
-    %die zellen die nicht wachsen konnten druckpunkte
-    %die freien cellen aus array rausmachen, die nächsten als Druckpunkte
-    %Mit pressurePoints verbunden
-    bulkVector_bw = (reshape(bulkVector, [N N]));
-    CC = bwconncomp(bulkVector_bw, 4);
-    pressurePointsConnectedBulk(:)= 0;
-    pressurePointsConnectBulkInd = [];
-    for p = 1:numel(pressurePointsInd)
-        oo = cellfun(@(m) m == pressurePointsInd(p),CC.PixelIdxList, 'UniformOutput', false);
-        Match1 = cellfun(@sum, oo);
-        Match = find(Match1 == 1);
-        
-        if(~isempty(Match))
-            pressurePointsConnectedBulkInd  =  CC.PixelIdxList{Match};    
-            pressurePointsConnectedBulk(pressurePointsConnectedBulkInd) = 1;
-            pressurePointsConnectBulkInd = [pressurePointsConnectBulkInd pressurePointsInd];
-        end
-    end
-     %-------------------------------------------------------
-    % Pressure Distributoin - pressure Points ohne Verbindung keine
-    % Auswirkung
-    [X,Y] = meshgrid(1:N, 1:N);
-    rootPressureDistributionVector(:) = 0;
-    rootPressureDistributionVector = reshape(rootPressureDistributionVector, [N N]);
-    for i = 1:numel(pressurePointsConnectBulkInd)
-        
-        
-        X_0 = X(pressurePointsConnectBulkInd(i));
-        Y_0 = Y(pressurePointsConnectBulkInd(i));
-        F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/2)^2 ;
-        F(F < 0) = 0;
-        rootPressureDistributionVector = rootPressureDistributionVector + F;
-    end
-    
-    rootPressureDistributionVector = reshape(rootPressureDistributionVector, [N*N 1]);
-    rootPressureDistributionVector = normalize(rootPressureDistributionVector,'range',[0 1]);
-    %---------------------------------------------------------------------------------
-    % Combine Pressure mit Connected with Root
-    pressureArea = pressurePointsConnectedBulk;
-    pressureArea(pressurePointsInd) = 1;
-    pressureArea(rootComplexList) = 0;
-    rootPressureDistributionVector = rootPressureDistributionVector.*pressureArea;
-    %weiß nicht ob nötig:
-    rootPressureDistributionVector(pressurePointsInd) = 1;
-%     todo
-%     rootPressureDistributionVector(rootPressureDistributionVector > 0) = normalize(rootPressureDistributionVector(rootPressureDistributionVector > 0),'range',[0 1]);
-    
-    
-    optimalFutureRootComplexList = union(rootComplexList, pressurePointsInd);
-    
-    
-    
-
-
-
-
-%pressureCells werden zu potentiellen neuen Zellen
-% da wo rootPressuredistribution == 1 ,da neue Zellen
+    rootPressureDistributionVector = calculatePressureDistribution(g,pressurePointsInd,bulkVector,rootComplexList);
 end
 
 

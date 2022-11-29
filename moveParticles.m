@@ -1,8 +1,8 @@
 function [ bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
-     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageVector, rootPressureDistributionVector, particleList ,flag] = ...
+     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, mucilageVector, pressureDistributionVector, particleList ,flag] = ...
     moveParticles( bulkSize , stencilLayers , g , bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector,...
-    POMageVector, concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, ...
-    mucilageVector , rootPressureDistributionVector, NZd , fileID, ...
+    POMageVector, concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, ...
+    mucilageVector , pressureDistributionVector, NZd , fileID, ...
     particleList ,sumAgent,typeflag,stencil_type, attraction_type,disablej1, particle_index)
 
 numBulkOld = sum( bulkVector );
@@ -106,20 +106,23 @@ if ~isempty( candidates )
                                  solidPOMmemoryAttr = (bulkVector(candidates( i , k ))* POMVector(neighbours( 1 , m )) * edgeChargeVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*edgeChargeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  
+                                 bulkMucilageAttr = (bulkVector(candidates( i , k ))* bulkVector(neighbours( 1 , m )) * mucilageSurfaceVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
+                                     + bulkVector(neighbours( 1 , m ))* bulkVector(candidates( i , k ))*mucilageSurfaceVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
+                                 
                                  particleRootMucilageAttr =  (bulkVector(candidates( i , k )) * mucilageVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
                                   ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                                                 
                                  
-                                 pressureAttr = ((bulkVector(candidates( i , k )) * rootPressureDistributionVector(neighbours( 1 , m )))  ...
+                                 pressureAttr = ((bulkVector(candidates( i , k )) * pressureDistributionVector(neighbours( 1 , m )))  ...
                                       * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
                             
                                  
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr particleRootMucilageAttr * 10]) - pressureAttr * 15;%* (1-pressureAttr);    
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr bulkMucilageAttr * 15]) - pressureAttr * 30;%* (1-pressureAttr);    
                                
                                  if(particleRootMucilageAttr > 0 && j == 1)
                                         aim( j ) = +Inf;
                                         particleRootMucilageIndicator = 1;
-                                 elseif(rootPressureDistributionVector(neighbours( 1 , 1 ))  == 1)
+                                 elseif(pressureDistributionVector(neighbours( 1 , 1 ))  == 1 || pressureDistributionVector(neighbours( 1 , m))  == 1)
                                      aim( j ) = -Inf;
                                  else
                                      if(solidPOMreactiveSurfAttr > 0 && j == 1)
@@ -348,8 +351,8 @@ if ~isempty( candidates )
         POMageVector(candidates(i , :)) = 0;
         particleType_tmp = particleTypeVector(candidates(i , :));
         particleTypeVector( candidates( i , :) ) = 0;
-        rootPressureDistributionVector_tmp = rootPressureDistributionVector(candidates(i , :));
-        rootPressureDistributionVector(candidates(i , :)) = 0;
+        pressureDistributionVector_tmp = pressureDistributionVector(candidates(i , :));
+        pressureDistributionVector(candidates(i , :)) = 0;
         
         % set bulkVector of aims to 1 ( means bulk )
         bulkVector( aims( i , : ) ) = 1;
@@ -360,7 +363,7 @@ if ~isempty( candidates )
         particleTypeVector( aims( i, : ) ) = particleType_tmp;
         [~,loc] = ismember(candidates(i,:),particleList,'rows');
         particleList(loc , : ) = aims(i , : );
-        rootPressureDistributionVector( aims( i, : ) ) = rootPressureDistributionVector_tmp;
+        pressureDistributionVector( aims( i, : ) ) = pressureDistributionVector_tmp;
         
         
         % Move the charges and the agent on the edges
