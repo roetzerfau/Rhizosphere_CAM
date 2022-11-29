@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/example_20.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat
+inputMat = 'Input/PaperConfigs/por05_19_500.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -137,6 +137,7 @@ global notConnectedEdgesValue;
 notConnectedEdgesValue = g.NX* g.NX * 2;
 rootPressureDistributionVector = zeros(g.numT, 1);
 mucilagePressureDistributionVector = zeros(g.numT, 1);
+pressureDistributionVector = zeros(g.numT, 1);
 borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
 deadCells = [];
@@ -148,7 +149,8 @@ porosity_table = zeros(numOuterIt, numel(mantles)-1);
 
 %% Creating Initial Distribution of Bulk and BiomassFinalConfig                        %% Can be changed
  %visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2);
- visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', 0, 2);
+% visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', 0, 2);
+     visualizeDataEdges(g, mucilageSurfaceVector, 'mucilageEdges', 'mucilageSurfaceVector', k_start, 2);
 % visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', 0, 2);
 % visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', 0, 2);
 %visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
@@ -162,7 +164,7 @@ visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 
 %visualizeDataSub(g,  relMap, 'cellType', 'relM  ap', 0);
 %visualizeDataSub(g, relMap, 'cellType', 'relDist', 0);
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', 0);
-%visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', 0);
+visualizeDataSub(g, pressureDistributionVector, 'cellType', 'pressureDistributionVector', k_start);
    %  visualizeDataSub(g, bulkVector, 'cellType', 'bulk', 0);
   %   visualizeDataSub(g, POMVector, 'cellType', 'pom',0);
 %visualizeDataSub(g, rootVector, 'root', 'root', 0);
@@ -444,7 +446,7 @@ outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree
 occupiedOuterborder = sum(mucilageVector(outerRootBorderInd) + bulkVector(outerRootBorderInd))/(numel(outerRootBorderInd));
 if(k > TrootGrowingEnd  && TrootShrinkingBegin > k &&  (occupiedOuterborder < 0.75 || k > 0.5 * numOuterIt))
     TrootShrinkingBegin = k;
-    TrootShrinkingEnd = k + 50;
+    TrootShrinkingEnd = k + 75;
 end
 if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
     parameters.mucilageGrowing = 1;
@@ -505,13 +507,14 @@ T2 = tic;
     %visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
    
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', k-1);
-%visualizeDataSub(g, rootPressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k);
+visualizeDataSub(g, pressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k-1);
     
     %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  
 % %     visualizeDataEdges(g, concAgent, 'conc', 'agent', k);
     %visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2);
- visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', k, 2);
+    visualizeDataEdges(g, mucilageSurfaceVector, 'mucilageEdges', 'mucilageSurfaceVector', k, 2);
+% visualizeDataEdges(g, reactiveSurfaceVector, 'reactiveEdges', 'reactiveSurfaceVector', k, 2);
    % visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', k,2);
    %visualizeDataEdges(g, rootMucilageVector, 'MucilageEdges', 'rootMucilageVector', k,2);
 %     visualizeDataEdges(g, concPOMAgent, 'agent', 'concPOMAgent', k, 2);
@@ -572,7 +575,7 @@ numFreePOMparticles = length(indFreePOMparticles);
 %         particleList = particleListHelper;
 
         fileName    = ['FinalConfig/rootConfig','.', num2str(k),'.mat']; 
-        save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector', 'rootComplexList', 'rootComplexGraph','mucilageGraph')       
+        save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector','mucilageSurfaceVector', 'rootComplexList', 'rootComplexGraph','mucilageGraph')       
     end
 
     
