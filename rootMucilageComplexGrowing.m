@@ -78,7 +78,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         cellOfInterestInd = outerborderInd(index);
         cellOfInterestIndVector = [cellOfInterestIndVector, cellOfInterestInd];
         visitedNTimes = sum(cellOfInterestIndVector == cellOfInterestInd);
-        if(visitedNTimes > 3)
+        if(visitedNTimes > 2)
             continue;
         end
         if(numel(newCellsInd) == ceil(requieredAmountNewCells/2))

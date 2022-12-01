@@ -22,7 +22,9 @@
     indHelperPOMparticle = ismember(stencilPOMparticle, placedPOMparticle);
     
     newPositionFound = 0;
+    index = 0;
     while ~newPositionFound
+		index = index + 1;
         % if particles of certain size should be placed for initial state
 %         potentialAims = find(distMatrix > max(randomPOMparticlesSizes(indPOMparticle) - 4,1));
 %         helper = randi(length(potentialAims));
@@ -32,6 +34,9 @@
         globalIndNewPOMparticle = stencilNewPosition(indHelperPOMparticle);
         if min(min(distMatrix(globalIndNewPOMparticle))) > distFromSolidThreshold
             newPositionFound = 1;
+        end
+        if index > 1000
+			newPositionFound = 1;
         end
     end
     bulkVector(globalIndNewPOMparticle) = 1;

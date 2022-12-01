@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/PaperConfigs/por05_19_500.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat
+inputMat = 'Input/PaperConfigs/2_agg_34_1.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -23,7 +23,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 % every time step, randomly chosen from shapes given by
 % 'randomPOMinputShapes'
 
-%inputRoot = 'Input/rootConfig.80.mat';
+inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
 numOuterIt  = 1000;    
 
@@ -155,6 +155,7 @@ porosity_table = zeros(numOuterIt, numel(mantles)-1);
 % visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', 0, 2);
 %visualizeDataEdges(g, rootPressureEdgeVector, 'pressureEdges', 'rootPressureEdgeVector', 0,2);
 % visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', 0);
+visualizeDataSub(g, mucilageConcVector, 'mucilageConc', 'mucilageConc', k_start);
 % visualizeDataSub(g, POMageVector, 'POMage', 'POMage', 0); 
 visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k_start);
 %visualizeDataSub(g, rootVector , 'cellType', 'root', 0);
@@ -248,8 +249,19 @@ elseif(amountChangeCells < 0)
 else
 
 end
-mucilagePressureDistributionVector = calculatePressureDistribution(g, find(mucilageConcVector > 2), bulkVector, []);
-pressureDistributionVector = normalize(rootPressureDistributionVector + mucilagePressureDistributionVector,'range',[0 1]);
+T_mucPress = tic;
+highConcInd = sum(mucilageConcVector > 1, 'all');
+mucilagePressureDistributionVector(:) = 0;
+if(numel(highConcInd)>0)
+pressPoints  = find(bwdist(mucilageConcVector > 1) == 1);
+pressPoints = pressPoints(bulkVector(pressPoints) == 1);
+%sten = reshape(stencil(g.NX,NZd,highConcInd,1),1,[]);
+%pressPoints = sten(bulkVector(sten) == 1);
+mucilagePressureDistributionVector = calculatePressureDistribution(g, pressPoints, bulkVector, rootComplexList);
+end
+M = cat(2,rootPressureDistributionVector(:),mucilagePressureDistributionVector(:));
+pressureDistributionVector = reshape(max(M,[],2),size(rootPressureDistributionVector));
+fprintf('Time for mucPressure: %d \n', toc(T_mucPress))
 %-----------------------------------
 %wegschieben, aber auch höhere Attraktivität an möglichen zukünftigen
 %Randpunkten/mucilagee andockpunkte kennzeichnen
@@ -486,6 +498,7 @@ T2 = tic;
 %     uLagr       = projectDG2LagrangeSub( uDG );
     visualizeDataSub(g, bulkVector + POMVector + rootVector, 'cellType', 'solu', k);
     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
+    
     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  
 %     visualizeDataEdges(g, concAgent, 'conc', 'agent', k);
     visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2);
@@ -498,6 +511,7 @@ T2 = tic;
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
+	visualizeDataSub(g, mucilageConcVector, 'mucilageConc', 'mucilageConc', k);
     visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + mucilageVector *4 , 'cellType', 'solu', k);
   % visualizeDataSub(g, mucilageConcVector , 'cellType', 'conc', k);
    % visualizeDataSub(g, rootVector , 'cellType', 'root', k);
@@ -507,7 +521,7 @@ T2 = tic;
     %visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
    
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', k-1);
-visualizeDataSub(g, pressureDistributionVector, 'cellType', 'rootPressureDistributionVector', k-1);
+visualizeDataSub(g, pressureDistributionVector, 'cellType', 'pressureDistributionVector', k-1);
     
     %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  

@@ -122,15 +122,16 @@ if ~isempty( candidates )
                                  if(particleRootMucilageAttr > 0 && j == 1)
                                         aim( j ) = +Inf;
                                         particleRootMucilageIndicator = 1;
-                                 elseif(pressureDistributionVector(neighbours( 1 , 1 ))  == 1 || pressureDistributionVector(neighbours( 1 , m))  == 1)
-                                     aim( j ) = -Inf;
-                                 else
+                                  else
                                      if(solidPOMreactiveSurfAttr > 0 && j == 1)
                                          solidPOMreactiveEdgeIndicator = 1;
                                      end
                                      if(solidPOMmemoryAttr > 0 && j == 1)
                                          solidPOMmemoryEdgeIndicator = 1;
                                      end
+                                 end
+                                 if(pressureDistributionVector(neighbours( 1 , 1 ))  == 1 || pressureDistributionVector(neighbours( 1 , m))  == 1)
+                                     aim( j ) = -Inf;
                                  end
 
                              
@@ -379,7 +380,10 @@ if ~isempty( candidates )
         reactiveSurfaceVector( g.CE0T( candidates( i , : ) , : ) ) = 0;
         reactiveSurfaceVector(g.CE0T(aims(i, :),:)) = tmpReactiveSurface;
 
-
+		tmpMucilageSurfaceVector = mucilageSurfaceVector( g.CE0T( candidates( i , : ) , : ) );
+        mucilageSurfaceVector( g.CE0T( candidates( i , : ) , : ) ) = 0;
+        mucilageSurfaceVector(g.CE0T(aims(i, :),:)) = tmpMucilageSurfaceVector;
+        
         assert(numBulkOld == sum(bulkVector), 'solid Bloecke stimmen nicht, movement')
         
     end % for i 

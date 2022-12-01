@@ -69,7 +69,11 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     mucilageConcVector_before = mucilageConcVector;
     mucilageAmount_before = sum(mucilageConcVector_before);
     overshootConcInd = find(mucilageConcVector > 1);
+    blackList = [];
     for i = 1:numel(overshootConcInd)
+		if(ismember(overshootConcInd(i), blackList))
+			continue;
+		end
         overshootValue = mucilageConcVector(overshootConcInd(i))-1;
         %next free cell muss verbunden sein, also border cell
         nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), 1, 1);
@@ -78,7 +82,12 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
             index = index + 1;
             if(numel(nextFreeCellsInd) < index)
                 nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), Inf, 1);
-                evenDistributedAmount = sum(mucilageConcVector(nextFreeCellsInd))/(numel(nextFreeCellsInd));
+                if(std(mucilageConcVector(nextFreeCellsInd)) == 0)
+					fprintf('stdAbwe \n')
+					blackList = [blackList; nextFreeCellsInd];
+					break;            
+                end
+                evenDistributedAmount = sum(mucilageConcVector(nextFreeCellsInd))/(numel(nextFreeCellsInd));            
                 mucilageConcVector(nextFreeCellsInd) = evenDistributedAmount;
                 break;
             end
