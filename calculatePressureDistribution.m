@@ -9,13 +9,18 @@ function pressureDistributionVector = calculatePressureDistribution(g, pressureP
 
    
     for p = 1:numel(pressurePointsInd)
+		if(pressurePointsConnectedBulk(pressurePointsInd) == 1)
+			pressurePointsConnectBulkInd = [pressurePointsConnectBulkInd pressurePointsInd];
+			fprintf('isschon \n')
+			continue;
+		end
         oo = cellfun(@(m) m == pressurePointsInd(p),CC.PixelIdxList, 'UniformOutput', false);
         Match1 = cellfun(@sum, oo);
         Match = find(Match1 == 1);
         
         if(~isempty(Match))
-            pressurePointsConnectedBulkInd  =  CC.PixelIdxList{Match};    
-            pressurePointsConnectedBulk(pressurePointsConnectedBulkInd) = 1;
+            connectedBulkInd  =  CC.PixelIdxList{Match};    
+            pressurePointsConnectedBulk(connectedBulkInd) = 1;
             pressurePointsConnectBulkInd = [pressurePointsConnectBulkInd pressurePointsInd];
         end
     end
@@ -23,8 +28,6 @@ function pressureDistributionVector = calculatePressureDistribution(g, pressureP
     % Pressure Distributoin - pressure Points ohne Verbindung keine
     % Auswirkung
     [X,Y] = meshgrid(1:N, 1:N);
-    pressureDistributionVector(:) = 0;
-    pressureDistributionVector = reshape(pressureDistributionVector, [N N]);
     for i = 1:numel(pressurePointsConnectBulkInd)
         
         
@@ -32,10 +35,11 @@ function pressureDistributionVector = calculatePressureDistribution(g, pressureP
         Y_0 = Y(pressurePointsConnectBulkInd(i));
         F = -((X-X_0).^2 + (Y-Y_0).^2) + (N/2)^2 ;
         F(F < 0) = 0;
-        pressureDistributionVector = pressureDistributionVector + F;
+        F = reshape(F, [N*N 1]);
+        M = cat(2,pressureDistributionVector(:),F(:));
+		pressureDistributionVector = reshape(max(M,[],2),size(pressureDistributionVector));
+        %pressureDistributionVector = pressureDistributionVector + F;
     end
-    
-    pressureDistributionVector = reshape(pressureDistributionVector, [N*N 1]);
     pressureDistributionVector = normalize(pressureDistributionVector,'range',[0 1]);
     %---------------------------------------------------------------------------------
     % Combine Pressure mit Connected with Root

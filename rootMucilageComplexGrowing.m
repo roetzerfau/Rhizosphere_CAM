@@ -81,7 +81,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         if(visitedNTimes > 2)
             continue;
         end
-        if(numel(newCellsInd) == ceil(requieredAmountNewCells/2))
+        if(numel(newCellsInd) == ceil(requieredAmountNewCells/2)||numel(newCellsInd) == ceil(requieredAmountNewCells/4)||numel(newCellsInd) == ceil(requieredAmountNewCells/4 *3))
             cellOfInterestIndVector = [];
         end
         if(bulkVector(cellOfInterestInd) == 1)
@@ -112,7 +112,10 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                 
                 rootPressureDistributionVector(:) = 0;
                 rootPressureDistributionVector(freeSpots) = 1;
-                
+                if(numel(freeSpots) < requieredAmountNewCells)
+					e = min(requieredAmountNewCells,numel(outerborderInd));
+					rootPressureDistributionVector(outerborderInd(1:e)) = 1;
+                end
                 
                 
                 %solid Particle

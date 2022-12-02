@@ -34,6 +34,7 @@ time2 = tic;
 if ~isempty( candidates ) 
     solidPOMreactiveEdgeIndicator = 0;
     solidPOMmemoryEdgeIndicator = 0;
+    mucilageMemorySurfAttrInd = 0;
     particleRootMucilageIndicator = 0;
 %% Movement: finding aims
     helping = zeros( size( candidates , 1 ) , 2 * stencilLayers * ( stencilLayers + 1 ) + 1 , size( candidates , 2 ) );
@@ -57,12 +58,16 @@ if ~isempty( candidates )
                 helping( i , j , 1 ) = helping( i , j , 1 ) * ( ( ~bulkVector( helping( i , j , k ) ) ) || ( any( candidates( i , : ) == helping( i , j , k ) ) ) );
             end % for k
             if(disablej1 == 1 && j ==1)
-                aim( j ) = -Inf;
+                aim( j ) = - 2;
                 continue;
             end
             %if helping( i , j , 1 ) ~= candidates( i , 1 ) && helping( i , j , 1 ) ~= 0
             if helping( i , j , 1 ) ~= 0 %potentiell freie Sprungstelle
                 for k = 1 : size( candidates , 2 ) %iteriere über Blöcke des Kandidaten
+				   if(pressureDistributionVector(helping( i , j , k ))  == 1)
+						  aim( j ) = -1;
+						  break;
+				   end
                    neighbours = stencil( g.NX , NZd , helping( i , j , k ) , 1 ); % Nachbarn der potentiell freien Sprungstelle
                    for l = 1 : 4
                        if l == 1
@@ -105,42 +110,38 @@ if ~isempty( candidates )
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*reactiveSurfaceVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  solidPOMmemoryAttr = (bulkVector(candidates( i , k ))* POMVector(neighbours( 1 , m )) * edgeChargeVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* POMVector(candidates( i , k ))*edgeChargeVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
-                                 
-                                 bulkMucilageAttr = (bulkVector(candidates( i , k ))* bulkVector(neighbours( 1 , m )) * mucilageSurfaceVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
+                                 mucilageMemorySurfAttr = (bulkVector(candidates( i , k ))* bulkVector(neighbours( 1 , m )) * mucilageSurfaceVector(g.CE0T(candidates( i , k ),edgeCandidate)) ...
                                      + bulkVector(neighbours( 1 , m ))* bulkVector(candidates( i , k ))*mucilageSurfaceVector(g.CE0T(neighbours(1,m),edgeNeighbour))) * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                  
-                                 particleRootMucilageAttr =  (bulkVector(candidates( i , k )) * mucilageVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
-                                  ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
+                                 %particleRootMucilageAttr =  (bulkVector(candidates( i , k )) * mucilageVector(neighbours( 1 , m ))) * ...%g.CE0T(neighbours(1,m),edgeNeighbour)) * rootMucilageVector(neighbours( 1 , m ))
+                                  %( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                                                                 
                                  
-                                 pressureAttr = ((bulkVector(candidates( i , k )) * pressureDistributionVector(neighbours( 1 , m )))  ...
-                                      * ( ~any( candidates( i , : ) == neighbours( 1 , m )))); 
+                                 pressureAttr = max(bulkVector(candidates( i , k )) * pressureDistributionVector(neighbours( 1 , m )), bulkVector(neighbours( 1 , m )) * pressureDistributionVector(candidates( i , k ))) ... 
+                                 * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                             
                                  
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr bulkMucilageAttr * 15]) - pressureAttr * 30;%* (1-pressureAttr);    
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr mucilageMemorySurfAttr * 100]) * (1-pressureAttr);    
                                
-                                 if(particleRootMucilageAttr > 0 && j == 1)
-                                        aim( j ) = +Inf;
-                                        particleRootMucilageIndicator = 1;
-                                  else
+                                 %if(particleRootMucilageAttr > 0 && j == 1)
+                                  %      particleRootMucilageIndicator = 1;
+                                   %     aim(j) = Inf;
+                                  %else
+								     if(mucilageMemorySurfAttr > 0 && j == 1)
+										mucilageMemorySurfAttrInd = 1;
+									 end
                                      if(solidPOMreactiveSurfAttr > 0 && j == 1)
                                          solidPOMreactiveEdgeIndicator = 1;
                                      end
                                      if(solidPOMmemoryAttr > 0 && j == 1)
                                          solidPOMmemoryEdgeIndicator = 1;
                                      end
-                                 end
-                                 if(pressureDistributionVector(neighbours( 1 , 1 ))  == 1 || pressureDistributionVector(neighbours( 1 , m))  == 1)
-                                     aim( j ) = -Inf;
-                                 end
-
-                             
-
+                                 %end
                       end % switch attraction_type     
                    end % for l
                end % for k 
            else
-              aim(j) = -1;
+              aim(j) = -Inf;
            end % helping( i , j , 1 ) ~= candidates( i , 1 ) && helping( i , j , 1 ) ~= 0
         end % for j 
         
@@ -166,7 +167,9 @@ if ~isempty( candidates )
         % enable random breaking up
         % if current position is the most&& maximo < 0 attractive
 %         if aim(1)==maximo
-        if solidPOMmemoryEdgeIndicator == 1 && particleRootMucilageIndicator ~=1
+		if mucilageMemorySurfAttrInd == 1
+		
+        elseif solidPOMmemoryEdgeIndicator == 1
                randNum = randi(100,1);
                %randNum = 0;
                if randNum > 95
@@ -174,7 +177,7 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0;     
                    [maximo , indMax] = max( aim( : ) );
                end
-        elseif solidPOMreactiveEdgeIndicator == 1 && particleRootMucilageIndicator ~=1
+        elseif solidPOMreactiveEdgeIndicator == 1
                randNum = randi(100,1);
                %randNum = 0;
                if randNum > 90
@@ -182,8 +185,6 @@ if ~isempty( candidates )
                    aim( aim >= 0 ) = 0; 
                    [maximo , indMax] = max( aim( : ) );
                end
-        elseif particleRootMucilageIndicator == 1
-
         else
                randNum = randi(100,1);
                %randNum = 0;
