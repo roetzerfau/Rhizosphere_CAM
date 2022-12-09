@@ -353,8 +353,8 @@ if ~isempty( candidates )
         POMageVector(candidates(i , :)) = 0;
         particleType_tmp = particleTypeVector(candidates(i , :));
         particleTypeVector( candidates( i , :) ) = 0;
-        pressureDistributionVector_tmp = pressureDistributionVector(candidates(i , :));
-        pressureDistributionVector(candidates(i , :)) = 0;
+        %pressureDistributionVector_tmp = pressureDistributionVector(candidates(i , :));
+        %pressureDistributionVector(candidates(i , :)) = 0;
         
         % set bulkVector of aims to 1 ( means bulk )
         bulkVector( aims( i , : ) ) = 1;
@@ -365,7 +365,7 @@ if ~isempty( candidates )
         particleTypeVector( aims( i, : ) ) = particleType_tmp;
         [~,loc] = ismember(candidates(i,:),particleList,'rows');
         particleList(loc , : ) = aims(i , : );
-        pressureDistributionVector( aims( i, : ) ) = pressureDistributionVector_tmp;
+        %pressureDistributionVector( aims( i, : ) ) = pressureDistributionVector_tmp;
         
         
         % Move the charges and the agent on the edges

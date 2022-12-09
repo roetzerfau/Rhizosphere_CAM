@@ -66,17 +66,19 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 % parameters.mucilageDecayRate = 0.96;%
 
 
-parameters.rootGrowingRate = 1.075;
-parameters.rootShrinkingRate = 0.99;
+parameters.rootGrowingRate =  0.0921;
+parameters.rootShrinkingRate = 0.01;
 
 
-parameters.minConcMucilage = 0.1;
+parameters.minConcMucilage = 1;
 parameters.mucilageGrowingRate = 0.05;
-parameters.mucilageDecayRate = 2.3026;%
-
+parameters.mucilageDecayRate = 7.9398;%0.22;%2.3026 ->sum/0.22
+parameters.normalMucilageConcentration = 6.5;%-> immer kleiner als 0.005 *1.3 in rhizisphre
+parameters.constantMucilageDeposition = 333.8;
+extraConcAmount = 0;
 TrootGrowingBegin = 0;
 TrootGrowingEnd = 100;%80
-TrootShrinkingBegin = 1000;
+TrootShrinkingBegin = 200;
 TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
 TmucilageGrowingEnd = 100;%80
@@ -213,9 +215,9 @@ fprintf('k %d \n', k)
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = 0;
 if(TrootGrowingBegin < k && k < TrootGrowingEnd)
-    newAmountRootCells = ceil(currentAmountRootCells * parameters.rootGrowingRate);
+    newAmountRootCells = floor(currentAmountRootCells * exp(parameters.rootGrowingRate));
 elseif(TrootShrinkingBegin < k && k < TrootShrinkingEnd)
-    newAmountRootCells = ceil(currentAmountRootCells * parameters.rootShrinkingRate);
+    newAmountRootCells = ceil(currentAmountRootCells * exp(parameters.rootShrinkingRate));
 else
     newAmountRootCells = currentAmountRootCells;
 end
@@ -462,7 +464,8 @@ if(k > TrootGrowingEnd  && TrootShrinkingBegin > k &&  (occupiedOuterborder < 0.
 end
 if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
     parameters.mucilageGrowing = 1;
-    extraConcAmount = ceil(currentAmountRootCells * parameters.mucilageGrowingRate)/numel(outerRootBorderInd);
+    %extraConcAmount = ceil(currentAmountRootCells * parameters.mucilageGrowingRate)/numel(outerRootBorderInd);
+    %extraConcAmount =7.5;
 else
     parameters.mucilageGrowing = 0;
     extraConcAmount  = 0;
@@ -507,7 +510,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1 && (k <= 20 || mod(k,5) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 && (k <= 20 || mod(k,1) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);

@@ -31,9 +31,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     
     if(p.mucilageGrowing == 1)
         for i = 1:numel(outerRootBorderInd)
-            if( bulkVector(outerRootBorderInd(i)) == 0)%&& mucilageConcVector(outerRootBorderInd(i)) <= 5
-               mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + extraConcAmount;
-            end
+           mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + p.constantMucilageDeposition/numel(outerRootBorderInd); 
         end
         [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end 
