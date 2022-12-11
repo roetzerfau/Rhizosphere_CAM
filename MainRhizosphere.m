@@ -215,9 +215,9 @@ fprintf('k %d \n', k)
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = 0;
 if(TrootGrowingBegin < k && k < TrootGrowingEnd)
-    newAmountRootCells = floor(currentAmountRootCells * exp(parameters.rootGrowingRate));
+    newAmountRootCells = floor(1 * exp(parameters.rootGrowingRate * k));
 elseif(TrootShrinkingBegin < k && k < TrootShrinkingEnd)
-    newAmountRootCells = ceil(currentAmountRootCells * exp(parameters.rootShrinkingRate));
+    newAmountRootCells = ceil(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
 else
     newAmountRootCells = currentAmountRootCells;
 end
@@ -474,7 +474,7 @@ end
 T_mucilage = tic;
 [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, extraConcAmount, bulkVector, deadCells, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
 fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))
-%sumMu = sum(mucilageConcVector)
+sumMu = sum(mucilageVector)
 %------------------------------
 mucilageParticleList = cell(1,1);
 mucilageParticleList{1} = find(mucilageVector == 1);

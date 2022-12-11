@@ -30,10 +30,14 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     %% Wachsen von Zellen am Rand
     
     if(p.mucilageGrowing == 1)
+    nA = sum(bulkVector(outerRootBorderInd) == 0);
+    constA = p.constantMucilageDeposition/nA;
         for i = 1:numel(outerRootBorderInd)
-           mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + p.constantMucilageDeposition/numel(outerRootBorderInd); 
-        end
-        [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
+		   if(bulkVector(outerRootBorderInd(i)) == 0)
+			mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + constA; 
+		   end
+		end
+   [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end 
 
     %------------------------------------------------------------------------------------------
@@ -66,7 +70,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     %% suche nach von Überschuss -> zelle nächste verbundene Zelle, aber kleiner als 1;
     mucilageConcVector_before = mucilageConcVector;
     mucilageAmount_before = sum(mucilageConcVector_before);
-    overshootConcInd = find(mucilageConcVector > 1);
+    overshootConcInd = find(mucilageConcVector > p.normalMucilageConcentration);
     blackList = [];
     for i = 1:numel(overshootConcInd)
 		if(ismember(overshootConcInd(i), blackList))
