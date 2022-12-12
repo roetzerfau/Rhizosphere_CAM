@@ -9,7 +9,7 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/PaperConfigs/2_agg_34_1.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
+inputMat = 'Input/PaperConfigs/2_agg_19_1.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -74,6 +74,7 @@ parameters.minConcMucilage = 1;
 parameters.mucilageGrowingRate = 0.05;
 parameters.mucilageDecayRate = 7.9398;%0.22;%2.3026 ->sum/0.22
 parameters.normalMucilageConcentration = 6.5;%-> immer kleiner als 0.005 *1.3 in rhizisphre
+criticialValue = parameters.normalMucilageConcentration * 1.5;
 parameters.constantMucilageDeposition = 333.8;
 extraConcAmount = 0;
 TrootGrowingBegin = 0;
@@ -252,10 +253,11 @@ else
 
 end
 T_mucPress = tic;
-highConcInd = sum(mucilageConcVector > 1, 'all');
+
+highConcInd = sum(mucilageConcVector > criticialValue, 'all');
 mucilagePressureDistributionVector(:) = 0;
 if(numel(highConcInd)>0)
-pressPoints  = find(bwdist(mucilageConcVector > 1) == 1);
+pressPoints  = find(bwdist(mucilageConcVector > criticialValue) == 1);
 pressPoints = pressPoints(bulkVector(pressPoints) == 1);
 %sten = reshape(stencil(g.NX,NZd,highConcInd,1),1,[]);
 %pressPoints = sten(bulkVector(sten) == 1);
