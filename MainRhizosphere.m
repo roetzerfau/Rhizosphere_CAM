@@ -144,6 +144,7 @@ pressureDistributionVector = zeros(g.numT, 1);
 borderpointsVector =  zeros(g.numT, 1);
 relMap = zeros(g.numT, 1);
 deadCells = [];
+mucilageRootEdgeList = [];
 mantles = [0,10,20,30,40,50, 60 ,70];
 porosity_table = zeros(numOuterIt, numel(mantles)-1);
 %Obstacle
@@ -215,9 +216,9 @@ fprintf('k %d \n', k)
 %root shrinking/growing
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = 0;
-if(TrootGrowingBegin < k && k < TrootGrowingEnd)
+if(TrootGrowingBegin < k && k <= TrootGrowingEnd)
     newAmountRootCells = floor(1 * exp(parameters.rootGrowingRate * k));
-elseif(TrootShrinkingBegin < k && k < TrootShrinkingEnd)
+elseif(TrootShrinkingBegin < k && k <= TrootShrinkingEnd)
     newAmountRootCells = ceil(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
 else
     newAmountRootCells = currentAmountRootCells;
@@ -227,6 +228,7 @@ diffAmountRootCells = newAmountRootCells - currentAmountRootCells;
 amountChangeCells = diffAmountRootCells;
 
 rootPressureDistributionVector(:) = 0;
+rootComplexList_old = rootComplexList;
 if(amountChangeCells >  0)
     T_growing = tic;
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector...
@@ -252,6 +254,14 @@ elseif(amountChangeCells < 0)
 else
 
 end
+mucilageParticleList = cell(1,1);
+mucilageParticleList{1} = find(mucilageVector == 1);
+rootEdges_old = g.CE0T(rootComplexList_old,:);
+mucilageSurfaceVector(reshape(rootEdges_old,1,[])) = 0;
+mucilageRootEdgeList = calculatePOMsolidEdgeList(g, rootVector, mucilageVector, mucilageParticleList);
+mucilageSurfaceVector(mucilageRootEdgeList{1}) = 1;
+
+
 T_mucPress = tic;
 
 highConcInd = sum(mucilageConcVector > criticialValue, 'all');
@@ -333,7 +343,7 @@ end
 
 
 
-
+visualizeDataSub(g, pressureDistributionVector, 'cellType', 'pressureDistributionVector', k);
 %% Movement of solid building units
 T_start = tic;
 % move inseparable solid building units
@@ -464,7 +474,7 @@ if(k > TrootGrowingEnd  && TrootShrinkingBegin > k &&  (occupiedOuterborder < 0.
     TrootShrinkingBegin = k;
     TrootShrinkingEnd = k + 75;
 end
-if(k > TmucilageGrowingBegin && k < TmucilageGrowingEnd)
+if(k > TmucilageGrowingBegin && k <= TmucilageGrowingEnd)
     parameters.mucilageGrowing = 1;
     %extraConcAmount = ceil(currentAmountRootCells * parameters.mucilageGrowingRate)/numel(outerRootBorderInd);
     %extraConcAmount =7.5;
@@ -477,15 +487,12 @@ T_mucilage = tic;
 [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, extraConcAmount, bulkVector, deadCells, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
 fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))
 sumMu = sum(mucilageVector)
-%------------------------------
+%------------------------------ 
 mucilageParticleList = cell(1,1);
 mucilageParticleList{1} = find(mucilageVector == 1);
 mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
 mucilageSurfaceVector(mucilageSolidEdgeList{1}) = 1;
-rootEdges = g.CE0T(rootComplexList,:);
-mucilageSurfaceVector(reshape(rootEdges,1,[])) = 0;
-mucilageRootEdgeList = calculatePOMsolidEdgeList(g, rootVector, mucilageVector, mucilageParticleList);
-mucilageSurfaceVector(mucilageRootEdgeList{1}) = 1;
+
 %% Porosity
 
 [porosity_t] = calculatePorosity(g,mantles,rootVector, bulkVector - rootVector);
@@ -526,7 +533,7 @@ T2 = tic;
     %visualizeDataSub(g,  relMap, 'cellType', 'relMap', k);
    
 %visualizeDataSub(g, pressurePointsConnectedBulk, 'cellType', 'pressurePointsConnectedBulk', k-1);
-visualizeDataSub(g, pressureDistributionVector, 'cellType', 'pressureDistributionVector', k-1);
+
     
     %     visualizeDataSub(g, POMconcVector, 'POMconc', 'POMconc', k);
 %     visualizeDataSub(g, POMageVector, 'POMage', 'POMage', k);  
