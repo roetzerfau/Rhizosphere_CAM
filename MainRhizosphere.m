@@ -70,7 +70,7 @@ parameters.rootGrowingRate =  0.0921;
 parameters.rootShrinkingRate = 0.01;
 
 
-parameters.minConcMucilage = 1;
+parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 0.05;
 parameters.mucilageDecayRate = 7.9398;%0.22;%2.3026 ->sum/0.22
 parameters.normalMucilageConcentration = 6.5;%-> immer kleiner als 0.005 *1.3 in rhizisphre
