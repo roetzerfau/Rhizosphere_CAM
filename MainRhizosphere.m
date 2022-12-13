@@ -67,7 +67,7 @@ parameters.relocateFreePOMafterNsteps = 2000; % POM particles that were
 
 
 parameters.rootGrowingRate =  0.0921;
-parameters.rootShrinkingRate = 0.01;
+parameters.rootShrinkingRate = 0.015;
 
 
 parameters.minConcMucilage = 0.1;
@@ -134,7 +134,7 @@ if false
 else
     [rootVector, mucilageVector, mucilageConcVector,mucilageSurfaceVector, rootComplexList, rootComplexGraph,mucilageGraph] = ...
 creatingInitialRootComplex(g, bulkVector);
-bulkVector = bulkVector + rootVector + mucilageVector;
+bulkVector = bulkVector + rootVector;
 end
 global notConnectedEdgesValue;
 notConnectedEdgesValue = g.NX* g.NX * 2;
@@ -229,6 +229,8 @@ amountChangeCells = diffAmountRootCells;
 
 rootPressureDistributionVector(:) = 0;
 rootComplexList_old = rootComplexList;
+rootEdges_old = g.CE0T(rootComplexList_old,:);
+mucilageSurfaceVector(reshape(rootEdges_old,1,[])) = 0;
 if(amountChangeCells >  0)
     T_growing = tic;
     [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributionVector...
@@ -254,11 +256,9 @@ elseif(amountChangeCells < 0)
 else
 
 end
-mucilageParticleList = cell(1,1);
-mucilageParticleList{1} = find(mucilageVector == 1);
-rootEdges_old = g.CE0T(rootComplexList_old,:);
-mucilageSurfaceVector(reshape(rootEdges_old,1,[])) = 0;
-mucilageRootEdgeList = calculatePOMsolidEdgeList(g, rootVector, mucilageVector, mucilageParticleList);
+notrootComplexList_l = cell(1,1);
+notrootComplexList_l{1} = find(rootVector == 0);
+mucilageRootEdgeList = calculatePOMsolidEdgeList(g, rootVector, ~rootVector, notrootComplexList_l);
 mucilageSurfaceVector(mucilageRootEdgeList{1}) = 1;
 
 
@@ -493,6 +493,10 @@ mucilageParticleList{1} = find(mucilageVector == 1);
 mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, mucilageVector, mucilageParticleList);
 mucilageSurfaceVector(mucilageSolidEdgeList{1}) = 1;
 
+mucilageTest = (0*ones( g.numCE , 1 ));   
+allrellevantEdges = g.CE0T(find(bulkVector == 1),:);
+mucilageTest(allrellevantEdges) = 1;
+mucilageSurfaceVector = mucilageSurfaceVector .* mucilageTest;
 %% Porosity
 
 [porosity_t] = calculatePorosity(g,mantles,rootVector, bulkVector - rootVector);
