@@ -1,7 +1,7 @@
 function [ bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
-     concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, mucilageVector, pressureDistributionVector, particleList ,flag] = ...
+     concAgent, concPOMAgent, POMagentAge,MucilageagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, mucilageVector, pressureDistributionVector, particleList ,flag] = ...
     moveParticles( bulkSize , stencilLayers , g , bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector,...
-    POMageVector, concAgent, concPOMAgent, POMagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, ...
+    POMageVector, concAgent, concPOMAgent, POMagentAge, MucilageagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, ...
     mucilageVector , pressureDistributionVector, NZd , fileID, ...
     particleList ,sumAgent,typeflag,stencil_type, attraction_type,disablej1, particle_index)
 
@@ -18,7 +18,7 @@ particleList_before = particleList;
 concAgent_before = concAgent;
 concPOMAgent_before = concPOMAgent;
 POMagentAge_before = POMagentAge;
-
+MucilageagentAge_before = MucilageagentAge;
 % display('change flag=0');
 flag = 0;
 
@@ -159,7 +159,7 @@ if ~isempty( candidates )
             concAgent=concAgent_before;
             concPOMAgent = concPOMAgent_before;
             POMagentAge = POMagentAge_before;
-
+            MucilageagentAge = MucilageagentAge_before;
             return 
             
         end
@@ -376,6 +376,10 @@ if ~isempty( candidates )
         tmpPOMagentAge = POMagentAge(g.CE0T( candidates( i , : ) , : ));
         POMagentAge(g.CE0T( candidates( i , : ) , : )) = 0;
         POMagentAge(g.CE0T(aims(i, :),:)) = tmpPOMagentAge;
+        
+        tmpMucilageagentAge = MucilageagentAge(g.CE0T( candidates( i , : ) , : ));
+        MucilageagentAge(g.CE0T( candidates( i , : ) , : )) = 0;
+        MucilageagentAge(g.CE0T(aims(i, :),:)) = tmpMucilageagentAge;
         
         tmpReactiveSurface = reactiveSurfaceVector( g.CE0T( candidates( i , : ) , : ) );
         reactiveSurfaceVector( g.CE0T( candidates( i , : ) , : ) ) = 0;

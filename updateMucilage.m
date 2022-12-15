@@ -115,6 +115,9 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
           error('Falsch decay %d \n',mucilageAmount_before - mucilageAmount_after)
     end
      [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
+     
+     %concPOMAgent an nächsten solid edges erhöhen
+     % wir machen überall agent dran wo mucilage war
     
     %----------------------------------------------------------------
 end

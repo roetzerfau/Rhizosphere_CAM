@@ -1,4 +1,4 @@
-function [rootVector, mucilageVector, mucilageConcVector, mucilageSurfaceVector, rootComplexList, rootComplexGraph, mucilageGraph] = ...
+function [rootVector, mucilageVector, mucilageConcVector, mucilageSurfaceVector,MucilageagentAge, rootComplexList, rootComplexGraph, mucilageGraph] = ...
 creatingInitialRootComplex(g, bulkVector)
 
     N = g.NX;
@@ -8,7 +8,7 @@ creatingInitialRootComplex(g, bulkVector)
     mucilageVector = 0 * ones(g.numT, 1);
     mucilageConcVector = 0 * ones(g.numT, 1);
     mucilageSurfaceVector = (0*ones( g.numCE , 1 ));   
-
+    MucilageagentAge = (0*ones( g.numCE , 1 )); 
     diagVec1 = sparse(repmat([ones(N-1, 1); 0], N, 1));  % Make the first diagonal vector
                                                  %   (for horizontal connections)
     diagVec1 = diagVec1(1:end-1);                % Remove the last value
