@@ -84,6 +84,7 @@ TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
 TmucilageGrowingEnd = 100;%80
 k_start = 0;
+procentRootMucilage = 1;
 % add parameters concerning aging
 % add parameters for stencil sizes
 % add parameters for probabilities of breaking up
@@ -219,7 +220,7 @@ newAmountRootCells = 0;
 if(TrootGrowingBegin < k && k <= TrootGrowingEnd)
     newAmountRootCells = floor(1 * exp(parameters.rootGrowingRate * k));
 elseif(TrootShrinkingBegin < k && currentAmountRootCells > 4)
-    newAmountRootCells = ceil(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
+    newAmountRootCells = floor(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
 else
     newAmountRootCells = currentAmountRootCells;
 end
@@ -257,13 +258,17 @@ else
 
 end
 if(parameters.constantMucilageDeposition > 0)
-notrootComplexList_l = cell(1,1);
-notrootComplexList_l{1} = find(rootVector == 0);
-mucilageRootEdgeList = calculatePOMsolidEdgeList(g, rootVector, ~rootVector, notrootComplexList_l);
-if(k <= TrootGrowingEnd)
-mucilageSurfaceVector(mucilageRootEdgeList{1}) = 1;
-MucilageagentAge(mucilageRootEdgeList{1}) = 0;  
-end
+	notrootComplexList_l = cell(1,1);
+	notrootComplexList_l{1} = find(rootVector == 0);
+	mucilageRootEdgeList = calculatePOMsolidEdgeList(g, rootVector, ~rootVector, notrootComplexList_l);
+	mucilageSurfaceVector(mucilageRootEdgeList{1}) = 1;
+	if(k > TrootGrowingEnd + 50)
+		randHelper = randi(500, size(mucilageRootEdgeList{1}));
+		randHelper = randHelper <= 499;
+		procentRootMucilage = procentRootMucilage * sum(randHelper)/numel(randHelper);
+		nonMucilageEdge = floor(numel(randHelper) * (1-procentRootMucilage))
+		mucilageSurfaceVector(mucilageRootEdgeList{1}(1:nonMucilageEdge) = 0;
+	end
 end
 T_mucPress = tic;
 
