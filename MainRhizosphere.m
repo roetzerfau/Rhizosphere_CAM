@@ -267,7 +267,7 @@ if(parameters.constantMucilageDeposition > 0)
 		randHelper = randHelper <= 499;
 		procentRootMucilage = procentRootMucilage * sum(randHelper)/numel(randHelper);
 		nonMucilageEdge = floor(numel(randHelper) * (1-procentRootMucilage))
-		mucilageSurfaceVector(mucilageRootEdgeList{1}(1:nonMucilageEdge) = 0;
+		mucilageSurfaceVector(mucilageRootEdgeList{1}(1:nonMucilageEdge)) = 0;
 	end
 end
 T_mucPress = tic;
