@@ -11,10 +11,10 @@ function [mucilageConcVector] = ...
         concOld = mucilageConcVector(ind);
         neigh = ((bulkVector + mucilageVector) >= 1);
         decayRate = mucilageDecayRate * (4-sum( neigh(st(2:end))))/4;
-        particleVector = bulkVector;
-        if( sum(particleVector(st(2:end))) >= 1)
-            decayRate = decayRate * 0.3;
-        end
+        %particleVector = bulkVector;
+        %if( sum(particleVector(st(2:end))) >= 1)
+         %   decayRate = decayRate * 0.3;
+        %end
 
         concNew = concOld *  exp(- decayRate * tau);
 
