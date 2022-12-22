@@ -78,7 +78,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
         cellOfInterestInd = outerborderInd(index);
         cellOfInterestIndVector = [cellOfInterestIndVector, cellOfInterestInd];
         visitedNTimes = sum(cellOfInterestIndVector == cellOfInterestInd);
-        if(visitedNTimes > 2)
+        if(visitedNTimes > 3)
             continue;
         end
         if(numel(newCellsInd) == ceil(requieredAmountNewCells/2)||numel(newCellsInd) == ceil(requieredAmountNewCells/4)||numel(newCellsInd) == ceil(requieredAmountNewCells/4 *3))
@@ -104,13 +104,16 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                 
                 %Find POM ParticlesInd in this connected Area
                 if(~isempty(connectedCompInd))
-                oo = cellfun(@(x) ismember(reshape(x',1,[]),CC.PixelIdxList{connectedCompInd}), POMParticleList, 'UniformOutput', false);
-                Match1 = cellfun(@sum, oo);
-                POMParticle = find(Match1 >= 1);
+                    oo = cellfun(@(x) ismember(reshape(x',1,[]),CC.PixelIdxList{connectedCompInd}), POMParticleList, 'UniformOutput', false);
+                    Match1 = cellfun(@sum, oo);
+                    POMParticle = find(Match1 >= 1);
                 end
                 
                 
-                rootPressureDistributionVector(:) = 0;
+
+                rootPressureDistributionVector = calculatePressureDistribution(g,cellOfInterestInd,bulkVector,rootComplexList);
+                
+                %rootPressureDistributionVector(:) = 0;
                 rootPressureDistributionVector(freeSpots) = 1;
                 if(numel(freeSpots) < requieredAmountNewCells)
 					e = min(requieredAmountNewCells,numel(outerborderInd));
@@ -127,7 +130,11 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                             fileID =0;
                             NZd = g.NX;
-                            bigParticleStencilLayers_individual = 1;
+                            
+                            bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+                            meanPressure = mean(pressureDistributionVector(solidParticleList{ solidParticle }));
+                            bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
+                            
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
                                 concAgent, concPOMAgent, POMagentAge,MucilageagentAge, edgeChargeVector, reactiveSurfaceVector,mucilageSurfaceVector,...
                                 nextMucilageBorderVector, rootPressureDistributionVector,...
@@ -157,7 +164,11 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
 
                             fileID =0;
                             NZd = g.NX;
-                            bigParticleStencilLayers_individual = 1;
+                            
+                            bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
+                            meanPressure = mean(pressureDistributionVector(solidParticleList{ solidParticle(p) }));
+                            bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
+                            
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
                                 concAgent, concPOMAgent, POMagentAge,MucilageagentAge, edgeChargeVector, reactiveSurfaceVector,mucilageSurfaceVector,...
                                 nextMucilageBorderVector, rootPressureDistributionVector,...
