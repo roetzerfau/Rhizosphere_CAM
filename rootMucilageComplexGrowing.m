@@ -132,7 +132,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                             NZd = g.NX;
                             
                             bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
-                            meanPressure = mean(rootPressureDistributionVector(solidParticleList{ solidParticle }));
+                            meanPressure = mean(rootPressureDistributionVector(solidParticleList{ solidParticle(p) }));
                             bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
                             
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
@@ -166,7 +166,7 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                             NZd = g.NX;
                             
                             bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
-                            meanPressure = mean(rootPressureDistributionVector(solidParticleList{ solidParticle(p) }));
+                            meanPressure = mean(rootPressureDistributionVector(POMParticleList{ POMParticle(p) }));
                             bigParticleStencilLayers_individual = max(ceil(meanPressure * 5), bigParticleStencilLayers_individual);
                             
                             [bulkVector,bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector,...
