@@ -121,7 +121,7 @@ if ~isempty( candidates )
                                  * ( ~any( candidates( i , : ) == neighbours( 1 , m ) ));
                             
                                  
-                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr mucilageMemorySurfAttr * 100]) * (1-pressureAttr);    
+                                 aim( j ) = aim( j ) + max([solidSolidAttr 5*solidPOMreactiveSurfAttr 10*solidPOMmemoryAttr mucilageMemorySurfAttr * 10]) * (1-pressureAttr);    
                                
                                  %if(particleRootMucilageAttr > 0 && j == 1)
                                   %      particleRootMucilageIndicator = 1;
