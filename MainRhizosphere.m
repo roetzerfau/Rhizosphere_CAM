@@ -219,7 +219,7 @@ currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = 0;
 if(TrootGrowingBegin < k && k <= TrootGrowingEnd)
     newAmountRootCells = floor(1 * exp(parameters.rootGrowingRate * k));
-elseif(TrootShrinkingBegin < k && currentAmountRootCells > 4)
+elseif(TrootShrinkingBegin < k && currentAmountRootCells > 1)
     newAmountRootCells = floor(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
 else
     newAmountRootCells = currentAmountRootCells;
@@ -534,7 +534,7 @@ T2 = tic;
     visualizeDataEdges(g, POMagentAge, 'age', 'POMagentAge', k, 2);
 % visualizeDataSub(g, particleTypeVector, 'particleType', 'solu', k); 
 % visualizeDataSub(g, bulkVector, 'bulkVector', 'solu', k); 
-    elseif plot_frequency == 1 && (k <= 20 || mod(k,1) == 0 || k == numOuterIt)
+    elseif plot_frequency == 1 && (k <= 105 || mod(k,5) == 0 || k == numOuterIt)
 % elseif plot_frequency == 1 
 %     uLagr       = projectDG2LagrangeSub( uDG );
 %     visualizeDataSub(g, uLagr, 'u', 'solu', k);
