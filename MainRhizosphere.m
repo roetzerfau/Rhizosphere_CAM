@@ -72,7 +72,7 @@ parameters.rootShrinkingRate = 0.011;%ein drittel übrig
 
 parameters.minConcMucilage = 0.1;
 parameters.mucilageGrowingRate = 0.05;
-parameters.mucilageDecayRate = 0.44;%7.9398;%0.22;%2.3026 ->sum/0.22
+parameters.mucilageDecayRate = 3.1;%7.9398;%0.22;%2.3026 ->sum/0.22
 parameters.normalMucilageConcentration = 6.5;%-> immer kleiner als 0.005 *1.3 in rhizisphre
 criticialValue = parameters.normalMucilageConcentration * 1.5;
 parameters.constantMucilageDeposition = 333.8;
