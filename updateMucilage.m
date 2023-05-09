@@ -76,7 +76,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
 		if(ismember(overshootConcInd(i), blackList))
 			continue;
 		end
-        overshootValue = mucilageConcVector(overshootConcInd(i))-1;
+        overshootValue = mucilageConcVector(overshootConcInd(i))-p.normalMucilageConcentration;
         %next free cell muss verbunden sein, also border cell
         nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), 1, 1);
         index  = 0;
@@ -94,10 +94,10 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
                 break;
             end
             conNFC = mucilageConcVector(nextFreeCellsInd(index));
-            mucilageConcVector(nextFreeCellsInd(index)) = min (1, conNFC + overshootValue);
+            mucilageConcVector(nextFreeCellsInd(index)) = min (p.normalMucilageConcentration, conNFC + overshootValue);
             diffConc = mucilageConcVector(nextFreeCellsInd(index)) - conNFC;
             overshootValue = overshootValue - diffConc;
-            mucilageConcVector(overshootConcInd(i)) = 1 + overshootValue;
+            mucilageConcVector(overshootConcInd(i)) = p.normalMucilageConcentration + overshootValue;
         end
         [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end
