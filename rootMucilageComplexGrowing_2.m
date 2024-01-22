@@ -15,6 +15,8 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
     %das ielleicht noch besser machen wie im haupteil
     nextMucilageBorderVector = mucilageVector;
     rootPressureDistributionVector = 0 * ones(g.numT, 1);
+    
+    
 
     %% Calculate possible Cells for Growing
     
@@ -48,8 +50,14 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
                 coord = mean(g.coordV(v,:),1);
                 X = [coord; coordSource];
                 d(i) = pdist(X,'euclidean');
+                if(abs(coord(2) - coordSource(2)) > 50)
+                    %fprintf("Weg")
+                    d(i) = inf;
+                end
             end
+            
             [sortedd, I] = sort(d);
+            %TODO sorted OuterborderI
             outerborderInd = outerborderInd(I);
             %d = pdist(X,'euclidean');
             freeSpots = find((bulkVector(outerborderInd) == 0));
@@ -64,6 +72,9 @@ function [rootComplexGraph, bulkVector, rootComplexList, rootPressureDistributio
             freeSpaceStillPossible = 1;  
         else
             freeSpaceStillPossible = 0;
+        end
+        if(all(d == inf))
+           freeSpaceStillPossible = 0;
         end
         cellOfInterestInd = outerborderInd(index);
         cellOfInterestIndVector = [cellOfInterestIndVector, cellOfInterestInd];

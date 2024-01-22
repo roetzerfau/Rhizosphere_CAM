@@ -9,8 +9,8 @@ plot_frequency = 1;  % 0: only initial and final state; 1: specified below
 attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4: for TUM, 5: Freising paper
 
 % Input files
-inputMat = 'Input/BlankDomain_250.mat';
-%inputMat = 'Input/PaperConfigs/2_agg_19_1.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
+%inputMat = 'Input/BlankDomain_250.mat';
+inputMat = 'Input/PaperConfigs/2_agg_19_1.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -26,7 +26,7 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 
 inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
-numOuterIt  = 100;    
+numOuterIt  = 110;    
 
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
@@ -80,7 +80,7 @@ parameters.constantMucilageDeposition = 333.8;
 extraConcAmount = 0;
 TrootGrowingBegin = 0;
 TrootGrowingEnd = 100;%80
-TrootShrinkingBegin = 100;
+TrootShrinkingBegin = 1000;
 TrootShrinkingEnd = 1300;
 TmucilageGrowingBegin = 0;
 TmucilageGrowingEnd = 100;%80
@@ -226,6 +226,7 @@ if(TrootGrowingBegin < k && k <= TrootGrowingEnd)
     k_dach = -log(1-gR);
     B = S - (S-B_0) * exp(-k_dach * k);
     newAmountRootCells = floor(B);
+    newAmountRootCells = 200 * k;
 elseif(TrootShrinkingBegin < k && currentAmountRootCells > 1)
     newAmountRootCells = floor(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
 else
@@ -476,6 +477,7 @@ end
 
 %% mucilage
 rootSourceCell = rootComplexList(1);
+tipCell = rootComplexList(end);
 freeCellsInd = find((rootVector) ~= 1);
 
 [TR,d] = shortestpathtree(rootComplexGraph,freeCellsInd,rootSourceCell);
@@ -485,7 +487,8 @@ freeCellsInd = freeCellsInd(I);
 
 outerborder = sortedd < notConnectedEdgesValue * 1.1;%hier vielleicht falsch ne doch nciht
 %TODO hier vielleicht nochmal eukliduscher Abstand berechnne
-outerRootBorderInd = freeCellsInd(outerborder);%heeeeeeree 
+outerRootBorderInd = freeCellsInd(outerborder);
+outerRootBorderInd = outerRootBorderInd(end)
 occupiedOuterborder = sum(mucilageVector(outerRootBorderInd) + bulkVector(outerRootBorderInd))/(numel(outerRootBorderInd));
 if(k > TrootGrowingEnd  && TrootShrinkingBegin >= k) %&&  (occupiedOuterborder < 0.75 || k > 0.5 * numOuterIt))
     %TrootShrinkingBegin = k;
@@ -499,7 +502,7 @@ else
     parameters.mucilageGrowing = 0;
     extraConcAmount  = 0;
 end
-
+%nur spitze stößt mucilage aus
 T_mucilage = tic;
 [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, parameters, extraConcAmount, bulkVector, deadCells, outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph);
 fprintf('Time for updateMucilage: %d \n', toc(T_mucilage))

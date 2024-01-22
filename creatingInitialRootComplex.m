@@ -32,8 +32,11 @@ creatingInitialRootComplex(g, bulkVector)
     clear adj diagVec1 diagVec2 diagVec3 diagVec4
 
     %find nearest pore space to center of domain 
-    centerOfDomain = g.NX/2;
-    rootIntialCellInd = centerOfDomain * g.NX + centerOfDomain;
+    %centerOfDomain = g.NX/2;
+    %rootIntialCellInd = centerOfDomain * g.NX + centerOfDomain;
+    centerOfDomain = 1;
+    rootIntialCellInd =1;
+    
     
     [TR,d] = shortestpathtree(rootComplexGraph,rootIntialCellInd);
     [sortedd, I] = sort(d);
