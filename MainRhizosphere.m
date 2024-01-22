@@ -218,7 +218,13 @@ fprintf('k %d \n', k)
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = 0;
 if(TrootGrowingBegin < k && k <= TrootGrowingEnd)
-    newAmountRootCells = floor(1 * exp(parameters.rootGrowingRate * k));
+    %newAmountRootCells = floor(1 * exp(parameters.rootGrowingRate * k));
+    S = pi * 100^2;
+    B_0 = 1;
+    gR = exp(parameters.rootGrowingRate) -1;
+    k_dach = -log(1-gR);
+    B = S - (S-B_0) * exp(-k_dach * k);
+    newAmountRootCells = floor(B);
 elseif(TrootShrinkingBegin < k && currentAmountRootCells > 1)
     newAmountRootCells = floor(currentAmountRootCells * exp(-parameters.rootShrinkingRate));
 else
@@ -513,6 +519,9 @@ mucilageSurfaceVector = mucilageSurfaceVector .* mucilageTest;
 [porosity_t] = calculatePorosity(g,mantles,rootVector, bulkVector - rootVector);
 porosity_table(k,:) = porosity_t';
 writematrix(porosity_table,'FinalConfig/porosity_table.xls')
+%% Displacement Vectors
+
+
 %%
 T2 = tic;
 

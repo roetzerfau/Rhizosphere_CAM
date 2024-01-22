@@ -12,8 +12,8 @@ disp = zeros(numel(particleList_ref),5);
 for index = 1:numel(particleList_ref)
     particle_ref = particleList_ref{index};
     [coord_ref_row, coord_ref_col] = ind2sub([N,N],particle_ref);
-    
-    d = mean(D(particle_ref));
+    d = D(sub2ind([N,N], round(mean(coord_ref_row)), round(mean(coord_ref_col))));
+    %d = mean(D(particle_ref));
     
     
 %     v_ref = g.V0T(particle_ref,:);
@@ -139,9 +139,9 @@ for index = 1:numel(particleList_ref)
    
     
     
-    i
-    i_ref
-    i_d
+%     i
+%     i_ref
+%     i_d
     disp_x = coord_row - coord_ref_row;
     [B,I_i] = min(abs(i_d));
     
