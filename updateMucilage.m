@@ -1,4 +1,4 @@
-function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g, p, extraConcAmount, bulkVector,removedBorderInd,  outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph)
+function [mucilageConcVector, mucilageVector, mucilageGraph, mucilageConcDifference ] = updateMucilage(g, p, extraConcAmount, bulkVector,removedBorderInd,  outerRootBorderInd, mucilageConcVector, mucilageVector, mucilageGraph)
     
     %----------------------------------------------------------------
     %bei wegschieben, bekommt nächstgelende freie(kein Bulk, beliebige Konzetration) Zelle Con
@@ -12,7 +12,7 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
     for i = 1:numel(distributedMucilageInd)
         
         overshootValue = mucilageConcVector_before(distributedMucilageInd(i));
-        nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph,distributedMucilageInd(i), 5, 0);
+        nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph,distributedMucilageInd(i), p.normalMucilageConcentration, 0);
         if(numel(nextFreeCellsInd) > 0)
             mucilageConcVector(distributedMucilageInd(i))= 0;
             mucilageConcVector(nextFreeCellsInd(1)) = mucilageConcVector(nextFreeCellsInd(1)) + overshootValue;
@@ -77,13 +77,14 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
 			continue;
 		end
         overshootValue = mucilageConcVector(overshootConcInd(i))-p.normalMucilageConcentration;
+        %overshootValue = mucilageConcVector(overshootConcInd(i))-1;
         %next free cell muss verbunden sein, also border cell
-        nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), 1, 1);
+        nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), p.normalMucilageConcentration, 1);%1
         index  = 0;
         while(overshootValue >0)
             index = index + 1;
             if(numel(nextFreeCellsInd) < index)
-                nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), Inf, 1);
+                nextFreeCellsInd = findNextFreeCells(bulkVector, mucilageConcVector, mucilageGraph, overshootConcInd(i), Inf,1);% 
                 if(std(mucilageConcVector(nextFreeCellsInd)) == 0)
 					fprintf('stdAbwe \n')
 					blackList = [blackList; nextFreeCellsInd];
@@ -95,27 +96,32 @@ function [mucilageConcVector, mucilageVector, mucilageGraph ] = updateMucilage(g
             end
             conNFC = mucilageConcVector(nextFreeCellsInd(index));
             mucilageConcVector(nextFreeCellsInd(index)) = min (p.normalMucilageConcentration, conNFC + overshootValue);
+            %mucilageConcVector(nextFreeCellsInd(index)) = min (1, conNFC + overshootValue);
             diffConc = mucilageConcVector(nextFreeCellsInd(index)) - conNFC;
             overshootValue = overshootValue - diffConc;
             mucilageConcVector(overshootConcInd(i)) = p.normalMucilageConcentration + overshootValue;
+            %mucilageConcVector(overshootConcInd(i)) = 1 + overshootValue;
         end
         [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
     end
      mucilageAmount_after = sum(mucilageConcVector);
     if(abs(mucilageAmount_before - mucilageAmount_after) > 0.0001)
-          error('Falsch überschuss')
+          error('Falsch überschuss', abs(mucilageAmount_before - mucilageAmount_after))
     end
     %%calculate Mucilage Decay
      mucilageConcVector_before = mucilageConcVector;
      mucilageAmount_before = sum(mucilageConcVector_before);
      [mucilageConcVector] = calculateMucilageDecay(g, p.mucilageDecayRate, bulkVector, mucilageVector, mucilageConcVector);
+     mucilageConcDifference = mucilageConcVector_before - mucilageConcVector;
      
      mucilageAmount_after = sum(mucilageConcVector);
     if((mucilageAmount_before - mucilageAmount_after) < 0)%hier schauen
           error('Falsch decay %d \n',mucilageAmount_before - mucilageAmount_after)
     end
      [mucilageVector, mucilageConcVector, mucilageGraph] = updateMucilageVector(p.minConcMucilage , mucilageVector, mucilageConcVector, mucilageGraph);
-     
+     mucilageConcVector_test = mucilageConcVector;
+	 mucilageConcVector_test(mucilageConcVector < p.normalMucilageConcentration) = 0;
+	 sum(mucilageConcVector_test  - (mucilageConcVector_test >= p.normalMucilageConcentration) * p.normalMucilageConcentration)
      %concPOMAgent an nächsten solid edges erhöhen
      % wir machen überall agent dran wo mucilage war
     

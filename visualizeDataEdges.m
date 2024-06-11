@@ -3,7 +3,10 @@ function visualizeDataEdges( g , repLagr , varName, fileName, tLvl, edgeType )
 [K, N] = size(repLagr);
 %% open file
 fileName    = ['vtk/' , fileName, '.', num2str(tLvl), '.vtu'];
-file        = fopen(fileName, 'wt');
+[file, message]       = fopen(fileName, 'wt');
+if file < 0
+   error('Failed to open myfile because: %s', message);
+end
 %% header
 fprintf(file, '<?xml version="1.0"?>\n');
 fprintf(file, '<VTKFile type="UnstructuredGrid" versig.on="0.1" byte_order="LittleEndian" compressor="vtkZLibDataCompressor">\n');

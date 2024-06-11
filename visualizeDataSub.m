@@ -1,9 +1,20 @@
-function visualizeDataSub( g , repLagr , varName, fileName, tLvl )
+function visualizeDataSub( g , repLagr , varName, fileName, tLvl, name )
+%arguments 
+ %   name (1,1) string = 'vtk'
+%end
+if ~exist('name','var')
+     % third parameter does not exist, so default it to something
+      name = 'vtk/';
+end
 
 [K, N] = size(repLagr);
 %% open file
-fileName    = ['vtk/' , fileName, '.', num2str(tLvl), '.vtu'];
-file        = fopen(fileName, 'wt');
+fileName    = [ name, fileName, '.', num2str(tLvl), '.vtu'];
+[file, message]     = fopen(fileName, 'wt');
+if file < 0
+   error('Failed to open myfile because: %s', message);
+end
+%fprintf(file,"asdf")
 %% header
 fprintf(file, '<?xml version="1.0"?>\n');
 fprintf(file, '<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian" compressor="vtkZLibDataCompressor">\n');

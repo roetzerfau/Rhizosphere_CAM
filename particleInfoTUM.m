@@ -8,6 +8,7 @@ particlePerimeter = zeros(1,length(bulkVector));
 
 NX = sqrt(length(bulkVector));
 bulkVectorFlag  = -bulkVector;
+
 particleCounter = 0;
 waitList = [];
 

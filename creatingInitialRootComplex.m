@@ -1,5 +1,5 @@
 function [rootVector, mucilageVector, mucilageConcVector, mucilageSurfaceVector,MucilageagentAge, rootComplexList, rootComplexGraph, mucilageGraph] = ...
-creatingInitialRootComplex(g, bulkVector)
+creatingInitialRootComplex(g, bulkVector, isRoot)
 
     N = g.NX;
     notConnectedEdgesValue = N*N * 2;
@@ -30,19 +30,21 @@ creatingInitialRootComplex(g, bulkVector)
     rootComplexGraph = graph(adj);
     mucilageGraph = rootComplexGraph;
     clear adj diagVec1 diagVec2 diagVec3 diagVec4
+    
+    if(isRoot)
+        %find nearest pore space to center of domain 
+        %centerOfDomain = g.NX/2;
+        %rootIntialCellInd = centerOfDomain * g.NX + centerOfDomain;
+        centerOfDomain = 1;
+        rootIntialCellInd =1;
 
-    %find nearest pore space to center of domain 
-    %centerOfDomain = g.NX/2;
-    %rootIntialCellInd = centerOfDomain * g.NX + centerOfDomain;
-    centerOfDomain = 1;
-    rootIntialCellInd =1;
-    
-    
-    [TR,d] = shortestpathtree(rootComplexGraph,rootIntialCellInd);
-    [sortedd, I] = sort(d);
-    j =find(bulkVector(I) == 0,1);
-    rootNewCellsInd = I(j);
-    rootVector(rootNewCellsInd) = 1;
-    rootComplexList = [rootComplexList rootNewCellsInd];
+
+        [TR,d] = shortestpathtree(rootComplexGraph,rootIntialCellInd);
+        [sortedd, I] = sort(d);
+        j =find(bulkVector(I) == 0,1);
+        rootNewCellsInd = I(j);
+        rootVector(rootNewCellsInd) = 1;
+        rootComplexList = [rootComplexList rootNewCellsInd];
+        end
     
 end
