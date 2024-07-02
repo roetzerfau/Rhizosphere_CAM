@@ -1,5 +1,5 @@
-function  [ N_SVector, C_SVector, N_BVector, C_BVector, MNsolidVector] = ...
-calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, bulkVector, MNsolidVector)
+function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector] = ...
+calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector)
 
 
     % K_Cliquid: Michaelis-Menten-Konstante/ half saturation constant
@@ -30,12 +30,17 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, bulkV
 %     C_BVector_ = changeFract .* C_BVector;
 %     
 %     a = 1.4 * exp(-0.25);
-    
+    C_BVector_old = C_BVector;
+    N_BVector_old = N_BVector;
+
+    C_SVector_old = C_SVector;
+    N_SVector_old = N_SVector;
+
     bact_idx = find(C_BVector >= parameters.minConC_B);
     for i = 1:numel(bact_idx)
         bact_i = bact_idx(i);
         tspan = [0:tau];
-        y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i) ]';
+        y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i)]';
         [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0);
         
         %y_2_4 = [y(:,2),y(:,4)];
@@ -52,8 +57,22 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, bulkV
         N_SVector(bact_i) = N_S;
         N_B = y(end,4);
         N_BVector(bact_i) = N_B;
-        
+
+        C_MN = y(end,5);
+        C_MNVector(bact_i) = C_MN;
+        N_MN = y(end,6);
+        N_MNVector(bact_i) = N_MN;
     end
+
+
+    
+    
+
+
+
+
+
+
     %C_N_B = C_B/N_B;
     %C_N_S = C_S/N_S;
     
@@ -67,6 +86,8 @@ function dYdt = MMKfunction(t,Y, parameters)
     C_B = Y(2);
     N_S = Y(3);
     N_B = Y(4);
+    C_MN = Y(5);
+    N_MN = Y(6);
 
     U = (parameters.v_Cliquid *C_S)/(C_S + parameters.K_Cliquid) * C_B;
     %U = 0.1 * C_S;
@@ -77,7 +98,7 @@ function dYdt = MMKfunction(t,Y, parameters)
     R_GE = parameters.Resp_GE * U;
     R_M = parameters.Resp_Maint * C_B; 
     R_O = 0; %overflow resp -> strong imbalance of resources
-    BD = 0;
+    BD = parameters.BD * C_B;
     EX = 0;
      
     
@@ -143,15 +164,19 @@ function dYdt = MMKfunction(t,Y, parameters)
    
     N_B_dt = parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B;
     C_B_dt = U - R_GE- R_M - R_O - BD;
-    C_S_dt = -U;
+    
     %C_S_dt = 0;
     N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B);
+    C_S_dt = -U;
    % N_S_dt = 0;
-    
+    C_MN = BD;
+    N_MN = BD/C_N_B;
     %a = [C_N_B, Phi, R_O]
     dYdt = [C_S_dt; % C_S -U *0.01
              C_B_dt; % C_B
             N_S_dt; % N_S  %-U/C_N_B
-             N_B_dt]; % N_B         % U/C_N_S   U * CUE/C_N_B
+             N_B_dt; % N_B         % U/C_N_S   U * CUE/C_N_B
+             C_MN;
+             N_MN];
          
 end

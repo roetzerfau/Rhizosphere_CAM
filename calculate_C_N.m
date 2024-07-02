@@ -1,5 +1,5 @@
-function [MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector] = ...
-    calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,outerRootBorderInd)
+function [MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector] = ...
+    calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,outerRootBorderInd)
 
     dayinseconds = 24 * 60 * 60;
     numberoftstps = dayinseconds/parameters.tau_ode;
@@ -17,8 +17,8 @@ function [MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , MNVector, POMV
     sumC_S_avai = sum(C_SVector)
     
      C_Nstep = tic;
-    [ N_SVector, C_SVector, N_BVector, C_BVector,MNVector] = ...
-    calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, bulkVector,  MNVector);
+    [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector] = ...
+    calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector);
     sumC_S = sum(C_SVector)
     sumC_B = sum(C_BVector)
     fprintf('Time for C_Nstep: %d \n', toc(C_Nstep))
@@ -26,9 +26,14 @@ function [MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , MNVector, POMV
     
     %% Diff and spread
     spreadstep=tic;
-    C_BVector = spreadConcentration(g, C_BVector, bulkVector,parameters.maxConcC_B, parameters.minConC_B);
+    maxValues = ones(g.numT, 1).* parameters.maxConcC_B - C_MNVector;
+    maxValues(maxValues < 0) = 0;
+    C_BVector = spreadConcentration(g, C_BVector, bulkVector, maxValues, ones(g.numT, 1).*parameters.minConC_B);
     N_BVector = C_BVector ./ parameters.C_N_B;
     fprintf('Time for spreadstp: %d \n', toc(spreadstep))
+
+
+
     
     C_SVector = C_SVector + C_BVector .* (C_BVector < parameters.minConC_B); 
     C_BVector(C_BVector < parameters.minConC_B) = 0;

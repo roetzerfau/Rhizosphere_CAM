@@ -1,6 +1,6 @@
-function concentrationVector = spreadConcentration(g, concentrationVector, restrictVector, maxValue, minValue)
+function concentrationVector = spreadConcentration(g, concentrationVector, restrictVector, maxValueVector, minValueVector)
 previousConcentration = sum(concentrationVector);  
-exceedMaximium_ind = find(concentrationVector > (maxValue + minValue));
+exceedMaximium_ind = find(concentrationVector > (maxValueVector + minValueVector));
     
     for i = 1:numel(exceedMaximium_ind)
         overshoot_candidate = exceedMaximium_ind(i);
@@ -9,7 +9,7 @@ exceedMaximium_ind = find(concentrationVector > (maxValue + minValue));
         if(isOverlapped)
             overshoot_value = concentrationVector(overshoot_candidate);
         else
-            overshoot_value =  concentrationVector(overshoot_candidate) - maxValue;
+            overshoot_value =  concentrationVector(overshoot_candidate) - maxValueVector(overshoot_candidate);
         end
         
         %candidates = candidates(randperm(length(candidates)));
@@ -30,11 +30,11 @@ exceedMaximium_ind = find(concentrationVector > (maxValue + minValue));
             
             
             
-            undershoot_candidates = candidates(concentrationVector(candidates) < maxValue); 
+            undershoot_candidates = candidates(concentrationVector(candidates) < maxValueVector(candidates)); 
             undershoot_candidates = undershoot_candidates(randperm(length(undershoot_candidates)));
             
             for c = reshape(undershoot_candidates,1,[])
-                capacity = maxValue - concentrationVector(c);
+                capacity = maxValueVector(c) - concentrationVector(c);
                 fraction_2_spread = min([capacity, overshoot_value]);
                 concentrationVector(c)= concentrationVector(c) + fraction_2_spread;
                 concentrationVector(overshoot_candidate) = concentrationVector(overshoot_candidate) - fraction_2_spread;

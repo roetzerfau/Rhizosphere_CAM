@@ -7,7 +7,7 @@ function [C_SVector, N_SVector] = updateMucilage2(g, parameters,outerRootBorderI
             for i = 1:numel(outerRootBorderInd)
                if(bulkVector(outerRootBorderInd(i)) == 0)
                 %mucilageConcVector(outerRootBorderInd(i)) = mucilageConcVector(outerRootBorderInd(i)) + constA;
-                C_SVector(outerRootBorderInd(i)) = C_SVector(outerRootBorderInd(i)) + parameters.startConcPOM/50;
+                C_SVector(outerRootBorderInd(i)) = C_SVector(outerRootBorderInd(i)) + parameters.mucilageC;
                 N_SVector(outerRootBorderInd(i)) = N_SVector(outerRootBorderInd(i)) /parameters.C_N_Root;
                end
             end

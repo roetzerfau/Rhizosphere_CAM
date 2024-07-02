@@ -88,7 +88,7 @@ removePOMthreshold = 1001;
 
 %Flags:
 isRoot = false
-move = true;
+move = false;
 
 
 %% Creating domain for Simulation
@@ -147,13 +147,14 @@ parameters.v_Cliquid = 1.2 * 10^-4;
 parameters.K_Cliquid = 5 * 10^-4;
 parameters.Resp_GE = 0.26;
 parameters.Resp_Maint = 2.31*10^-6;%0.008;
+parameters.BD = 0.05;
 parameters.eta_PAR = 1;
 
 
 parameters.minConC_B = 0.0132;
 parameters.initConC_B = 0.0539;
 parameters.maxConcC_B = 0.3168;
-
+parameters.mucilageC = parameters.startConcPOM/50;
 
 parameters.C_N_S = 0.1;
 parameters.C_N_B = 10;
@@ -185,6 +186,8 @@ N_BVector = C_BVector ./ parameters.C_N_B;
 MB_Vector = C_BVector >= parameters.minConC_B;
 
 MNVector = zeros(g.numT, 1);
+C_MNVector = zeros(g.numT, 1);
+N_MNVector = zeros(g.numT, 1);
 % visualizeDataSub(g, C_BVector, 'C_BVector', 'C_BVector', 0);
 % visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', 0);
 % visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', 0);
@@ -229,13 +232,14 @@ C_N_S = C_SVector ./ N_SVector;
 C_N_S(isnan(C_N_S  ) ) = 0;
 C_N_S(isinf(C_N_S  ) ) = 0;
 %| C_N_S == inf
-visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + MB_Vector *4 , 'cellType', 'solu', k_start);
+%visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + MB_Vector *4 , 'cellType', 'solu', k_start);
 visualizeDataSub(g, C_BVector, 'C_BVector', 'C_BVector', 0);
+visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', 0);
 visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', 0);
-visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', 0);
-visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', 0);
+%visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', 0);
+%visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', 0);
 visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', 0);
-visualizeDataEdges(g, mucilageSurfaceVector, 'mucilageEdges', 'mucilageSurfaceVector', k_start, 2);
+%visualizeDataEdges(g, mucilageSurfaceVector, 'mucilageEdges', 'mucilageSurfaceVector', k_start, 2);
 
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -547,8 +551,8 @@ else
 end
 
 T_C_N = tic; 
-[MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , MNVector, POMVector, POMconcVector] = ...
-   calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,outerRootBorderInd);
+[MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, POMVector, POMconcVector] = ...
+   calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,outerRootBorderInd);
 fprintf('Time for C_N: %d \n', toc(T_C_N))
 numel(find(C_BVector > 0))
 C_BVector(find(C_BVector > 0))
@@ -569,11 +573,12 @@ C_N_S = C_SVector ./ N_SVector;
 C_N_S(isnan(C_N_S  ) ) = 0;
 C_N_S(isinf(C_N_S  ) ) = 0;
     if plot_frequency == 1 && (k <= 200 || mod(k,25) == 0 || k == numOuterIt)
-    visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + EPSVector *4 + MB_Vector *6 , 'cellType', 'solu', k);
+    %visualizeDataSub(g, bulkVector + POMVector + rootVector*2 + EPSVector *4 + MB_Vector *6 , 'cellType', 'solu', k);
     visualizeDataSub(g, C_BVector , 'C_BVector', 'C_BVector', k);
     visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', k);
-    visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', k);
-    visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', k);
+    visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', k);
+    %visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', k);
+    %visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', k);
     visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', k);
     end
 
@@ -617,7 +622,8 @@ numFreePOMparticles = length(indFreePOMparticles);
 % printInfoTUM(k,bulkVector,POMconcVector, concPOMAgent, edgeChargeVector, POMsolidEdgeList,...
 %     numFreePOMparticles, numEdgeTypes, totalPOMinputConc, totalPOMoutputConc, sumExcessPOM, POMagentInput,...
 %     POMocclusion_total, POMocclusion_attractive);
-    if( mod(k,5) == 0 || k == numOuterIt)
+    %if( mod(k,5) == 0 || k == numOuterIt)
+    if(false)
 %         particleListHelper = particleList;
         particleList = solidParticleList;
         fileName    = ['FinalConfig/config','.', num2str(k),'.mat']; 
