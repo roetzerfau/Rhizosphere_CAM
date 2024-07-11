@@ -1,4 +1,4 @@
- function [bulkVector, EPSconcVector, concPOMAgent, edgeChargeVector] = EPS2glueingagent(g, parameters, bulkVector, EPSVector, EPSconcVector,concPOMAgent, edgeChargeVector)
+ function [bulkVector, concPOMAgent, edgeChargeVector] = EPS2glueingagent(g, parameters, bulkVector, EPSVector, EPSconcVector,concPOMAgent, edgeChargeVector)
     
     EPSInd = find(EPSVector == 1);
     EPSParticleList = cell(numel(EPSInd),1);
@@ -13,7 +13,7 @@
     
    for i = 1 : length(EPSParticleList)
         if ~isempty(EPSsolidEdgeList{i})
-        concPOMAgent(EPSsolidEdgeList{i}) = concPOMAgent(EPSsolidEdgeList{i}) + 0.025;    
+        concPOMAgent(EPSsolidEdgeList{i}) = concPOMAgent(EPSsolidEdgeList{i}) + EPSconcVector(EPSParticleList{i}) / length(EPSsolidEdgeList{i});    
         end
     end
     

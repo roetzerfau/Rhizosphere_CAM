@@ -1,6 +1,6 @@
-function [ bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector, POMageVector, ...
+function [ bulkVector, bulkTypeVector, particleTypeVector,MNVector, POMVector, POMconcVector, POMageVector, ...
      concAgent, concPOMAgent, POMagentAge,MucilageagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, mucilageVector, pressureDistributionVector, particleList ,flag] = ...
-    moveParticles( bulkSize , stencilLayers , g , bulkVector, bulkTypeVector, particleTypeVector, POMVector, POMconcVector,...
+    moveParticles( bulkSize , stencilLayers , g , bulkVector, bulkTypeVector, particleTypeVector, MNVector, POMVector, POMconcVector,...
     POMageVector, concAgent, concPOMAgent, POMagentAge, MucilageagentAge, edgeChargeVector, reactiveSurfaceVector, mucilageSurfaceVector, ...
     mucilageVector , pressureDistributionVector, NZd , fileID, ...
     particleList ,sumAgent,typeflag,stencil_type, attraction_type,disablej1)
@@ -10,6 +10,7 @@ numBulkOld = sum( bulkVector );
 bulkVector_before = bulkVector;
 bulkTypeVector_before = bulkTypeVector;
 POMVector_before = POMVector;
+MNVector_before = MNVector;
 POMconcVector_before = POMconcVector;
 POMageVector_before = POMageVector;
 particleTypeVector_before = particleTypeVector;
@@ -151,6 +152,7 @@ if ~isempty( candidates )
             flag = 1;
             bulkVector =bulkVector_before;
             POMVector = POMVector_before;
+            MNVector  = MNVector_before;
             POMconcVector = POMconcVector_before;
             POMageVector = POMageVector_before;
             bulkTypeVector=bulkTypeVector_before;
@@ -347,6 +349,8 @@ if ~isempty( candidates )
         bulkTypeVector( candidates( i , :) ) = 0;
         POM_tmp = POMVector(candidates(i , :));
         POMVector(candidates(i , :)) = 0;
+        MN_tmp = MNVector(candidates(i , :));
+        MNVector(candidates(i , :)) = 0;
         POMconc_temp = POMconcVector(candidates(i , :));
         POMconcVector(candidates(i , :)) = 0;
         POMageVector_temp = POMageVector(candidates(i , :));
@@ -360,6 +364,7 @@ if ~isempty( candidates )
         bulkVector( aims( i , : ) ) = 1;
         bulkTypeVector( aims( i, : ) ) = bulkType_tmp;
         POMVector( aims( i, : ) ) =  POM_tmp;
+        MNVector( aims( i, : ) ) =  MN_tmp;
         POMconcVector( aims( i, : ) ) =  POMconc_temp;
         POMageVector( aims( i, : ) ) =  POMageVector_temp;
         particleTypeVector( aims( i, : ) ) = particleType_tmp;

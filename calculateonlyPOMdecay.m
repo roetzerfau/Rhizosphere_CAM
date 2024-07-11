@@ -1,4 +1,4 @@
- function [bulkVector,  POMVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector)
+ function [bulkVector,  POMVector,MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector, MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector)
     
  numFluidNeighVector = calculateNumFluidNeighbors(g, bulkVector, reactiveSurfaceVector, POMVector, 2);
     POMsolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, POMVector, POMParticleList);
@@ -49,7 +49,7 @@
     POMVector(indPOMchanged) = 0;
     bulkVector(indPOMchanged) = 0;
     POMageVector(indPOMchanged) = 0;
-    
+    MNVector(indPOMchanged) = 0;
     % Update POM age
     POMageVector(POMageVector > 0) = POMageVector(POMageVector > 0) + 1;
 

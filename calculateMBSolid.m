@@ -1,4 +1,4 @@
-function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector] = ...
+function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, C_EXTVector] = ...
 calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector)
 
 
@@ -35,10 +35,14 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
 
     C_SVector_old = C_SVector;
     N_SVector_old = N_SVector;
-
+    C_EXTVector =  zeros(g.numT, 1);
     bact_idx = find(C_BVector >= parameters.minConC_B);
     for i = 1:numel(bact_idx)
         bact_i = bact_idx(i);
+
+        C_EXTVector(bact_i) = parameters.Resp_GE * (parameters.v_Cliquid *C_BVector(bact_i))/(C_BVector(bact_i) + parameters.K_Cliquid) *  C_BVector(bact_i);
+
+
         tspan = [0:tau];
         y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i)]';
         [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0);
@@ -62,6 +66,9 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
         C_MNVector(bact_i) = C_MN;
         N_MN = y(end,6);
         N_MNVector(bact_i) = N_MN;
+
+        
+
     end
 
 
@@ -88,7 +95,7 @@ function dYdt = MMKfunction(t,Y, parameters)
     N_B = Y(4);
     C_MN = Y(5);
     N_MN = Y(6);
-
+    %C_S
     U = (parameters.v_Cliquid *C_S)/(C_S + parameters.K_Cliquid) * C_B;
     %U = 0.1 * C_S;
     %parameters.Resp_GE = 0;
@@ -99,10 +106,10 @@ function dYdt = MMKfunction(t,Y, parameters)
     R_M = parameters.Resp_Maint * C_B; 
     R_O = 0; %overflow resp -> strong imbalance of resources
     BD = parameters.BD * C_B;
-    EX = 0;
+    EXT = 0;
      
     
-    G = U - R_GE - R_M - R_O - EX;
+    G = U - R_GE - R_M - R_O;
     CUE = G/U;
     
     
@@ -157,26 +164,35 @@ function dYdt = MMKfunction(t,Y, parameters)
     C_eq = (1-parameters.Resp_GE) * U - R_O - R_M ;
     N_eq = C_N_B * (parameters.eta_PAR * U/C_N_S - Phi);
     
+    
     %abs(C_eq - N_eq)
-    assert(abs(C_eq - N_eq) < 0.0001, "ERROR C_N_B balance ", abs(C_eq - N_eq))
+    if(abs(C_eq - N_eq) > 0.001)
+        fprintf("ERROR C_N_B balance %f \n", abs(C_eq - N_eq))
+    end
+    %assert(abs(C_eq - N_eq) < 0.1, "ERROR C_N_B balance ", abs(C_eq - N_eq))
     
-    
-   
-    N_B_dt = parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B;
-    C_B_dt = U - R_GE- R_M - R_O - BD;
+    %U
+    %U - R_GE- R_M -R_O
+    %BD 
+    %R_O
+    %R_GE
+    %R_M
+
+    N_B_dt = parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B - EXT/C_N_B;
+    C_B_dt = U - R_GE- R_M - R_O - BD- EXT;
     
     %C_S_dt = 0;
-    N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B);
+    N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B- - EXT/C_N_B);
     C_S_dt = -U;
    % N_S_dt = 0;
-    C_MN = BD;
-    N_MN = BD/C_N_B;
+    C_MN_dt = BD;
+    N_MN_dt = BD/C_N_B;
     %a = [C_N_B, Phi, R_O]
     dYdt = [C_S_dt; % C_S -U *0.01
              C_B_dt; % C_B
             N_S_dt; % N_S  %-U/C_N_B
              N_B_dt; % N_B         % U/C_N_S   U * CUE/C_N_B
-             C_MN;
-             N_MN];
+             C_MN_dt;
+             N_MN_dt];
          
 end

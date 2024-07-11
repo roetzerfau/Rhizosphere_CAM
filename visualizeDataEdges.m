@@ -1,8 +1,14 @@
-function visualizeDataEdges( g , repLagr , varName, fileName, tLvl, edgeType )
+function visualizeDataEdges( g , repLagr , varName, fileName, tLvl, edgeType, name )
+
+if ~exist('name','var')
+     % third parameter does not exist, so default it to something
+      name = 'vtk/';
+end
+
 
 [K, N] = size(repLagr);
 %% open file
-fileName    = ['vtk/' , fileName, '.', num2str(tLvl), '.vtu'];
+fileName    = [ name, fileName, '.', num2str(tLvl), '.vtu'];
 [file, message]       = fopen(fileName, 'wt');
 if file < 0
    error('Failed to open myfile because: %s', message);
