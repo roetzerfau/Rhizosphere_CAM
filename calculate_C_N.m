@@ -8,7 +8,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     for i = 1:numberoftstps
         fprintf("step %d \n", i)
     %before = sum(C_SVector)     
-    % [bulkVector,  POMVector, MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector,MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector);
+    [bulkVector,  POMVector, MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector,MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector);
     %after = sum(C_SVector)
     
     Rootex_step = tic;
@@ -27,7 +27,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     
     %% Diff and spread
     spreadstep=tic;
-    maxValues = ones(g.numT, 1).* parameters.maxConcC_B - C_MNVector;
+    maxValues = ones(g.numT, 1).* parameters.maxConcC_B - C_MNVector * parameters.waterContentNecromass;
     maxValues(maxValues < 0) = 0;
     C_BVector = spreadConcentration(g, C_BVector, bulkVector, maxValues, ones(g.numT, 1).*parameters.minConC_B);
     N_BVector = C_BVector ./ parameters.C_N_B;
@@ -72,6 +72,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     C_SVector = easyDiffusiveStep(g, C_SVector, bulkVector, range);
     %sumC_S_after= sum(C_SVector)
     N_SVector = easyDiffusiveStep(g, N_SVector, bulkVector, range);
+    N_SVector = N_SVector .* (1-parameters.N_leakage);
     %N_SVector = C_SVector ./ parameters.C_N_S;
     fprintf('Time for diffstep: %d \n', toc(diffstep))
 

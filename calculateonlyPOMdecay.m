@@ -25,7 +25,13 @@
                 numFluidNeighVector(POMParticleList{i}) / sum(numFluidNeighVector(POMParticleList{i}));
             
             C_SVector(POMParticleList{i}) = C_SVector(POMParticleList{i}) +concDiff;
-            N_SVector(POMParticleList{i}) = (N_SVector(POMParticleList{i}) + concDiff) / parameters.C_N_POM; 
+            if(MNVector(POMParticleList{i}) == 1 )
+                N_SVector(POMParticleList{i}) = (N_SVector(POMParticleList{i}) + concDiff) / parameters.C_N_NM;
+            else
+                N_SVector(POMParticleList{i}) = (N_SVector(POMParticleList{i}) + concDiff) / parameters.C_N_POM;
+            end
+            
+             
         
         end
     end

@@ -158,8 +158,12 @@ parameters.initConC_B = 0.0539;
 parameters.maxConcC_B = 0.3168;
 parameters.mucilageC = 0;%parameters.startConcPOM/50;
 
+parameters.N_leakage = 0.00001;%per timestep
+parameters.waterContentNecromass = 0.5;
+
 parameters.C_N_S = 0.1;
-parameters.C_N_B = 10;
+parameters.C_N_B = 15;
+parameters.C_N_NM = 10;
 parameters.C_N_POM = 100;
 parameters.C_N_Root = 100;
 parameters.N_initialMicrobes = 15;
@@ -211,12 +215,12 @@ EPSconcVector = zeros(g.numT, 1);
 
 for i = 1:numel(MNParticleList)
     % POMVector(MNParticleList{i}) = 0;
-    POMconcVector(MNParticleList{i}) = parameters.maxConcC_B;
+    POMconcVector(MNParticleList{i}) = parameters.maxConcC_B/ parameters.waterContentNecromass;
     % POMageVector(MNParticleList{i}) = 0;
 
     MNVector(MNParticleList{i}) = 1;
-    % C_MNVector(MNParticleList{i}) = parameters.maxConcC_B;
-    % N_MNVector(MNParticleList{i}) = parameters.maxConcC_B/parameters.C_N_B ;
+    %C_MNVector(MNParticleList{i}) = parameters.maxConcC_B * parameters.waterContentNecromass;
+    %N_MNVector(MNParticleList{i}) = parameters.maxConcC_B * parameters.waterContentNecromass/parameters.C_N_B ;
     % MNageVector(MNParticleList{i}) = 1;
     
 
@@ -256,12 +260,12 @@ C_N_S(isinf(C_N_S  ) ) = 0;
 %| C_N_S == inf
 visualizeDataSub(g, bulkVector + POMVector + MNVector + rootVector*2 + MB_Vector *4 , 'cellType', 'solu',0, output_file);
 visualizeDataSub(g, C_BVector, 'C_BVector', 'C_BVector', 0,output_file);
-visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', 0,output_file);
+%visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', 0,output_file);
 visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', 0,output_file);
 %visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', 0);
 %visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', 0);
 %visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', 0,output_file);
-visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2, output_file);
+%visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2, output_file);
 
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -290,7 +294,9 @@ freePOMparticlesOld = freePOMparticles;
 numFreePOMparticles = length(indFreePOMparticles);
 %%%
 
-printInfoBayreuth(k_start,C_BVector,C_SVector,MNVector, name)
+ C_POMconcVector = POMconcVector .* ~MNVector;
+ N_POMconcVector = POMconcVector .* ~MNVector *  parameters.C_N_POM;
+ printInfoBayreuth(0,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector, name)
 
 sumAgent = sum(concAgent);
 
@@ -605,11 +611,11 @@ C_N_S(isinf(C_N_S  ) ) = 0;
     visualizeDataSub(g, bulkVector + POMVector + MNVector + rootVector*2 +  MB_Vector *4  , 'cellType', 'solu', k,output_file);
     visualizeDataSub(g, C_BVector , 'C_BVector', 'C_BVector', k,output_file);
     visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', k,output_file);
-    visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', k,output_file);
+    %visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', k,output_file);
     %visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', k,output_file);
     %visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', k,output_file);
-    visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', k,output_file);
-    visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2, output_file);
+    %visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', k,output_file);
+    %visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2, output_file);
     end
 
 %% Some posprocessing: Ignore for now
@@ -648,20 +654,28 @@ end
 
 numFreePOMparticles = length(indFreePOMparticles);
 %%
+    C_POMconcVector = POMconcVector .* ~MNVector;
+    N_POMconcVector = POMconcVector .* ~MNVector / parameters.C_N_POM;
 
-    printInfoBayreuth(k,C_BVector,C_SVector, POMconcVector, name)
-    %if( mod(k,5) == 0 || k == numOuterIt)
-    if(false)
+    
+    C_MNVector_all = C_MNVector + POMconcVector .* MNVector;
+    N_MNVector_all = N_MNVector + POMconcVector .* MNVector / parameters.C_N_NM;
+    printInfoBayreuth(k,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_POMconcVector,N_POMconcVector, name)
+    if(k <= 100 || mod(k,25) == 0 || k == numOuterIt)
+   % if(false)
 %         particleListHelper = particleList;
         particleList = solidParticleList;
         fileName    = ['FinalConfig/config','.', num2str(k),'.mat']; 
-        save(fileName,'g','bulkVector','bulkTypeVector','POMconcVector', 'concPOMAgent','edgeChargeVector','POMagentAge',...
-            'POMVector', 'POMageVector', 'POMParticleList', 'particleList', 'reactiveSurfaceVector', 'particleTypeVector',...
-            'removedPOMparticles', 'removedPOMparticlesConc', 'timeRemovedPOMparticles')        
+        %save(fileName,'g','bulkVector','bulkTypeVector','POMconcVector', 'concPOMAgent','edgeChargeVector','POMagentAge',...
+            %'POMVector', 'POMageVector', 'POMParticleList', 'particleList', 'reactiveSurfaceVector', 'particleTypeVector',...
+           % 'removedPOMparticles', 'removedPOMparticlesConc', 'timeRemovedPOMparticles')    
+          save(fileName,'g','bulkVector','POMconcVector', 'concPOMAgent','edgeChargeVector','POMagentAge',...
+        'POMVector', 'POMageVector', 'POMParticleList', 'particleList', 'reactiveSurfaceVector',...
+        'C_BVector', 'C_SVector','N_SVector','C_MNVector', 'MNVector', 'MB_Vector')  
 %         particleList = particleListHelper;
 
-        fileName    = ['FinalConfig/rootConfig','.', num2str(k),'.mat']; 
-        save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector','mucilageSurfaceVector', 'MucilageagentAge', 'rootComplexList', 'rootComplexGraph','mucilageGraph')       
+        %fileName    = ['FinalConfig/rootConfig','.', num2str(k),'.mat']; 
+        %save(fileName,'rootVector', 'mucilageVector', 'mucilageConcVector','mucilageSurfaceVector', 'MucilageagentAge', 'rootComplexList', 'rootComplexGraph','mucilageGraph')       
     end
 
     

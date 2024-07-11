@@ -128,7 +128,17 @@ function dYdt = MMKfunction(t,Y, parameters)
     else 
         C_N_B= C_B/N_B;
     end
-    
+
+
+    if(N_MN == 0 && C_MN > 0)
+        C_N_MN = Inf;
+    elseif(N_MN == 0 && C_MN == 0)
+            C_N_MN = 1;
+    else 
+        C_N_MN= C_MN/N_MN;
+    end
+    %C_N_MN 
+
     C_N_CR = C_N_B/(1-parameters.Resp_GE);
      
     %Phi = U * (parameters.eta_PAR/C_N_S - 1/C_N_CR);
@@ -178,14 +188,14 @@ function dYdt = MMKfunction(t,Y, parameters)
     %R_GE
     %R_M
 
-    N_B_dt = parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B - EXT/C_N_B;
+    N_B_dt = parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B - EXT/C_N_B;%
     C_B_dt = U - R_GE- R_M - R_O - BD- EXT;
     
     %C_S_dt = 0;
-    N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B- - EXT/C_N_B);
-    C_S_dt = -U;
+    N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi) ;
+    C_S_dt = -U + BD *(C_N_B-parameters.C_N_NM)/C_N_B;
    % N_S_dt = 0;
-    C_MN_dt = BD;
+    C_MN_dt = BD *parameters.C_N_NM/C_N_B;%* C_N_MN/C_N_B;
     N_MN_dt = BD/C_N_B;
     %a = [C_N_B, Phi, R_O]
     dYdt = [C_S_dt; % C_S -U *0.01
