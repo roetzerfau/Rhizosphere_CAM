@@ -1,7 +1,9 @@
-function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, C_EXTVector] = ...
-calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector)
+function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector, C_EXTVector] = ...
+calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector)
 
-
+    previousConcentration_C =sum(C_MNVector+ C_SVector + C_BVector + CO2Vector);
+    previousConcentration_N =sum(N_MNVector+ N_SVector + N_BVector);
+    %previousConcentration_N =sum(C_MNVector+ C_SVector + C_BVector);
     % K_Cliquid: Michaelis-Menten-Konstante/ half saturation constant
     % v_Cliquid: chemical composition of the substrate/ Maximal uptake rate
     tau = parameters.tau_ode;
@@ -37,15 +39,25 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
     N_SVector_old = N_SVector;
     C_EXTVector =  zeros(g.numT, 1);
     bact_idx = find(C_BVector >= parameters.minConC_B);
+
+    %check ob bact_idx ist nachbar mit solid, Dann wird EPS produziert
+
     for i = 1:numel(bact_idx)
         bact_i = bact_idx(i);
-
+         % if(C_SVector(bact_i)< 0)
+         %    C_SVector(bact_i)
+         % end
         C_EXTVector(bact_i) = parameters.Resp_GE * (parameters.v_Cliquid *C_BVector(bact_i))/(C_BVector(bact_i) + parameters.K_Cliquid) *  C_BVector(bact_i);
-
-
+        % if( C_SVector(bact_i) < 0 )
+        %     fprintf("ahh %f %f \n", C_SVector(bact_i), bact_i)
+        % end
         tspan = [0:tau];
-        y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i)]';
-        [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0);
+        %if(C_SVector(bact_i)< 0)
+            % C_SVector(bact_i)
+       % end
+        y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i), CO2Vector(bact_i)]';
+        opts = odeset('NonNegative',1:7) ;
+        [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0, opts);%
         
         %y_2_4 = [y(:,2),y(:,4)];
         
@@ -54,6 +66,9 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
         %legend('C_B','N_B')
 
         C_S= y(end,1);
+        %if(C_S < 0)
+          %   C_S
+        %end
         C_SVector(bact_i)= C_S;
         C_B = y(end,2);
         C_BVector(bact_i) = C_B;
@@ -66,8 +81,9 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
         C_MNVector(bact_i) = C_MN;
         N_MN = y(end,6);
         N_MNVector(bact_i) = N_MN;
-
         
+        CO2 = y(end,7);
+        CO2Vector(bact_i) = CO2;
 
     end
 
@@ -77,9 +93,22 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
 
 
 
+    currentConcentration_C = sum(C_MNVector+ C_SVector + C_BVector + CO2Vector);
+    %currentConcentration_C = sum(C_MNVector+ C_SVector + C_BVector);
+   %%if(abs(previousConcentration_N - currentConcentration_C) < 0)
+   if(abs(previousConcentration_C - currentConcentration_C) > 0.0001)
+             abs(previousConcentration_C - currentConcentration_C)
+              error('Falsch MB C %f', abs(previousConcentration_C - currentConcentration_C))
+   end
+
+    currentConcentration_N = sum(N_MNVector+ N_SVector + N_BVector);
+   if(abs(previousConcentration_N - currentConcentration_N) > 0.0001)
+             abs(previousConcentration_N - currentConcentration_N)
+             error('Falsch MB N %f', abs(previousConcentration_N - currentConcentration_N))
+    end
 
 
-
+%difference_MB = abs(previousConcentration_N - currentConcentration_C)
     %C_N_B = C_B/N_B;
     %C_N_S = C_S/N_S;
     
@@ -89,14 +118,44 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
     
 end
 function dYdt = MMKfunction(t,Y, parameters)
+    % C_S = abs(Y(1));
+    % C_B = abs(Y(2));
+    % N_S = abs(Y(3));
+    % N_B = abs(Y(4));
+    % C_MN = abs(Y(5));
+    % N_MN = abs(Y(6));
+    % CO2 = abs(Y(7));
+
     C_S = Y(1);
     C_B = Y(2);
     N_S = Y(3);
     N_B = Y(4);
     C_MN = Y(5);
     N_MN = Y(6);
-    %C_S
+    CO2 = Y(7);
+    
+    if(C_S < 0 || N_S < 0)
+        C_S = 0;
+    end
+
+
+   %C_S
+         %if(C_S < 0)
+        %   fprintf('in function %f \n',C_S)
+           %C_S = 0;
+        %C_S
+         %end
+    %(parameters.v_Cliquid *C_S)/(C_S + parameters.K_Cliquid)
+   % C_S
+    %U = 0.1 * C_S;
     U = (parameters.v_Cliquid *C_S)/(C_S + parameters.K_Cliquid) * C_B;
+    if(U < 0)
+         aa
+    end
+    
+    % if(U < 0)
+       % U
+    %end
     %U = 0.1 * C_S;
     %parameters.Resp_GE = 0;
     %parameters.Resp_Maint = 0;
@@ -109,13 +168,13 @@ function dYdt = MMKfunction(t,Y, parameters)
     EXT = 0;
      
     
-    G = U - R_GE - R_M - R_O;
+    G = U - R_GE - R_M - R_O - EXT;%- BD TODO check
     CUE = G/U;
     
     
     if(N_S == 0 && C_S > 0)
         C_N_S = Inf;
-    elseif(N_S == 0 && C_S == 0)
+    elseif(C_S == 0)
             C_N_S = 1;
     else 
         C_N_S= C_S/N_S;
@@ -142,11 +201,11 @@ function dYdt = MMKfunction(t,Y, parameters)
     C_N_CR = C_N_B/(1-parameters.Resp_GE);
      
     %Phi = U * (parameters.eta_PAR/C_N_S - 1/C_N_CR);
+
+    Phi = U * (parameters.eta_PAR/C_N_S - CUE/C_N_B);
     if(U == 0) % TODO this case
         Phi = R_M / C_N_B;
     end
-    Phi = U * (parameters.eta_PAR/C_N_S - CUE/C_N_B);
-    
     % Organic N in excess (Phi > 0) -- Organic C in excess (Phi < 0)
     C_N_IMM = parameters.eta_PAR * C_N_CR; %-> Phi = 0   
       
@@ -191,18 +250,24 @@ function dYdt = MMKfunction(t,Y, parameters)
     N_B_dt = parameters.eta_PAR * U/C_N_S - Phi - BD/C_N_B - EXT/C_N_B;%
     C_B_dt = U - R_GE- R_M - R_O - BD- EXT;
     
-    %C_S_dt = 0;
+
     N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi) ;
-    C_S_dt = -U + BD *(C_N_B-parameters.C_N_NM)/C_N_B;
-   % N_S_dt = 0;
-    C_MN_dt = BD *parameters.C_N_NM/C_N_B;%* C_N_MN/C_N_B;
+    %weg = BD *(C_N_B-parameters.C_N_NM)/C_N_B;//wenn MN anderes CN ratio
+    %als MB
+    C_S_dt = -U;% + BD *(C_N_B-parameters.C_N_NM)/C_N_B;
+
+    C_MN_dt = BD;%*parameters.C_N_NM/C_N_B;
     N_MN_dt = BD/C_N_B;
-    %a = [C_N_B, Phi, R_O]
+
+
+    CO2_dt = R_GE+ R_M + R_O;
+
     dYdt = [C_S_dt; % C_S -U *0.01
              C_B_dt; % C_B
             N_S_dt; % N_S  %-U/C_N_B
              N_B_dt; % N_B         % U/C_N_S   U * CUE/C_N_B
              C_MN_dt;
-             N_MN_dt];
+             N_MN_dt;
+             CO2_dt];
          
 end

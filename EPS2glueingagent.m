@@ -1,4 +1,4 @@
- function [bulkVector, concPOMAgent, edgeChargeVector] = EPS2glueingagent(g, parameters, bulkVector, EPSVector, EPSconcVector,concPOMAgent, edgeChargeVector)
+ function [bulkVector, concPOMAgent, edgeChargeVector] = EPS2glueingagent(g, parameters, bulkVector, POMVector, EPSVector, EPSconcVector,concPOMAgent, edgeChargeVector)
     
     EPSInd = find(EPSVector == 1);
     EPSParticleList = cell(numel(EPSInd),1);
@@ -31,7 +31,7 @@
                edgeCandidates = [];
                for indEdge = 1 : length(edgeHelper)
                   solidInd = mod(edgeHelper(indEdge), g.NX * g.NX);
-                  if ((bulkVector(solidInd) == 1) &&  (POMVector(solidInd) == 0))
+                  if ((bulkVector(solidInd) == 1)  && (POMVector(solidInd) == 0) )%
                       possibleNeighbors = stencil( g.NX, g.NX, solidInd, 1); 
                       possibleNeighbors = possibleNeighbors(2:end); 
                       [~,edgeDirection] = find(g.CE0T(solidInd,:)==edgeHelper(indEdge));

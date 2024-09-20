@@ -3,7 +3,7 @@
  numFluidNeighVector = calculateNumFluidNeighbors(g, bulkVector, reactiveSurfaceVector, POMVector, 2);
     POMsolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, POMVector, POMParticleList);
     
-   
+   previousConcentration = sum(C_POMconcVector + C_SVector);
     % update POM conc
     POMconcVectorOld = C_POMconcVector;
     dayinsecondsec = 24 * 60 * 60;
@@ -17,18 +17,19 @@
         if (sum(reactiveSurfaceVector(POMsolidEdgeList{i})) > 0)... % + sum(edgeChargeVector(POMsolidEdgeList{i}))
                 && (sum(numFluidNeighVector(POMParticleList{i})) > 0)
             concOld = sum(C_POMconcVector(POMParticleList{i}));
-            particleDecayRate = parameters.POMdecayRate * sum(numFluidNeighVector(POMParticleList{i})) / ...
-                (sum(numFluidNeighVector(POMParticleList{i})) + length(POMsolidEdgeList{i}));
+            particleDecayRate = parameters.POMdecayRate;
+            %particleDecayRate = particleDecayRate* sum(numFluidNeighVector(POMParticleList{i})) / ...
+            %    (sum(numFluidNeighVector(POMParticleList{i})) + length(POMsolidEdgeList{i}));
             concNew = concOld * exp(- particleDecayRate * tau);
             concDiff = concOld - concNew;
-            C_POMconcVector(POMParticleList{i}) = C_POMconcVector(POMParticleList{i}) - concDiff * ...
-                numFluidNeighVector(POMParticleList{i}) / sum(numFluidNeighVector(POMParticleList{i}));
+            concDiff_part = concDiff * numFluidNeighVector(POMParticleList{i}) / sum(numFluidNeighVector(POMParticleList{i}));
+            C_POMconcVector(POMParticleList{i}) = C_POMconcVector(POMParticleList{i}) - concDiff_part;
             
-            C_SVector(POMParticleList{i}) = C_SVector(POMParticleList{i}) +concDiff;
+            C_SVector(POMParticleList{i}) = C_SVector(POMParticleList{i}) + concDiff_part;
             if(MNVector(POMParticleList{i}) == 1 )
-                N_SVector(POMParticleList{i}) = (N_SVector(POMParticleList{i}) + concDiff) / parameters.C_N_NM;
+                N_SVector(POMParticleList{i}) = N_SVector(POMParticleList{i}) + concDiff_part / parameters.C_N_NM;
             else
-                N_SVector(POMParticleList{i}) = (N_SVector(POMParticleList{i}) + concDiff) / parameters.C_N_POM;
+                N_SVector(POMParticleList{i}) = N_SVector(POMParticleList{i}) + concDiff_part / parameters.C_N_POM;
             end
             
              
@@ -37,16 +38,27 @@
     end
     
     % set POM conc. below threshold to zero
-    C_POMconcVector(C_POMconcVector < parameters.POMminConc) = 0;
+    idx = find(C_POMconcVector < parameters.POMminConc & C_POMconcVector > 0);
+    concDiff_part = C_POMconcVector(idx);
+    C_SVector(idx) = C_SVector(idx) + concDiff_part;
     
-    POMdecayVector = POMconcVectorOld - C_POMconcVector;
-    
-
-    % save amount of decayed POM
-    decayedPOMfromParticle = zeros(length(POMParticleList),1);
-    for i = 1 : length(POMParticleList)
-        decayedPOMfromParticle(i) = sum(POMdecayVector(POMParticleList{i}));
+    for i = 1:numel(idx)
+        id = idx(i);
+        if(MNVector(id) == 1 )
+            N_SVector(id) = (N_SVector(id) + concDiff_part(i)) / parameters.C_N_NM;
+        else
+           N_SVector(id) = (N_SVector(id) + concDiff_part(i)) / parameters.C_N_POM;
+        end
     end
+    C_POMconcVector(idx) = 0;
+    
+    
+    %POMdecayVector = POMconcVectorOld - C_POMconcVector;
+    %% save amount of decayed POM
+    %decayedPOMfromParticle = zeros(length(POMParticleList),1);
+    %for i = 1 : length(POMParticleList)
+    %    decayedPOMfromParticle(i) = sum(POMdecayVector(POMParticleList{i}));
+   % end
     
     
         % update bulkVector etc.
@@ -94,7 +106,12 @@
         POMParticleList(POMparticlesToRemove) = [];
         
     end
-    
+
+    currentConcentration = sum(C_POMconcVector + C_SVector);
+    if(abs(previousConcentration - currentConcentration) > 0.0001)
+              abs(previousConcentration - currentConcentration)
+              error('Falsch decay_POM', abs(previousConcentration - currentConcentration))
+    end
     
  end
  
