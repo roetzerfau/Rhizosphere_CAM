@@ -18,8 +18,8 @@
                 && (sum(numFluidNeighVector(POMParticleList{i})) > 0)
             concOld = sum(C_POMconcVector(POMParticleList{i}));
             particleDecayRate = parameters.POMdecayRate;
-            %particleDecayRate = particleDecayRate* sum(numFluidNeighVector(POMParticleList{i})) / ...
-            %    (sum(numFluidNeighVector(POMParticleList{i})) + length(POMsolidEdgeList{i}));
+            particleDecayRate = particleDecayRate* sum(numFluidNeighVector(POMParticleList{i})) / ...
+                (sum(numFluidNeighVector(POMParticleList{i})) + length(POMsolidEdgeList{i}));
             concNew = concOld * exp(- particleDecayRate * tau);
             concDiff = concOld - concNew;
             concDiff_part = concDiff * numFluidNeighVector(POMParticleList{i}) / sum(numFluidNeighVector(POMParticleList{i}));
@@ -32,9 +32,10 @@
                 N_SVector(POMParticleList{i}) = N_SVector(POMParticleList{i}) + concDiff_part / parameters.C_N_POM;
             end
             
+            
              
         
-        end
+       end
     end
     
     % set POM conc. below threshold to zero
@@ -45,9 +46,9 @@
     for i = 1:numel(idx)
         id = idx(i);
         if(MNVector(id) == 1 )
-            N_SVector(id) = (N_SVector(id) + concDiff_part(i)) / parameters.C_N_NM;
+            N_SVector(id) = N_SVector(id) + concDiff_part(i) / parameters.C_N_NM;
         else
-           N_SVector(id) = (N_SVector(id) + concDiff_part(i)) / parameters.C_N_POM;
+           N_SVector(id) = N_SVector(id) + concDiff_part(i) / parameters.C_N_POM;
         end
     end
     C_POMconcVector(idx) = 0;

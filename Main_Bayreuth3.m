@@ -28,7 +28,7 @@ inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
 numOuterIt  = 1000;   
 output_file = "/home.local/roetzer/C_N/";
-name = "_O2_3";%_mass_balance_move
+name = "_O2_DOC0001";%_mass_balance_move
 output_file_vtk = char(output_file + "vtk" + name + '/');
 output_file_print = output_file + "txtdata" + name + '/';
 
@@ -148,7 +148,7 @@ end
 %% Test End
 %% Test 2
 parameters.v_Cliquid = 1.2 * 10^-4;
-parameters.K_Cliquid =  5 * 10^-4;%1/1000 
+parameters.K_Cliquid =  5 * 10^-4;% * 1/1000; 
 parameters.Resp_E = 0.10;
 parameters.Resp_GE = 0.26;
 parameters.Resp_Maint = 2.31*10^-6;%0.008;
@@ -156,9 +156,10 @@ parameters.BD = 0.00001;
 parameters.eta_PAR = 1;
 
 
-parameters.minConC_B = 0.0132;
+parameters.minConC_B = 0.0132;%%0.001;%;TODO!!!!!!!!!!!!!!!!!!!!!
 parameters.initConC_B = 0.0539;
 parameters.maxConcC_B = 0.3168;
+parameters.initConC_B = parameters.maxConcC_B;
 parameters.mucilageC = parameters.startConcPOM/50;
 
 parameters.N_leakage = 0.00001;%per timestep
@@ -170,7 +171,7 @@ parameters.C_N_NM = 10;
 parameters.C_N_POM = 100;
 parameters.C_N_Root = 100;
 parameters.N_initialMicrobes = 15;
-parameters.DOC = 1^-4;%-4  100 mg C/L 
+parameters.DOC = 0.0001;%-4  100 mg C/L 
 parameters.tau_ode = 3600; %12 * 60;
 C_SVector = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
 N_SVector =  C_SVector ./ parameters.C_N_S;
@@ -640,10 +641,14 @@ EPSVector = mucilageVector + MB_Vector;
 C_N_S = C_SVector ./ N_SVector;
 C_N_S(isnan(C_N_S)) = 0;
 C_N_S(isinf(C_N_S)) = 0;
-    if plot_frequency == 1 && (k <= 100 || mod(k,25) == 0 || k == numOuterIt)
+    if plot_frequency == 1 && (k <= 100 || mod(k,25) == 0 || k == numOuterIt)  
     visualizeDataSub(g, bulkVector + POMVector + MNVector + rootVector*2 +  MB_Vector *4  , 'cellType', 'solu', k,output_file_vtk);
     %visualizeDataSub(g, C_BVector , 'C_BVector', 'C_BVector', k,output_file_vtk);
-    visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', k,output_file_vtk);
+    
+    
+    %visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', k,output_file_vtk);
+    
+    
     %visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', k,output_file_vtk);
     %visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', k,output_file_vtk);
     %visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', k,output_file_vtk);

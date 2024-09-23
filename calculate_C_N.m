@@ -20,10 +20,16 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     previousConcentration_C =sum(C_MNVector+ C_SVector + C_BVector + CO2Vector+ C_POMconcVector);
     previousConcentration_N =sum(N_MNVector+ N_SVector + N_BVector + N_PMNVector + N_PPlantVector) + leakedN_S;
 
-    %before = sum(C_SVector + C_POMconcVector)     
+    %before_C = sum(C_SVector + C_POMconcVector);     
+    decaystep=tic;
     [bulkVector,  POMVector, MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector,MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector);
-    %after = sum(C_SVector + C_POMconcVector)
-    
+    fprintf('Time for POM MN Decay: %d \n', toc(decaystep))
+   %  after_C = sum(C_SVector + C_POMconcVector);
+   %  if(abs(before_C - after_C) > 0.001)
+   %           abs(before_C - after_C)
+   %            error('Falsch decay C %f', abs(before_C - after_C))
+   % end
+
     %Rootex_step = tic;
     %[C_SVector, N_SVector] = updateMucilage2(g, parameters,outerRootBorderInd, bulkVector,C_SVector, N_SVector);
     %fprintf('Time for Rootex_step: %d \n', toc(Rootex_step))
@@ -31,13 +37,14 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     
      C_Nstep = tic;
      C_EXTVector =0;
-     sumC_B_before = sum(C_BVector);
+     sumC_B_before = sum(C_BVector)
      sumC_S_before = sum(C_SVector);
      sumCO2_before = sum(CO2Vector);
      %TODO nur EPS produzieren wenn solid dran ist
   [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector, C_EXTVector] = ...
     calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector);
-     sumC_S = sum(C_SVector);
+     sumC_S = sum(C_SVector)
+     sumN_S = sum(N_SVector)
      if(isnan(sumC_S))
          falsch = 1;
      end
@@ -49,7 +56,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     if(numel(find(C_SVector < 0)) > 0)
         error('Falsch C_S')
     end
-    sumC_B_after = sum(C_BVector)
+    sumC_B_after = sum(C_BVector);
     fprintf('Time for C_Nstep: %d \n', toc(C_Nstep))
     C_EXTVector_t = C_EXTVector_t + C_EXTVector;
     
@@ -71,7 +78,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     N_BVector(C_BVector < parameters.minConC_B) = 0;
     
     MB_Vector =  C_BVector >= parameters.minConC_B;
-
+    n_MB = sum(MB_Vector)
     %MN not part of MB -> POM
     indx = intersect(find(C_BVector == 0), find(C_MNVector > 0));
     for i = 1:numel(indx)
@@ -90,7 +97,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
         POMParticleList{length(POMParticleList) + 1} = globalIndNewPOMparticle;
        %totalPOMinputConc = totalPOMinputConc + length(globalIndNewPOMparticle);
     end
-    sumMNVector = sum(MNVector)
+   % sumMNVector = sum(MNVector);
 
     
 
@@ -108,7 +115,8 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     fprintf('Time for diffstep: %d \n', toc(diffstep))
 
     currentConcentration_C = sum(C_MNVector+ C_SVector + C_BVector + CO2Vector +C_POMconcVector);
-   if(abs(previousConcentration_C - currentConcentration_C) > 0.1)
+     fprintf("abs(previousConcentration_C - currentConcentration_C) %f \n", abs(previousConcentration_C - currentConcentration_C))
+   if(abs(previousConcentration_C - currentConcentration_C) > 0.001)
              abs(previousConcentration_C - currentConcentration_C)
               error('Falsch C:N C %f', abs(previousConcentration_C - currentConcentration_C))
    end
@@ -121,7 +129,8 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
 
 
    currentConcentration_N = sum(N_MNVector+ N_SVector + N_BVector + N_PMNVector + N_PPlantVector) + leakedN_S;
-   if(abs(previousConcentration_N - currentConcentration_N) > 0.1)
+   fprintf("abs(previousConcentration_N - currentConcentration_N) %f \n", abs(previousConcentration_N - currentConcentration_N))
+   if(abs(previousConcentration_N - currentConcentration_N) > 0.001)
              abs(previousConcentration_N - currentConcentration_N)
               error('Falsch C:N  N %f', abs(previousConcentration_N - currentConcentration_N))
 

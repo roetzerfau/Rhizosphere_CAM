@@ -254,14 +254,18 @@ function dYdt = MMKfunction(t,Y, parameters)
     N_S_dt = -(parameters.eta_PAR * U/C_N_S - Phi) ;
     %weg = BD *(C_N_B-parameters.C_N_NM)/C_N_B;//wenn MN anderes CN ratio
     %als MB
-    C_S_dt = -U;% + BD *(C_N_B-parameters.C_N_NM)/C_N_B;
+    C_S_dt = -U;
 
     C_MN_dt = BD;%*parameters.C_N_NM/C_N_B;
     N_MN_dt = BD/C_N_B;
 
 
     CO2_dt = R_GE+ R_M + R_O;
-
+   
+    equal = C_S_dt + C_B_dt + C_MN_dt + CO2_dt;
+    if(abs(equal)> 0.0000001)
+        aa
+    end
     dYdt = [C_S_dt; % C_S -U *0.01
              C_B_dt; % C_B
             N_S_dt; % N_S  %-U/C_N_B

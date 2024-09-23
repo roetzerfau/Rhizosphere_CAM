@@ -1,12 +1,19 @@
 function concentrationVector = easyDiffusiveStep(g, concentrationVector, restrictVector, range)
 
-    previousConcentration = sum(concentrationVector);
+    %previousConcentration = sum(concentrationVector);
     Concentration_Phase = find(concentrationVector > 0);
     Concentration_Phase = Concentration_Phase(randperm(length(Concentration_Phase)));
     
     Concentration_Phase_Occupied = Concentration_Phase(restrictVector(Concentration_Phase) > 0 );
     Concentration_Phase_NotOccupied = Concentration_Phase(restrictVector(Concentration_Phase) == 0);
     
+    sumConc = sum(concentrationVector);
+    freeSpaceIdx = find(restrictVector == 0); 
+    concentrationVector(:) = 0;
+    concentrationVector(freeSpaceIdx) = sumConc / numel(freeSpaceIdx);
+    
+            
+    return 
     for i = 1:numel(Concentration_Phase_Occupied)
         diffusive_area = [];
         layer = 1;
@@ -63,13 +70,22 @@ function concentrationVector = easyDiffusiveStep(g, concentrationVector, restric
 %         equalConcentration = sum(concentrationVector(concentration_area))/numel(diffusive_area);
 %         concentrationVector(diffusive_area) = equalConcentration;
 %     end
-    currentConcentration = sum(concentrationVector);  
-    if(abs(previousConcentration - currentConcentration) > 0.0001)
-              abs(previousConcentration - currentConcentration)
-              error('Falsch diffusive', abs(previousConcentration - currentConcentration))
-    end
-    if(sum(restrictVector(concentrationVector > 0)) ~= 0)
-         sum(restrictVector(concentrationVector > 0))
-         error('Falsch diffusive occupied')
-    end
+   
+
+
+
+
+
+% currentConcentration = sum(concentrationVector);  
+    % if(abs(previousConcentration - currentConcentration) > 0.0001)
+    %           abs(previousConcentration - currentConcentration)
+    %           error('Falsch diffusive', abs(previousConcentration - currentConcentration))
+    % end
+    % if(sum(restrictVector(concentrationVector > 0)) ~= 0)
+    %      sum(restrictVector(concentrationVector > 0))
+    %      error('Falsch diffusive occupied')
+    % end
+
+
+
 end
