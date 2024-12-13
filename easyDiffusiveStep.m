@@ -1,19 +1,18 @@
-function concentrationVector = easyDiffusiveStep(g, concentrationVector, restrictVector, range)
+function concentrationVector = easyDiffusiveStep(g, concentrationVector, restrictVector, reducedRangeVector, range)
 
-    %previousConcentration = sum(concentrationVector);
+    previousConcentration = sum(concentrationVector);
     Concentration_Phase = find(concentrationVector > 0);
     Concentration_Phase = Concentration_Phase(randperm(length(Concentration_Phase)));
     
     Concentration_Phase_Occupied = Concentration_Phase(restrictVector(Concentration_Phase) > 0 );
     Concentration_Phase_NotOccupied = Concentration_Phase(restrictVector(Concentration_Phase) == 0);
-    
-    sumConc = sum(concentrationVector);
-    freeSpaceIdx = find(restrictVector == 0); 
-    concentrationVector(:) = 0;
-    concentrationVector(freeSpaceIdx) = sumConc / numel(freeSpaceIdx);
-    
-            
-    return 
+    % gleich verteilen
+    % sumConc = sum(concentrationVector);
+    % freeSpaceIdx = find(restrictVector == 0); 
+    % concentrationVector(:) = 0;
+    % concentrationVector(freeSpaceIdx) = sumConc / numel(freeSpaceIdx);     
+    % return 
+    % range
     for i = 1:numel(Concentration_Phase_Occupied)
         diffusive_area = [];
         layer = 1;
@@ -36,14 +35,18 @@ function concentrationVector = easyDiffusiveStep(g, concentrationVector, restric
     
     for i = 1:numel(Concentration_Phase_NotOccupied)
         diffusive_area = Concentration_Phase_NotOccupied(i);
-        
+       % diffusive_area_nextLoop = diffusive_area;//TODO
         for r = 1:range
             diffusive_area = unique(stencil( g.NX , g.NX , diffusive_area , 1 ));
             isOccupied = restrictVector(diffusive_area) > 0;         
             diffusive_area(isOccupied) = [];
+
+            % isReducedRange = reducedRangeVector(diffusive_area) > 0;  
+            % diffusive_area_nextLoop = diffusive_area;
+            % diffusive_area_nextLoop(isReducedRange) = [];
         end
         if(numel(diffusive_area) == 0)
-            printf('check')
+            fprintf('check')
   
         end
         equalConcentration = sum(concentrationVector(diffusive_area))/numel(diffusive_area);
@@ -76,15 +79,15 @@ function concentrationVector = easyDiffusiveStep(g, concentrationVector, restric
 
 
 
-% currentConcentration = sum(concentrationVector);  
-    % if(abs(previousConcentration - currentConcentration) > 0.0001)
-    %           abs(previousConcentration - currentConcentration)
-    %           error('Falsch diffusive', abs(previousConcentration - currentConcentration))
-    % end
-    % if(sum(restrictVector(concentrationVector > 0)) ~= 0)
-    %      sum(restrictVector(concentrationVector > 0))
-    %      error('Falsch diffusive occupied')
-    % end
+currentConcentration = sum(concentrationVector);  
+    if(abs(previousConcentration - currentConcentration) > 0.000001)
+              abs(previousConcentration - currentConcentration)
+              error('Falsch diffusive %f \n', abs(previousConcentration - currentConcentration))
+    end
+    if(sum(restrictVector(concentrationVector > 0)) ~= 0)
+         sum(restrictVector(concentrationVector > 0))
+         error('Falsch diffusive occupied')
+    end
 
 
 

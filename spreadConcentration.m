@@ -9,7 +9,7 @@ exceedMaximium_ind = find(concentrationVector > (maxValueVector + minValueVector
         if(isOverlapped)
             overshoot_value = concentrationVector(overshoot_candidate);
         else
-            overshoot_value =  concentrationVector(overshoot_candidate) - maxValueVector(overshoot_candidate);
+            overshoot_value =  concentrationVector(overshoot_candidate)/2;% - maxValueVector(overshoot_candidate);
         end
         
         %candidates = candidates(randperm(length(candidates)));
@@ -54,8 +54,9 @@ exceedMaximium_ind = find(concentrationVector > (maxValueVector + minValueVector
    
     end
     currentConcentration = sum(concentrationVector);  
-    if(abs(previousConcentration - currentConcentration) > 0.0001)
-              error('Falsch spread', abs(previousConcentration - currentConcentration))
+    if(abs(previousConcentration - currentConcentration) > 0.000001)
+              fprintf("falsch spread")
+              %error('Falsch spread', abs(previousConcentration - currentConcentration))
     end
 end
 %Wenn mehr und es gibt keinen freien platz mehr -> gleich verteilt

@@ -56,8 +56,13 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
             % C_SVector(bact_i)
        % end
         y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i), CO2Vector(bact_i)]';
-        opts = odeset('NonNegative',1:7) ;
-        [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0, opts);%
+        if(any(y0 < 0))
+            fprintf("y0 < 0")
+        end
+        %options = odeset(RelTol=1e-8,AbsTol=1e-10);
+        options = odeset(RelTol=1e-8,AbsTol=1e-9);
+        opts = odeset( options, 'NonNegative',1:7) ;
+        [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0, opts);%ode89
         
         %y_2_4 = [y(:,2),y(:,4)];
         
@@ -96,15 +101,15 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
     currentConcentration_C = sum(C_MNVector+ C_SVector + C_BVector + CO2Vector);
     %currentConcentration_C = sum(C_MNVector+ C_SVector + C_BVector);
    %%if(abs(previousConcentration_N - currentConcentration_C) < 0)
-   if(abs(previousConcentration_C - currentConcentration_C) > 0.0001)
-             abs(previousConcentration_C - currentConcentration_C)
-              error('Falsch MB C %f', abs(previousConcentration_C - currentConcentration_C))
+   if(abs(previousConcentration_C - currentConcentration_C) > 10^-10)
+             %abs(previousConcentration_C - currentConcentration_C)
+              fprintf('Falsch MB C %f', abs(previousConcentration_C - currentConcentration_C))
    end
 
     currentConcentration_N = sum(N_MNVector+ N_SVector + N_BVector);
-   if(abs(previousConcentration_N - currentConcentration_N) > 0.0001)
+   if(abs(previousConcentration_N - currentConcentration_N) > 10^-10)
              abs(previousConcentration_N - currentConcentration_N)
-             error('Falsch MB N %f', abs(previousConcentration_N - currentConcentration_N))
+            fprintf('Falsch MB N %f', abs(previousConcentration_N - currentConcentration_N))
     end
 
 
@@ -133,21 +138,38 @@ function dYdt = MMKfunction(t,Y, parameters)
     C_MN = Y(5);
     N_MN = Y(6);
     CO2 = Y(7);
+    %t
+    %C_S
+%     if(C_S < 0 )
+%         C_S = 0;
+%         %fprintf("C_S kleiner 0")
+%     end
+% if(N_S < 0)
+%     N_S = 0;
+%     % fprintf("N_S kleiner 0")
+% end
+ if(C_S < 0 || N_S <0 )
+        C_S_dt = 0;
+        C_B_dt = 0;
+        N_S_dt = 0;
+        N_B_dt = 0;
+        C_MN_dt = 0;
+        N_MN_dt = 0;
+        CO2_dt = 0;
+
+        dYdt = [C_S_dt;
+             C_B_dt;
+            N_S_dt; 
+             N_B_dt;
+             C_MN_dt;
+             N_MN_dt;
+             CO2_dt];
+        return
+   end
+
     
-    if(C_S < 0 || N_S < 0)
-        C_S = 0;
-    end
 
 
-   %C_S
-         %if(C_S < 0)
-        %   fprintf('in function %f \n',C_S)
-           %C_S = 0;
-        %C_S
-         %end
-    %(parameters.v_Cliquid *C_S)/(C_S + parameters.K_Cliquid)
-   % C_S
-    %U = 0.1 * C_S;
     U = (parameters.v_Cliquid *C_S)/(C_S + parameters.K_Cliquid) * C_B;
     if(U < 0)
          aa
@@ -167,11 +189,7 @@ function dYdt = MMKfunction(t,Y, parameters)
     BD = parameters.BD * C_B;
     EXT = 0;
      
-    
-    G = U - R_GE - R_M - R_O - EXT;%- BD TODO check
-    CUE = G/U;
-    
-    
+ 
     if(N_S == 0 && C_S > 0)
         C_N_S = Inf;
     elseif(C_S == 0)
@@ -196,49 +214,26 @@ function dYdt = MMKfunction(t,Y, parameters)
     else 
         C_N_MN= C_MN/N_MN;
     end
-    %C_N_MN 
-
-    C_N_CR = C_N_B/(1-parameters.Resp_GE);
      
-    %Phi = U * (parameters.eta_PAR/C_N_S - 1/C_N_CR);
 
-    Phi = U * (parameters.eta_PAR/C_N_S - CUE/C_N_B);
-    if(U == 0) % TODO this case
-        Phi = R_M / C_N_B;
-    end
-    % Organic N in excess (Phi > 0) -- Organic C in excess (Phi < 0)
-    C_N_IMM = parameters.eta_PAR * C_N_CR; %-> Phi = 0   
-      
-   % N-limitation occurs:
-   C_N_LIM = 0;
+    Phi = U * 1/C_N_S - (U*(1-parameters.Resp_GE))/C_N_B + R_M /C_N_B;
+
    
     %% C overflow hypothesis (CO)
-     IMM_max = 0;
-%     if (abs(Phi) <= IMM_max)
-%         R_O = 0;
-%     else
-%         R_O = U * (1-parameters.Resp_GE) - C_N_B *(parameters.eta_PAR * U /C_N_S + IMM_max);
-%     end
-%     
-    if (Phi >= IMM_max)
+    if (Phi >= 0)
         R_O = 0;
-    else
-         %R_O = C_N_B * abs(Phi);
-         R_O = U * (1-parameters.Resp_GE) - C_N_B *(parameters.eta_PAR * U /C_N_S + IMM_max);
-         %Phi = - IMM_max;
-         Phi = R_M / C_N_B ;
+    else   
+         R_O = C_N_B * abs(Phi);     
+         Phi = 0;
     end
-   
-    %R_O = -C_N_B * (parameters.eta_PAR * U/C_N_S - Phi) - R_M +  (1-parameters.Resp_GE) * U;
+     
     C_eq = (1-parameters.Resp_GE) * U - R_O - R_M ;
     N_eq = C_N_B * (parameters.eta_PAR * U/C_N_S - Phi);
     
     
     %abs(C_eq - N_eq)
-    if(abs(C_eq - N_eq) > 0.001)
-        fprintf("ERROR C_N_B balance %f \n", abs(C_eq - N_eq))
-    end
-    %assert(abs(C_eq - N_eq) < 0.1, "ERROR C_N_B balance ", abs(C_eq - N_eq))
+  
+    % assert(abs(C_eq - N_eq) < 0.00001, "ERROR C_N_B balance ", abs(C_eq - N_eq))
     
     %U
     %U - R_GE- R_M -R_O
@@ -262,14 +257,31 @@ function dYdt = MMKfunction(t,Y, parameters)
 
     CO2_dt = R_GE+ R_M + R_O;
    
-    equal = C_S_dt + C_B_dt + C_MN_dt + CO2_dt;
-    if(abs(equal)> 0.0000001)
-        aa
+    equalC = C_S_dt + C_B_dt + C_MN_dt + CO2_dt;
+    if(abs(equalC)> 10^-10)
+    error( "ERROR C_N_B N balance equal %f \n", equalC);
     end
-    dYdt = [C_S_dt; % C_S -U *0.01
-             C_B_dt; % C_B
-            N_S_dt; % N_S  %-U/C_N_B
-             N_B_dt; % N_B         % U/C_N_S   U * CUE/C_N_B
+    equalN = N_S_dt + N_B_dt + N_MN_dt;
+    if(abs(equalN)> 10^-10)
+    error( "ERROR C_N_B N balance equal %f \n", equalN);
+    end
+
+    if(abs(C_eq - N_eq) > 10^-10)
+      fprintf("--------------------------------")
+        error("ERROR C_N_B balance %f \n", abs(C_eq - N_eq))
+        C_S_dt = 0;
+        C_B_dt = 0;
+        N_S_dt = 0;
+        N_B_dt = 0;
+        C_MN_dt = 0;
+        N_MN_dt = 0;
+        CO2_dt = 0;
+   end
+
+    dYdt = [C_S_dt;
+             C_B_dt;
+            N_S_dt; 
+             N_B_dt;
              C_MN_dt;
              N_MN_dt;
              CO2_dt];

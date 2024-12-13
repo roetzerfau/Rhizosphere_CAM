@@ -169,8 +169,11 @@ if ~isempty( candidates )
         % enable random breaking up
         % if current position is the most&& maximo < 0 attractive
 %         if aim(1)==maximo
-		if mucilageMemorySurfAttrInd == 1
-		
+		if mucilageMemorySurfAttrInd == 1 % TODO check
+		       maximo = 1; 
+               indMax = 1;
+               aim( : )= 0;
+               aim(1) = 1;
         elseif solidPOMmemoryEdgeIndicator == 1
                randNum = randi(100,1);
                %randNum = 0;
@@ -341,7 +344,7 @@ if ~isempty( candidates )
                 aimsInd = [ aimsInd , j ];
             end % if
         end % for j  
-        assert( sum(bulkVector(candidates(i,:)))== bulkSize,'candidate not complete')
+        assert( sum(bulkVector(candidates(i,:)))== bulkSize,'candidate not complete' + sum(bulkVector(candidates(i,:))) +"!=" +bulkSize)
 
         % set bulkVector of candidates to 0 ( means no bulk )
         bulkVector( candidates( i , : ) ) = 0;
@@ -393,6 +396,10 @@ if ~isempty( candidates )
 		tmpMucilageSurfaceVector = mucilageSurfaceVector( g.CE0T( candidates( i , : ) , : ) );
         mucilageSurfaceVector( g.CE0T( candidates( i , : ) , : ) ) = 0;
         mucilageSurfaceVector(g.CE0T(aims(i, :),:)) = tmpMucilageSurfaceVector;
+
+        tmpedgeChargeVector = edgeChargeVector( g.CE0T( candidates( i , : ) , : ) );
+        edgeChargeVector( g.CE0T( candidates( i , : ) , : ) ) = 0;
+        edgeChargeVector(g.CE0T(aims(i, :),:)) = tmpedgeChargeVector;
         
         assert(numBulkOld == sum(bulkVector), 'solid Bloecke stimmen nicht, movement')
         

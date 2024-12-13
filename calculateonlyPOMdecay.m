@@ -1,4 +1,4 @@
- function [bulkVector,  POMVector,MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector, MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector)
+ function [bulkVector,  POMVector,MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector, MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector,MBfactor)
     
  numFluidNeighVector = calculateNumFluidNeighbors(g, bulkVector, reactiveSurfaceVector, POMVector, 2);
     POMsolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, POMVector, POMParticleList);
@@ -14,13 +14,14 @@
     % only POM particles that are attached to reactive solid surface are
     % decaying
     for i = 1 : length(POMParticleList)
-        if (sum(reactiveSurfaceVector(POMsolidEdgeList{i})) > 0)... % + sum(edgeChargeVector(POMsolidEdgeList{i}))
-                && (sum(numFluidNeighVector(POMParticleList{i})) > 0)
+        %if(MNVector(POMParticleList{i}) == 0 )%%Nur MN abbauen
+        if ( ((sum(reactiveSurfaceVector(POMsolidEdgeList{i})) > 0))  && ... % + sum(edgeChargeVector(POMsolidEdgeList{i}))
+                (sum(numFluidNeighVector(POMParticleList{i})) > 0))
             concOld = sum(C_POMconcVector(POMParticleList{i}));
             particleDecayRate = parameters.POMdecayRate;
             particleDecayRate = particleDecayRate* sum(numFluidNeighVector(POMParticleList{i})) / ...
                 (sum(numFluidNeighVector(POMParticleList{i})) + length(POMsolidEdgeList{i}));
-            concNew = concOld * exp(- particleDecayRate * tau);
+            concNew = concOld * exp(- particleDecayRate * MBfactor* tau);
             concDiff = concOld - concNew;
             concDiff_part = concDiff * numFluidNeighVector(POMParticleList{i}) / sum(numFluidNeighVector(POMParticleList{i}));
             C_POMconcVector(POMParticleList{i}) = C_POMconcVector(POMParticleList{i}) - concDiff_part;
@@ -35,7 +36,8 @@
             
              
         
-       end
+        %end
+        end
     end
     
     % set POM conc. below threshold to zero
@@ -111,7 +113,7 @@
     currentConcentration = sum(C_POMconcVector + C_SVector);
     if(abs(previousConcentration - currentConcentration) > 0.0001)
               abs(previousConcentration - currentConcentration)
-              error('Falsch decay_POM', abs(previousConcentration - currentConcentration))
+              %error('Falsch decay_POM', abs(previousConcentration - currentConcentration))
     end
     
  end

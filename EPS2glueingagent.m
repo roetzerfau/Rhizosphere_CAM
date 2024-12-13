@@ -5,7 +5,7 @@
     for i = 1:numel(EPSInd)
         EPSParticleList{i} = EPSInd(i);
     end
-    
+    sumExcessPOM = 0;
     
     % here concPOMAgent is considered as an edgeChargeVector
     EPSsolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, EPSVector, EPSParticleList);

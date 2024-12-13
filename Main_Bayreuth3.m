@@ -1,5 +1,6 @@
-function Main_Bayreuth3
-clc; clear;
+function Main_Bayreuth3(isMove,C_N_root,name_)
+clc;
+diary('mydiary.txt')
 %% Compiling the C++ Components, necessary to determine the particle size distribution
 % mex particleSizeDistribution.cpp;
 
@@ -10,7 +11,8 @@ attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4:
 
 % Input files
 inputMat = 'Input/BlankDomain_250.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
-inputMat = 'Input/C_gradient_50.mat';
+%inputMat = 'Input/loam_bayreuth_45.mat';
+inputMat = 'Input/C_gradient_45.mat';
 %inputMat = 'Input/config.90.mat';
 randomPOMinputShapes = 'Input/POMshapes250_15.mat'; % contains shapes of POM particles
 
@@ -26,12 +28,40 @@ inputTimeSteps = 'Input/inputParticleNum_125.mat';
 
 inputRoot = 'Input/rootConfig.90.mat';
 % Number of Time Steps
-numOuterIt  = 1000;   
+numOuterIt  = 500;   
 output_file = "/home.local/roetzer/C_N/";
-name = "_O2_DOC0001";%_mass_balance_move
+%name = "_noMove_mucilageCN100_10x5thdayShoot_factor_10" %mucilageC_every100steps";%_mass_balance_move mucilageC_after100steps
+name="_move_mucilageCN100_10x5thdayShoot_rangeDiff_por45_bayreuth_noextraPOM";
+name="_Nomove_mucilageCN10_10x5thdayShoot_rangeDiff_por45";
+name = name_;
+diaryname = 'mydiary' + name + '.txt';
+if(isfile(diaryname))
+    delete(diaryname);
+end
+
+diary(diaryname)
+name
 output_file_vtk = char(output_file + "vtk" + name + '/');
 output_file_print = output_file + "txtdata" + name + '/';
-
+output_file_FinalConfig = output_file + "FinalConfig" + name + '/';
+if ~exist(output_file_vtk, 'dir')
+    mkdir(output_file_vtk); % Create the folder
+    fprintf('Folder "%s" created.\n', output_file_vtk);
+else
+    fprintf('Folder "%s" already exists.\n', output_file_vtk);
+end
+if ~exist(output_file_print, 'dir')
+    mkdir(output_file_print); % Create the folder
+    fprintf('Folder "%s" created.\n', output_file_print);
+else
+    fprintf('Folder "%s" already exists.\n', output_file_print);
+end
+if ~exist(output_file_FinalConfig, 'dir')
+    mkdir(output_file_FinalConfig); % Create the folder
+    fprintf('Folder "%s" created.\n', output_file_FinalConfig);
+else
+    fprintf('Folder "%s" already exists.\n', output_file_FinalConfig);
+end
 % Flag if POM decay should be considered (0: no, 1: yes)
 POMdecayFlag = 1;
 
@@ -54,7 +84,7 @@ parameters.POMagentMin = 0.01; %CAUTION: concPOMagent can be below threshold,
 % below threshold
 parameters.POMagentMax = 1;
 
-parameters.POMinputAfterNsteps = 2000; % POM input is given after every
+parameters.POMinputAfterNsteps =10; % POM input is given after every
 % N steps (high : 2, low : 10, no: 2000)
 parameters.POMinputNumParticles = 1; % Number of POM particles given as 
 % input after N steps (1 for 250 domain, 4 for 500 domain)
@@ -77,8 +107,8 @@ TrootGrowingBegin = 0;
 TrootGrowingEnd = 100;%80
 TrootShrinkingBegin = 100;
 TrootShrinkingEnd = 1300;
-TmucilageGrowingBegin = 0;
-TmucilageGrowingEnd = 100;%80
+TmucilageGrowingBegin = 100;
+TmucilageGrowingEnd = 110;%80
 k_start = 0;
 procentRootMucilage = 1;
 % add parameters concerning aging
@@ -92,7 +122,9 @@ removePOMthreshold = 1001;
 
 %Flags:
 isRoot = false
-move = false
+move = isMove
+
+
 
 
 %% Creating domain for Simulation
@@ -152,29 +184,30 @@ parameters.K_Cliquid =  5 * 10^-4;% * 1/1000;
 parameters.Resp_E = 0.10;
 parameters.Resp_GE = 0.26;
 parameters.Resp_Maint = 2.31*10^-6;%0.008;
-parameters.BD = 0.00001;
+parameters.BD = 0.0000016;
 parameters.eta_PAR = 1;
 
 
-parameters.minConC_B = 0.0132;%%0.001;%;TODO!!!!!!!!!!!!!!!!!!!!!
+parameters.minConC_B = 0.0132; %0.00001;%%0.001;%;TODO!!!!!!!!!!!!!!!!!!!!!  0.0132
 parameters.initConC_B = 0.0539;
 parameters.maxConcC_B = 0.3168;
 parameters.initConC_B = parameters.maxConcC_B;
-parameters.mucilageC = parameters.startConcPOM/50;
+parameters.mucilageC = parameters.constantMucilageDeposition/NZd;%parameters.startConcPOM/100;
 
-parameters.N_leakage = 0.00001;%per timestep
+parameters.N_leakage = 0.0001;%per timestep
 parameters.waterContentNecromass = 0.5;
 
 parameters.C_N_S = 10;
 parameters.C_N_B = 10;%15
 parameters.C_N_NM = 10;
-parameters.C_N_POM = 100;
-parameters.C_N_Root = 100;
+parameters.C_N_POM = 10;
+parameters.C_N_Root = C_N_root;%TODO 100
 parameters.N_initialMicrobes = 15;
 parameters.DOC = 0.0001;%-4  100 mg C/L 
 parameters.tau_ode = 3600; %12 * 60;
+C_SVector_normal = ones(g.numT, 1) .* ~bulkVector .* 10^-4;
 C_SVector = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
-N_SVector =  C_SVector ./ parameters.C_N_S;
+N_SVector =  C_SVector_normal ./ parameters.C_N_S;
 sumleakedN_S = 0;
 
 previousConcentration = sum(C_SVector)
@@ -196,7 +229,7 @@ for i = 1: numel(candidates_)
 end
 %candidates(candidates < 50 *g.NX)  = [];
 msize = numel(candidates);
-MBIntialCellInd = candidates(randperm(msize, parameters.N_initialMicrobes));
+MBIntialCellInd = candidates(randperm(msize, parameters.N_initialMicrobes));%%TODO immer gleicher Seed
 %MBIntialCellInd = [];
 C_BVector(MBIntialCellInd) = parameters.maxConcC_B;
 N_BVector = C_BVector ./ parameters.C_N_B;
@@ -211,10 +244,12 @@ MNVector = zeros(g.numT, 1);
 C_MNVector = zeros(g.numT, 1);
 N_MNVector = zeros(g.numT, 1);
 CO2Vector = zeros(g.numT, 1);
+leakedNVector = zeros(g.numT, 1);
 %MNageVector = zeros(g.numT, 1);
 
 EPSconcVector = zeros(g.numT, 1);
 
+%CO2Vector = zeros(g.numT, 1);
 %POMVector = zeros(g.numT, 1);
 %POMconcVector = zeros(g.numT, 1);
 %POMageVector = zeros(g.numT, 1);
@@ -232,7 +267,7 @@ for i = 1:numel(MNParticleList)
 
 end
 
-parameters.mucilageGrowing = 1;
+parameters.mucilageGrowing = 0;
 outerRootBorderInd = 1:250; 
 
 % for j = 1:100
@@ -260,18 +295,40 @@ porosity_table = zeros(numOuterIt, numel(mantles)-1);
 %bulkVector(N * N/4: N* (N/4+1)) = 1;
 %bulkVector(N * N/2 + N/2 +3:N * N/2 + N/2 +10) = 1;
 
-C_N_S = C_SVector ./ N_SVector;
-C_N_S(isnan(C_N_S  ) ) = 0;
-C_N_S(isinf(C_N_S  ) ) = 0;
+
+
+C_POMconcVector = POMconcVector .* ~MNVector;
+N_POMconcVector = POMconcVector .* ~MNVector / parameters.C_N_POM;
+
+C_MNVector_all = C_MNVector + POMconcVector .* MNVector;
+N_MNVector_all = N_MNVector + POMconcVector .* MNVector / parameters.C_N_NM;
+
+
+C_N_S = C_SVector ./ N_SVector + C_BVector ./ N_BVector + max(C_POMconcVector ./N_POMconcVector, C_MNVector_all ./N_MNVector_all);
+C_N_S(isnan(C_N_S ) ) = 0;
+C_N_S(isinf(C_N_S) ) = 0;
+
+
+MNVector_all = C_MNVector_all > 0;
+%MN_MBVector = 
 %| C_N_S == inf
-visualizeDataSub(g, bulkVector + POMVector + MNVector + rootVector*2 + MB_Vector *4 , 'cellType', 'solu',0, output_file_vtk);
+MB_Vector_vis = MB_Vector > ((parameters.maxConcC_B - parameters.minConC_B)/2);
+MN_Vector_vis = (MB_Vector > 0 & MB_Vector <= (parameters.maxConcC_B - parameters.minConC_B)/2);
+visualizeDataSub(g, bulkVector + POMVector + MNVector + MN_Vector_vis *3 + MB_Vector_vis *4 , 'cellType', 'solu',0, output_file_vtk);
 %visualizeDataSub(g, C_BVector, 'C_BVector', 'C_BVector', 0,output_file_vtk);
 %visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', 0,output_file_vtk);
-visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', 0,output_file_vtk);
+%visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', 0,output_file_vtk);
+
+visualizeDataSub(g, N_BVector+ (N_SVector) + (N_POMconcVector) + (N_MNVector_all) , 'N_allVector', 'N_allVector', 0,output_file_vtk);
+visualizeDataSub(g, C_BVector+ (C_SVector) + (C_POMconcVector) + (C_MNVector_all) , 'C_allVector', 'C_allVector', 0,output_file_vtk);
+
+
 %visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', 0);
 %visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', 0);
-%visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', 0,output_file_vtk);
-%visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2, output_file_vtk);
+visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', 0,output_file_vtk);
+visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', 0, 2, output_file_vtk);
+visualizeDataEdges(g, mucilageSurfaceVector, 'mucilageSurfaceVector', 'mucilageSurfaceVector', 0, 2, output_file_vtk);
+
 
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
@@ -308,18 +365,16 @@ N_POMconcVector = POMconcVector .* ~MNVector / parameters.C_N_POM;
     
 C_MNVector_all = C_MNVector + POMconcVector .* MNVector;
 N_MNVector_all = N_MNVector + POMconcVector .* MNVector / parameters.C_N_NM;
-printInfoBayreuth(0,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_POMconcVector,N_POMconcVector, CO2Vector,sumleakedN_S,1, output_file_print)
+
+
+soil_particle_NNZ = 0;
+for solidParticle = 1 : length( solidParticleList )
+    particleSize = length( solidParticleList{ solidParticle } ); 
+    soil_particle_NNZ = soil_particle_NNZ + particleSize;
+end
+printInfoBayreuth(0,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_POMconcVector,N_POMconcVector, CO2Vector,leakedNVector, sumleakedN_S,1,1,1,1,1, POMageVector, soil_particle_NNZ, output_file_print)
 
 sumAgent = sum(concAgent);
-
-
-
-
-
-
-
-
-
 
 
 
@@ -327,6 +382,7 @@ for k = k_start + 1 : numOuterIt
 fprintf('k %d \n', k)
 previousConcentration =sum(C_MNVector+ C_SVector + C_BVector + CO2Vector+ POMconcVector);
 %% Root
+if isRoot
 currentAmountRootCells = sum(rootVector, 'all');
 newAmountRootCells = 0;
 if(TrootGrowingBegin < k && k <= TrootGrowingEnd && isRoot)
@@ -400,7 +456,7 @@ fprintf('Time for mucPressure: %d \n', toc(T_mucPress))
 %-----------------------------------
 %wegschieben, aber auch höhere Attraktivität an möglichen zukünftigen
 %Randpunkten/mucilagee andockpunkte kennzeichnen
-
+end
 if true
 %% Doing the POM decay
 if POMdecayFlag == 1
@@ -409,20 +465,63 @@ if POMdecayFlag == 1
 % input of POM particles using specified parameters
 
 if mod(k,parameters.POMinputAfterNsteps) == 0
-    occupiedCells = bulkVector + mucilageVector;
+    occupiedCells = bulkVector + mucilageVector + MB_Vector;
     for inputParticle = 1 : parameters.POMinputNumParticles
     [occupiedCells, bulkTypeVector, POMVector, POMconcVector, POMageVector, POMParticleList, totalPOMinputConc] = placePOMparticleRandomly(g, occupiedCells, bulkTypeVector, ...
         POMVector, POMconcVector, POMageVector, POMParticleList, randomPOMparticles, randomPOMparticlesSizes, totalPOMinputConc);
     end
-    bulkVector = occupiedCells - mucilageVector;
+    bulkVector = occupiedCells - mucilageVector - MB_Vector;
 end
 
 % aging of memory edges
-POMagentAge = calculatePOMagentAge(parameters, POMagentAge, edgeChargeVector, concPOMAgent );
+%POMagentAge = calculatePOMagentAge(parameters, POMagentAge, edgeChargeVector, concPOMAgent );
+
+EPSVector = (C_SVector > 0.1) |  (MB_Vector == 1);%
+EPSInd = find(EPSVector == 1);
+EPSParticleList = cell(numel(EPSInd),1);
+for i = 1:numel(EPSInd)
+    EPSParticleList{i} = EPSInd(i);
+end
+
+% here concPOMAgent is considered as an edgeChargeVector
+EPSsolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector-POMVector, EPSVector, EPSParticleList);
+POMagentAge(edgeChargeVector > 0) = POMagentAge(edgeChargeVector > 0) + 1;
+
+for i = 1 : length(EPSParticleList)
+    if ~isempty(EPSsolidEdgeList{i})
+    POMagentAge(EPSsolidEdgeList{i}) = 1;
+    edgeChargeVector(EPSsolidEdgeList{i}) = 1;
+    end
+end
+
+allMBEdges = g.CE0T(find(MB_Vector == 1),:);
+mucilageSurfaceVector(:) = 0;
+mucilageSurfaceVector(allMBEdges) = 1;
+% mucilageParticleList = cell(1,1);
+% mucilageParticleList{1} = find(MB_Vector == 1);
+% mucilageSolidEdgeList = calculatePOMsolidEdgeList(g, bulkVector, MB_Vector, mucilageParticleList);
+% mucilageSurfaceVector(mucilageSolidEdgeList{1}) = 1;
+
+% mucilageTest = (0*ones( g.numCE , 1 ));   
+% allrellevantEdges = g.CE0T(find(bulkVector == 1),:);
+% mucilageTest(allrellevantEdges) = 1;
+% mucilageSurfaceVector = mucilageSurfaceVector .* mucilageTest;
+
+
+
+% edgeTest = (0*ones( g.numCE , 1 ));   
+% allrellevantEdges = g.CE0T(find(bulkVector == 1),:);
+% edgeTest(allrellevantEdges) = 1;
+% edgeChargeVector = edgeChargeVector .* edgeTest;
+% POMagentAge = POMagentAge .* edgeTest;
+
+
+
+
 [edgeChargeVector, POMagentAge] = randomAging(POMagentAge, edgeChargeVector);
 
-MucilageagentAge = MucilageagentAge + 1;
-[mucilageSurfaceVector, MucilageagentAge] = randomAging(MucilageagentAge, mucilageSurfaceVector);
+%MucilageagentAge = MucilageagentAge + 1;
+%[mucilageSurfaceVector, MucilageagentAge] = randomAging(MucilageagentAge, mucilageSurfaceVector);
 
 end
 
@@ -462,6 +561,7 @@ for POMParticle = 1 : length( POMParticleList )
      %   continue;
     %end
     if(numel(POMParticleList{ POMParticle }) == 1)
+       fprintf("necromass")
        continue;
     end
     % calculate stencil of POM particle depending on its area
@@ -610,23 +710,40 @@ end
 %         parameters.mucilageGrowing = 1;
 % end
 %if(k >= 50 && k <= 75 )
-if(k >=0)
+%if(k > TmucilageGrowingBegin && k <= TmucilageGrowingEnd)
+
+%exudatesDays = 200:220;
+%exudatesDays = [exudatesDays, 585:605] 
+
+exudatesDays = [200:5:249];
+exudatesDays = [exudatesDays, 590:5:639]; 
+if(ismember(k,exudatesDays))
         parameters.mucilageGrowing = 1;
 else
         parameters.mucilageGrowing = 0;
 end
 
 T_C_N = tic; 
-[bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, POMParticleList, POMageVector,CO2Vector, EPSconcVector_MB,  C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector,leakedN_S, CUE] = ...
-   calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,outerRootBorderInd);
+leakedN_S = 0;
+C_PMNVector =  zeros(g.numT, 1);
+N_PMNVector =  zeros(g.numT, 1);
+C_PPlantVector =  zeros(g.numT, 1);
+N_PPlantVector =  zeros(g.numT, 1);
+CUE = 0;
+U = 0;
+T = 0; 
+B = 0; 
+R = 0;
+[bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, POMParticleList, POMageVector,CO2Vector,leakedNVector, EPSconcVector_MB,  C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector,leakedN_S, CUE, U,T,B,R] = ...
+   calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,leakedNVector, outerRootBorderInd);
 fprintf('Time for C_N: %d \n', toc(T_C_N))
 %numel(find(C_BVector > 0))
 C_BVector(find(C_BVector > 0))
 sumleakedN_S = sumleakedN_S + leakedN_S;
 %% Gluing agetn
-EPSconcVector =   EPSconcVector + EPSconcVector_MB;              % + EPSconcVector_muc
-EPSVector= EPSconcVector_MB > 0; 
-[bulkVector, concPOMAgent, edgeChargeVector] = EPS2glueingagent(g, parameters, bulkVector, POMVector, EPSVector, EPSconcVector,concPOMAgent,edgeChargeVector);
+%EPSconcVector = EPSconcVector + EPSconcVector_MB;              % + EPSconcVector_muc
+%EPSVector= EPSconcVector_MB > 0; 
+%[bulkVector, concPOMAgent, edgeChargeVector] = EPS2glueingagent(g, parameters, bulkVector, POMVector, EPSVector, EPSconcVector,concPOMAgent,edgeChargeVector);
 %% Porosity
 
 %[porosity_t] = calculatePorosity(g,mantles,rootVector, bulkVector - rootVector);
@@ -637,26 +754,42 @@ EPSVector= EPSconcVector_MB > 0;
 
 %%
 T2 = tic;
-EPSVector = mucilageVector + MB_Vector;
-C_N_S = C_SVector ./ N_SVector;
+
+
+C_POMconcVector = POMconcVector .* ~MNVector;
+N_POMconcVector = POMconcVector .* ~MNVector / parameters.C_N_POM;
+    
+C_MNVector_all = C_MNVector + POMconcVector .* MNVector;
+N_MNVector_all = N_MNVector + POMconcVector .* MNVector / parameters.C_N_NM;
+
+
+%EPSVector = mucilageVector + MB_Vector;
+C_N_S = C_SVector ./ N_SVector + C_BVector ./ N_BVector + max(C_POMconcVector ./N_POMconcVector, C_MNVector_all ./N_MNVector_all);
 C_N_S(isnan(C_N_S)) = 0;
 C_N_S(isinf(C_N_S)) = 0;
+
+
+MB_Vector_vis = MB_Vector > ((parameters.maxConcC_B - parameters.minConC_B)/2);
+MN_Vector_vis = (MB_Vector > 0 & MB_Vector <= (parameters.maxConcC_B - parameters.minConC_B)/2);
+MNVector_all = MNVector_all > 0;
     if plot_frequency == 1 && (k <= 100 || mod(k,25) == 0 || k == numOuterIt)  
-    visualizeDataSub(g, bulkVector + POMVector + MNVector + rootVector*2 +  MB_Vector *4  , 'cellType', 'solu', k,output_file_vtk);
+    visualizeDataSub(g, bulkVector + POMVector + MNVector + MN_Vector_vis *3 + MB_Vector_vis *4  , 'cellType', 'solu', k,output_file_vtk);
     %visualizeDataSub(g, C_BVector , 'C_BVector', 'C_BVector', k,output_file_vtk);
     
     
-    %visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', k,output_file_vtk);
-    
+    visualizeDataSub(g, N_BVector+ (N_SVector) + (N_POMconcVector) + (N_MNVector_all) , 'N_allVector', 'N_allVector', k,output_file_vtk);
+    visualizeDataSub(g, C_BVector+ (C_SVector) + (C_POMconcVector) + (C_MNVector_all) , 'C_allVector', 'C_allVector', k,output_file_vtk);
     
     %visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', k,output_file_vtk);
     %visualizeDataSub(g, N_BVector, 'N_BVector', 'N_BVector', k,output_file_vtk);
     %visualizeDataSub(g, N_SVector, 'N_SVector', 'N_SVector', k,output_file_vtk);
-    %visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', k,output_file_vtk);
-    %visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2, output_file_vtk);
+    visualizeDataSub(g, C_N_S, 'C_N_SVector', 'C_N_SVector', k,output_file_vtk);
+    visualizeDataEdges(g, edgeChargeVector, 'memoryEdges', 'edgeChargeVector', k, 2, output_file_vtk);
+    visualizeDataEdges(g, mucilageSurfaceVector, 'mucilageSurfaceVector', 'mucilageSurfaceVector', k, 2, output_file_vtk);
     end
 
 %% Some posprocessing: Ignore for now
+if false
 numEdgeTypes =  countEdgeTypes(g, bulkVector, POMVector, solidParticleList, ...
     edgeChargeVector, reactiveSurfaceVector, particleTypeVector);
 numEdgeTypesPOMparticles =  countEdgeTypesPOMparticles(g, bulkVector, POMVector,...
@@ -691,6 +824,7 @@ if(~isempty(freePOMparticles))
 end
 
 numFreePOMparticles = length(indFreePOMparticles);
+end
 %%
     currentConcentration = sum(C_MNVector+ C_SVector + C_BVector + CO2Vector +POMconcVector);
    if(abs(previousConcentration - currentConcentration) > 0.0001)
@@ -703,10 +837,16 @@ numFreePOMparticles = length(indFreePOMparticles);
     % N_POMconcVector = POMconcVector .* ~MNVector ./ parameters.C_N_POM;
     % C_MNVector_all = C_MNVector + POMconcVector .* MNVector;
     % N_MNVector_all = N_MNVector + POMconcVector .* MNVector / parameters.C_N_NM;
-    C_MNVector_all = C_MNVector + C_PMNVector;
-    N_MNVector_all = N_MNVector + N_PMNVector;
+
+
+    soil_particle_NNZ = 0;
+    for solidParticle = 1 : length( solidParticleList )
+        particleSize = length( solidParticleList{ solidParticle } ); 
+        soil_particle_NNZ = soil_particle_NNZ + particleSize;
+    end
     %a = ((sum(C_POMconcVector) + sum(POMconcVector .* MNVector)) - sum(POMconcVector)) < 0.0001
-    printInfoBayreuth(k,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_PPlantVector,N_PPlantVector,CO2Vector, sumleakedN_S,CUE, output_file_print)
+    %printInfoBayreuth(k,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector, leakedNVector, sumleakedN_S,CUE,POMageVector, folder_output)
+    printInfoBayreuth(k,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_PPlantVector,N_PPlantVector,CO2Vector,leakedNVector, sumleakedN_S,CUE, U,T,B,R,POMageVector,soil_particle_NNZ, output_file_print)
     if(k <= 100 || mod(k,25) == 0 || k == numOuterIt)
    % if(false)
 %         particleListHelper = particleList;
@@ -717,7 +857,7 @@ numFreePOMparticles = length(indFreePOMparticles);
            % 'removedPOMparticles', 'removedPOMparticlesConc', 'timeRemovedPOMparticles')    
           save(fileName,'g','bulkVector','POMconcVector', 'concPOMAgent','edgeChargeVector','POMagentAge',...
         'POMVector', 'POMageVector', 'POMParticleList', 'particleList', 'reactiveSurfaceVector',...
-        'C_BVector', 'C_SVector','N_SVector','C_MNVector', 'MNVector', 'MB_Vector')  
+        'C_BVector', 'C_SVector','N_SVector','C_MNVector', 'MNVector','C_PMNVector', 'MB_Vector', 'leakedNVector', 'CO2Vector')  
 %         particleList = particleListHelper;
 
         %fileName    = ['FinalConfig/rootConfig','.', num2str(k),'.mat']; 
@@ -728,4 +868,5 @@ numFreePOMparticles = length(indFreePOMparticles);
 end  % for k
 fclose( fileID );
 % fclose( fileID_1);
+diary off
 end
