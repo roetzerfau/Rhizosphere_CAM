@@ -233,7 +233,7 @@ function dYdt = MMKfunction(t,Y, parameters)
     
     %abs(C_eq - N_eq)
   
-    % assert(abs(C_eq - N_eq) < 0.00001, "ERROR C_N_B balance ", abs(C_eq - N_eq))
+     assert(abs(C_eq - N_eq) < 0.000001, "ERROR C_N_B balance ", abs(C_eq - N_eq))
     
     %U
     %U - R_GE- R_M -R_O

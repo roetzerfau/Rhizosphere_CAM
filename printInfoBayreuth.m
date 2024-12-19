@@ -1,4 +1,5 @@
-function printInfoBayreuth(k, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector, leakedNVector, sumleakedN_S,CUE, U,T,B,R ,POMageVector,soil_particle_NNZ, folder_output)
+function printInfoBayreuth(k, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector, leakedNVector,...
+    CUE, f_C,f_BD_C,B_C,R, f_N,f_BD_N,B_N, sumleakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N ,POMageVector,soil_particle_NNZ, folder_output)
 
 if k == 0
    flag = 'w';
@@ -135,11 +136,6 @@ fileID_k = fopen(fileName,flag);
 fprintf(fileID_k, '%d %e \n', k, sum(leakedNVector > 0));
 fclose(fileID_k);
 
-fileName = folder_output + '/sumleakedN_S.txt';
-fileID_k = fopen(fileName,flag);
-fprintf(fileID_k, '%d %e \n', k, sumleakedN_S);
-fclose(fileID_k);
-
 
 total_N = sum(N_BVector) + sum(N_SVector) + sum(N_POMconcVector) + sum(N_MNVector) + sumleakedN_S;
 fileName    =  folder_output + '/total_N.txt';
@@ -164,20 +160,68 @@ fileID_k = fopen(fileName,flag);
 fprintf(fileID_k, '%d %e \n', k, R);
 fclose(fileID_k);
 
-fileName    =  folder_output + '/B.txt';
+fileName    =  folder_output + '/f_B_C.txt';
 fileID_k = fopen(fileName,flag);
-fprintf(fileID_k, '%d %e \n', k, B);
+fprintf(fileID_k, '%d %e \n', k, B_C);
 fclose(fileID_k);
 
-fileName    =  folder_output + '/T.txt';
+fileName    =  folder_output + '/f_BD_C.txt';
 fileID_k = fopen(fileName,flag);
-fprintf(fileID_k, '%d %e \n', k, T);
+fprintf(fileID_k, '%d %e \n', k, f_BD_C);
 fclose(fileID_k);
 
-fileName    =  folder_output + '/U.txt';
+fileName    =  folder_output + '/f_C.txt';
 fileID_k = fopen(fileName,flag);
-fprintf(fileID_k, '%d %e \n', k, U);
+fprintf(fileID_k, '%d %e \n', k, f_C);
 fclose(fileID_k);
+
+
+
+fileName = folder_output + '/sumleakedN_S.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, sumleakedN_S);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/f_B_N.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, B_N);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/f_BD_N.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, f_BD_N);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/f_N.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, f_N);
+fclose(fileID_k);
+
+
+
+fileName = folder_output + '/f_POM_C.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, f_POM_C);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/f_POM_N.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, f_POM_N);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/f_MN_C.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, f_MN_C);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/f_MN_N.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, f_MN_N);
+fclose(fileID_k);
+
+
+
+
 
 fileName    =  folder_output + '/soil_particleNNZ.txt';
 fileID_k = fopen(fileName,flag);

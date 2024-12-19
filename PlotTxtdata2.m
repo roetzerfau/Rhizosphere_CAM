@@ -6,7 +6,7 @@ end
 if nargin < 1
     file = "noMove_longterm";
 end
-imageFolder = "bilder/CN/";
+imageFolder = "bilder/CN/17_12/";
 appendix = file%"noMove_longterm_noreactiveEdgesforDecay" %"noMove_longterm" %mucilageC_after100stepsCN01
 outputfolder = imageFolder + appendix +"/";
 if ~exist(outputfolder, 'dir')  % Check if the folder exists
@@ -22,7 +22,7 @@ soil_particleNNZ = 250 * 250 * (1-porosity);
 soilParticleDensity = 2.65;
 isNNZ = false;
 
-root = "/home.local/roetzer/C_N/tx2tdata_" + appendix +"/";
+root = "/home.local/roetzer/C_N/txtdata_" + appendix +"/"
 titel = description;
 percentage_plot = 50;%;%25;
 isVisible = 'on';
@@ -285,7 +285,7 @@ end
 %% Plots 
 percentage_plot = round(numel(x_N_POM)/20);%;%25;
 linewidth = 4;
-if false
+if true
 
 %% figure 1
 figure1 = figure('visible', isVisible)
@@ -303,10 +303,10 @@ set(gca, 'FontSize', 14)
 % Add percentage annotations
 for k = 1:size(y_C, 1)
     for j = 1:size(y_C, 2)
-        if mod(k, percentage_plot) == 0
+        if mod(k, percentage_plot) == 0 || k == 1
             percentage = y_C(k, j) / sum(y_C(k, :)) * 100;
-            text(x(k), sum(y_C(k, 1:j)) - y_C(k, j)/2, sprintf('%i%%', ceil(percentage)), ...
-                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', 12)
+            text(x(k), sum(y_C(k, 1:j)) - y_C(k, j)/2, sprintf('%.2f \n (%i%%)',y_C(k, j), ceil(percentage)), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', 12)%12
         end
     end
 end
@@ -332,9 +332,9 @@ set(gca, 'FontSize', 14)
 % Add percentage annotations
 for k = 1:size(y_N, 1)
     for j = 1:size(y_N, 2)
-        if mod(k, percentage_plot) == 0
+        if mod(k, percentage_plot) == 0 || k == 1
             percentage = y_N(k, j) / sum(y_N(k, :)) * 100;
-            text(x(k), sum(y_N(k, 1:j)) - y_N(k, j)/2, sprintf('%i%%', ceil(percentage)), ...
+            text(x(k), sum(y_N(k, 1:j)) - y_N(k, j)/2, sprintf('%.2f \n (%i%%)',y_N(k, j), ceil(percentage)), ...
                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', 12)
         end
     end
@@ -453,11 +453,17 @@ y_CUE = CUE(:,2);
 x_CUE = CUE(:,1);
 
 
-fileID = fopen( root + 'B.txt','r');
+fileID = fopen( root + 'f_B_C.txt','r');
 formatSpec = '%f %f';
-B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_B = B(:,2);
-x_B = B(:,1);
+f_B_C = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_B_C = f_B_C(:,2);
+x_f_B_C = f_B_C(:,1);
+
+fileID = fopen( root + 'f_B_N.txt','r');
+formatSpec = '%f %f';
+f_B_N = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_B_N = f_B_N(:,2);
+x_f_B_N = f_B_N(:,1);
 
 fileID = fopen( root + 'R.txt','r');
 formatSpec = '%f %f';
@@ -465,23 +471,58 @@ R = fscanf(fileID,formatSpec,  [2 last_value])';
 y_R = R(:,2);
 x_R = R(:,1);
 
-fileID = fopen( root + 'T.txt','r');
+fileID = fopen( root + 'f_BD_C.txt','r');
 formatSpec = '%f %f';
-T = fscanf(fileID,formatSpec,  [2 last_value])';
-y_T = T(:,2);
-x_T = T(:,1);
+f_BD_C = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_BD_C = f_BD_C(:,2);
+x_f_BD_C = f_BD_C(:,1);
 
-fileID = fopen( root + 'U.txt','r');
+fileID = fopen( root + 'f_BD_N.txt','r');
 formatSpec = '%f %f';
-U = fscanf(fileID,formatSpec,  [2 last_value])';
-y_U = U(:,2);
-x_U = U(:,1);
+f_BD_N = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_BD_N = f_BD_N(:,2);
+x_f_BD_N = f_BD_N(:,1);
+
+
+fileID = fopen( root + 'f_C.txt','r');
+formatSpec = '%f %f';
+f_C = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_C = f_C(:,2);
+x_f_C = f_C(:,1);
+
+fileID = fopen( root + 'f_N.txt','r');
+formatSpec = '%f %f';
+f_N = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_N = f_N(:,2);
+x_f_N = f_N(:,1);
 
 
 
+fileID = fopen( root + 'f_MN_C.txt','r');
+formatSpec = '%f %f';
+f_MN_C = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_MN_C = f_MN_C(:,2);
+x_f_MN_C = f_MN_C(:,1);
+
+fileID = fopen( root + 'f_MN_N.txt','r');
+formatSpec = '%f %f';
+f_MN_N = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_MN_N = f_MN_N(:,2);
+x_f_MN_N = f_MN_N(:,1);
 
 
 
+fileID = fopen( root + 'f_POM_C.txt','r');
+formatSpec = '%f %f';
+f_POM_C = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_POM_C = f_POM_C(:,2);
+x_f_POM_C = f_POM_C(:,1);
+
+fileID = fopen( root + 'f_POM_N.txt','r');
+formatSpec = '%f %f';
+f_POM_N = fscanf(fileID,formatSpec,  [2 last_value])';
+y_f_POM_N = f_POM_N(:,2);
+x_f_POM_N = f_POM_N(:,1);
 
 
 
@@ -489,10 +530,10 @@ x_U = U(:,1);
 figure8 = figure('visible', isVisible) 
 %plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
-CUE_A = 1 - y_R./y_U;
+CUE_A = 1 - y_R./y_f_C;
 plot(x_CUE,CUE_A,'LineWidth', linewidth)
 hold on 
-CUE_B = 1 - (y_R+ y_T)./y_U;
+CUE_B = 1 - (y_R+ y_f_BD_C)./y_f_C;
 plot(x_CUE,CUE_B,'LineWidth', linewidth)
 xlabel('days', 'FontSize', 14)
 ylabel('Carbon Use Efficiency Microbes', 'FontSize', 14)
@@ -508,11 +549,51 @@ saveas(figure8, fullfile(outputfolder, "CUE_" + appendix + ".png"));
 
 
 
+figure9 = figure('visible', isVisible) 
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
+%hold on 
+xlabel('days', 'FontSize', 14)
+plot(x_CUE,y_R,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_C,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_N,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_BD_C,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_BD_N,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_MN_C,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_MN_N,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_POM_C,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_POM_N,'LineWidth', linewidth)
+
+ylabel('g cm 3 ', 'FontSize', 14)
 
 
 
+%set(gca,'ylim', [-2 1]);
+legend(["R", "f_C", "f_N", "f_BD_C", "f_BD_C", "f_MN_C", "f_MN_N", "f_POM_C", "f_POM_N", "C_N"])
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
+set(figure9, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+saveas(figure9, fullfile(outputfolder, "fluxes_" + appendix + ".png"));
 
 
+
+figure10= figure('visible', isVisible) 
+C_N = y_f_B_C;
+plot(x_CUE,C_N,'LineWidth', linewidth)
+xlabel('days', 'FontSize', 14)
+ylabel('C_N ', 'FontSize', 14)
+legend(["C_N"])
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
+set(figure10, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+saveas(figure10, fullfile(outputfolder, "growth_" + appendix + ".png"));
 
 close all
 
