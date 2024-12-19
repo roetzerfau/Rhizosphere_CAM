@@ -375,7 +375,7 @@ for solidParticle = 1 : length( solidParticleList )
     soil_particle_NNZ = soil_particle_NNZ + particleSize;
 end
 printInfoBayreuth(0,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_POMconcVector,N_POMconcVector, CO2Vector,leakedNVector, ...
-   1,1,1, 1,1,1, 1, 1, 1, 1, 1,1,1, POMageVector, soil_particle_NNZ, output_file_print)
+   1,1,1, 1,1,1, 1, 1, 1, 1, 1,1,1,1, POMageVector, soil_particle_NNZ, output_file_print)
 
 sumAgent = sum(concAgent);
 
@@ -734,7 +734,7 @@ C_PPlantVector =  zeros(g.numT, 1);
 N_PPlantVector =  zeros(g.numT, 1);
 
 [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, POMParticleList, POMageVector,CO2Vector,leakedNVector, EPSconcVector_MB,  C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, ...
-    CUE, f_C,f_BD_C,B_C,R, f_N,f_BD_N,B_N, leakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N] = ...
+    CUE, f_C,f_BD_C,B_C,R,R_O, f_N,f_BD_N,B_N, leakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N] = ...
    calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,leakedNVector, outerRootBorderInd,isMBFactor);
 fprintf('Time for C_N: %d \n', toc(T_C_N))
 %numel(find(C_BVector > 0))
@@ -853,7 +853,7 @@ end
     %a = ((sum(C_POMconcVector) + sum(POMconcVector .* MNVector)) - sum(POMconcVector)) < 0.0001
     %printInfoBayreuth(k,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector, leakedNVector, sumleakedN_S,CUE,POMageVector, folder_output)
     printInfoBayreuth(k,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, N_MNVector_all, C_PPlantVector,N_PPlantVector,CO2Vector,leakedNVector, CUE,...
-        f_C,f_BD_C,B_C,R, f_N,f_BD_N,B_N, leakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N,POMageVector,soil_particle_NNZ, output_file_print)
+        f_C,f_BD_C,B_C,R,R_O, f_N,f_BD_N,B_N, leakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N,POMageVector,soil_particle_NNZ, output_file_print)
     if(k <= 100 || mod(k,25) == 0 || k == numOuterIt)
    % if(false)
 %         particleListHelper = particleList;

@@ -471,6 +471,12 @@ R = fscanf(fileID,formatSpec,  [2 last_value])';
 y_R = R(:,2);
 x_R = R(:,1);
 
+fileID = fopen( root + 'R_O.txt','r');
+formatSpec = '%f %f';
+R_O = fscanf(fileID,formatSpec,  [2 last_value])';
+y_R_O = R_O(:,2);
+x_R_O = R_O(:,1);
+
 fileID = fopen( root + 'f_BD_C.txt','r');
 formatSpec = '%f %f';
 f_BD_C = fscanf(fileID,formatSpec,  [2 last_value])';
@@ -555,6 +561,8 @@ figure9 = figure('visible', isVisible)
 xlabel('days', 'FontSize', 14)
 plot(x_CUE,y_R,'LineWidth', linewidth)
 hold on 
+plot(x_CUE,y_R_O,'LineWidth', linewidth)
+hold on 
 plot(x_CUE,y_f_C,'LineWidth', linewidth)
 hold on 
 plot(x_CUE,y_f_N,'LineWidth', linewidth)
@@ -576,7 +584,7 @@ ylabel('g cm 3 ', 'FontSize', 14)
 
 
 %set(gca,'ylim', [-2 1]);
-legend(["R", "f_C", "f_N", "f_BD_C", "f_BD_C", "f_MN_C", "f_MN_N", "f_POM_C", "f_POM_N", "C_N"])
+legend(["R","R_O", "f_C", "f_N", "f_BD_C", "f_BD_C", "f_MN_C", "f_MN_N", "f_POM_C", "f_POM_N", "C_N"])
 set(gca, 'FontSize', 14)
 title(titel, 'Interpreter', 'none')
 set(figure9, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);

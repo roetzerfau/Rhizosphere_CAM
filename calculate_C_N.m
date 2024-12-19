@@ -1,5 +1,5 @@
 function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector, CO2Vector,leakedNVector, C_EXTVector_t, C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, CUE, ...
-    f_C,f_BD_C,B_C,R, f_N,f_BD_N,B_N, R_leaked, f_POM_C, f_POM_N, f_MN_C, f_MN_N ] = ...
+    f_C,f_BD_C,B_C,R, R_O, f_N,f_BD_N,B_N, R_leaked, f_POM_C, f_POM_N, f_MN_C, f_MN_N ] = ...
     calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector, leakedNVector,outerRootBorderInd, isMBfactor)
     
     dayinseconds = 24 * 60 * 60;% 
@@ -12,6 +12,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     f_BD_C = 0; 
     B_C = 0; 
     R = 0;
+    R_O = 0;
 
     f_N = 0;
     f_BD_N = 0; 
@@ -47,11 +48,12 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     
     decaystep=tic;
     if(isMBfactor)
-        MBfactor= 1 + sum(C_BVector)/50;
+        MBfactor= 1 + sum(C_BVector)/10;
     else 
         MBfactor= 1;
     end
    MBfactor;
+
     [bulkVector,  POMVector, MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector,MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector, MBfactor);
     fprintf('Time for POM MN Decay: %d \n', toc(decaystep))
     after_C = sum(C_SVector + C_POMconcVector);
@@ -80,36 +82,39 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     % fprintf('Time for Rootex_step: %d \n', toc(Rootex_step))
     % sumC_S_avai = sum(C_SVector)
     RootExudates = RootExudates + (sumC_S - sumC_S_before);
-    
+    CO2Vector_over = CO2Vector;
+    CO2Vector_over(:) = 0;
      C_Nstep = tic;
      C_EXTVector =0;
      sumC_B_before = sum(C_BVector);
      sumC_S_before = sum(C_SVector);
      sumCO2_before = sum(CO2Vector);
+     sumCO2_over_before = sum(CO2Vector_over);
      sumC_MN_before = sum(C_MNVector);
 
      sumN_B_before = sum(N_BVector);
      sumN_S_before = sum(N_SVector);
      sumN_MN_before = sum(N_MNVector);
      %TODO nur EPS produzieren wenn solid dran ist
-  [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector, C_EXTVector] = ...
-    calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector);
+  [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector, C_EXTVector,CO2Vector_over] = ...
+    calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector,CO2Vector_over);
      sumC_B = sum(C_BVector);
      sumC_S = sum(C_SVector);
      sumCO2 = sum(CO2Vector);
+     sumCO2_over = sum(CO2Vector_over);
      sumC_MN = sum(C_MNVector);
 
      sumN_B = sum(N_BVector);
      sumN_S = sum(N_SVector);
      sumN_MN = sum(N_MNVector);
      
-     f_C = f_C + abs(sumC_S - sumC_S_before);
+     f_C = f_C + (sumC_S - sumC_S_before);
      R = R + (sumCO2 - sumCO2_before);
+     R_O = R_O + (sumCO2_over - sumCO2_over_before);
      f_BD_C = f_BD_C + (sumC_MN - sumC_MN_before);
      B_C = B_C + (sumC_B - sumC_B_before);
 
-     f_N = f_N + abs(sumN_S - sumN_S_before);
-    % hallo = f_C/f_N
+     f_N = f_N + (sumN_S - sumN_S_before);
      f_BD_N = f_BD_N + (sumN_MN - sumN_MN_before);
      B_N = B_N + (sumN_B - sumN_B_before);
 

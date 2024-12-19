@@ -1,5 +1,5 @@
-function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector, C_EXTVector] = ...
-calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector)
+function  [ N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector,CO2Vector_over, C_EXTVector] = ...
+calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector,CO2Vector_over)
 
     previousConcentration_C =sum(C_MNVector+ C_SVector + C_BVector + CO2Vector);
     previousConcentration_N =sum(N_MNVector+ N_SVector + N_BVector);
@@ -39,7 +39,7 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
     N_SVector_old = N_SVector;
     C_EXTVector =  zeros(g.numT, 1);
     bact_idx = find(C_BVector >= parameters.minConC_B);
-
+    
     %check ob bact_idx ist nachbar mit solid, Dann wird EPS produziert
 
     for i = 1:numel(bact_idx)
@@ -55,13 +55,13 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
         %if(C_SVector(bact_i)< 0)
             % C_SVector(bact_i)
        % end
-        y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i), CO2Vector(bact_i)]';
+        y0 = [C_SVector(bact_i), C_BVector(bact_i), N_SVector(bact_i), N_BVector(bact_i), C_MNVector(bact_i), N_MNVector(bact_i), CO2Vector(bact_i), CO2Vector_over(bact_i)]';
         if(any(y0 < 0))
             fprintf("y0 < 0")
         end
         %options = odeset(RelTol=1e-8,AbsTol=1e-10);
         options = odeset(RelTol=1e-8,AbsTol=1e-9);
-        opts = odeset( options, 'NonNegative',1:7) ;
+        opts = odeset( options, 'NonNegative',1:8) ;
         [t,y] = ode45(@(t,Y) MMKfunction(t,Y,parameters), tspan, y0, opts);%ode89
         
         %y_2_4 = [y(:,2),y(:,4)];
@@ -89,6 +89,9 @@ calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector,C_MNVe
         
         CO2 = y(end,7);
         CO2Vector(bact_i) = CO2;
+
+        CO2_over = y(end,8);
+        CO2Vector_over(bact_i) = CO2_over;
 
     end
 
@@ -138,6 +141,7 @@ function dYdt = MMKfunction(t,Y, parameters)
     C_MN = Y(5);
     N_MN = Y(6);
     CO2 = Y(7);
+    CO2_over = Y(8);
     %t
     %C_S
 %     if(C_S < 0 )
@@ -156,6 +160,7 @@ function dYdt = MMKfunction(t,Y, parameters)
         C_MN_dt = 0;
         N_MN_dt = 0;
         CO2_dt = 0;
+        CO2_over_dt =0;
 
         dYdt = [C_S_dt;
              C_B_dt;
@@ -163,7 +168,8 @@ function dYdt = MMKfunction(t,Y, parameters)
              N_B_dt;
              C_MN_dt;
              N_MN_dt;
-             CO2_dt];
+             CO2_dt;
+             CO2_over_dt];
         return
    end
 
@@ -256,7 +262,7 @@ function dYdt = MMKfunction(t,Y, parameters)
 
 
     CO2_dt = R_GE+ R_M + R_O;
-   
+    CO2_over_dt = R_O;
     equalC = C_S_dt + C_B_dt + C_MN_dt + CO2_dt;
     if(abs(equalC)> 10^-10)
     error( "ERROR C_N_B N balance equal %f \n", equalC);
@@ -276,6 +282,7 @@ function dYdt = MMKfunction(t,Y, parameters)
         C_MN_dt = 0;
         N_MN_dt = 0;
         CO2_dt = 0;
+        CO2_over_dt = 0;
    end
 
     dYdt = [C_S_dt;
@@ -284,6 +291,7 @@ function dYdt = MMKfunction(t,Y, parameters)
              N_B_dt;
              C_MN_dt;
              N_MN_dt;
-             CO2_dt];
+             CO2_dt;
+             CO2_over_dt];
          
 end

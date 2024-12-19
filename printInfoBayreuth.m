@@ -1,5 +1,5 @@
 function printInfoBayreuth(k, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector, leakedNVector,...
-    CUE, f_C,f_BD_C,B_C,R, f_N,f_BD_N,B_N, sumleakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N ,POMageVector,soil_particle_NNZ, folder_output)
+    CUE, f_C,f_BD_C,B_C,R,R_O, f_N,f_BD_N,B_N, sumleakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N ,POMageVector,soil_particle_NNZ, folder_output)
 
 if k == 0
    flag = 'w';
@@ -158,6 +158,11 @@ fclose(fileID_k);
 fileName    =  folder_output + '/R.txt';
 fileID_k = fopen(fileName,flag);
 fprintf(fileID_k, '%d %e \n', k, R);
+fclose(fileID_k);
+
+fileName    =  folder_output + '/R_O.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, R_O);
 fclose(fileID_k);
 
 fileName    =  folder_output + '/f_B_C.txt';
