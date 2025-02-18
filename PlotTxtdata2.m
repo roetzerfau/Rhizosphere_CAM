@@ -6,7 +6,7 @@ end
 if nargin < 1
     file = "noMove_longterm";
 end
-imageFolder = "bilder/CN/17_12/";
+imageFolder = "bilder/CN/paperReady/";
 appendix = file%"noMove_longterm_noreactiveEdgesforDecay" %"noMove_longterm" %mucilageC_after100stepsCN01
 outputfolder = imageFolder + appendix +"/";
 if ~exist(outputfolder, 'dir')  % Check if the folder exists
@@ -21,7 +21,8 @@ porosity = 0.45;
 soil_particleNNZ = 250 * 250 * (1-porosity);
 soilParticleDensity = 2.65;
 isNNZ = false;
-
+startValue = 5;
+soilfactor = ( soil_particleNNZ * soilParticleDensity/1000 );
 root = "/home.local/roetzer/C_N/txtdata_" + appendix +"/"
 titel = description;
 percentage_plot = 50;%;%25;
@@ -43,101 +44,116 @@ ylim_N = [10^-8 10^0 ];
 fileID = fopen(root + 'C_BVector.txt','r');
 formatSpec = '%f %f';
 C_B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_B = C_B(:,2)/nof_cells;
-x_C_B = C_B(:,1);
+y_C_B = C_B(startValue:end,2)/nof_cells;
+x_C_B = C_B(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen(root + 'N_BVectorNNZ.txt','r');
 formatSpec = '%f %f';
 C_B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_BNNZ = C_B(:,2);
-x_C_BNNZ = C_B(:,1);
+y_C_BNNZ = C_B(startValue:end,2);
+x_C_BNNZ = C_B(startValue:end,1);
 end
 
 fileID = fopen(root + 'C_SVector.txt','r');
 formatSpec = '%f %f';
 C_S = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_S = C_S(:,2)/nof_cells;
-x_C_S = C_S(:,1);
+y_C_S = C_S(startValue:end,2)/nof_cells;
+x_C_S = C_S(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen(root + 'C_SVectorNNZ.txt','r');
 formatSpec = '%f %f';
 C_S = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_SNNZ = C_S(:,2);
-x_C_SNNZ = C_S(:,1);
+y_C_SNNZ = C_S(startValue:end,2);
+x_C_SNNZ = C_S(startValue:end,1);
 end
 
 fileID = fopen( root + 'C_MNVector.txt','r');
 formatSpec = '%f %f';
 C_MN = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN = C_MN(:,2)/nof_cells;
-x_C_MN = C_MN(:,1);
+y_C_MN = C_MN(startValue:end,2)/nof_cells;
+x_C_MN = C_MN(startValue:end,1);
 
 
 if(isNNZ)
 fileID = fopen( root + 'C_MNVectorNNZ.txt','r');
 formatSpec = '%f %f';
 C_MN = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MNNNZ = C_MN(:,2);
-x_C_MNNNZ = C_MN(:,1);
+y_C_MNNNZ = C_MN(startValue:end,2);
+x_C_MNNNZ = C_MN(startValue:end,1);
 end
 
 fileID = fopen( root + 'C_MNVector_old.txt','r');
 formatSpec = '%f %f';
 C_MN_old = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN_old = C_MN_old(:,2)/nof_cells;
-x_C_MN_old = C_MN_old(:,1);
+y_C_MN_old = C_MN_old(startValue:end,2)/nof_cells;
+x_C_MN_old = C_MN_old(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'C_MNVector_oldNNZ.txt','r');
 formatSpec = '%f %f';
 C_MN_old = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN_oldNNZ = C_MN_old(:,2);
-x_C_MN_oldNNZ = C_MN_old(:,1);
+y_C_MN_oldNNZ = C_MN_old(startValue:end,2);
+x_C_MN_oldNNZ = C_MN_old(startValue:end,1);
 end
 
 fileID = fopen( root + 'C_MNVector_new.txt','r');
 formatSpec = '%f %f';
 C_MN_new = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN_new = C_MN_new(:,2)/nof_cells;
-x_C_MN_new = C_MN_new(:,1);
+y_C_MN_new = C_MN_new(startValue:end,2)/nof_cells;
+x_C_MN_new = C_MN_new(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'C_MNVector_newNNZ.txt','r');
 formatSpec = '%f %f';
 C_MN_new = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN_newNNZ = C_MN_new(:,2);
-x_C_MN_newNNZ = C_MN_new(:,1);
+y_C_MN_newNNZ = C_MN_new(startValue:end,2);
+x_C_MN_newNNZ = C_MN_new(startValue:end,1);
 end
 
 fileID = fopen( root + 'C_POMconcVector.txt','r');
 formatSpec = '%f %f';
 C_POM = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_POM = C_POM(:,2)/nof_cells;
-x_C_POM = C_POM(:,1);
+y_C_POM = C_POM(startValue:end,2)/nof_cells;
+x_C_POM = C_POM(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'C_POMconcVectorNNZ.txt','r');
 formatSpec = '%f %f';
 C_POM = fscanf(fileID,formatSpec, [2 last_value])';
-y_C_POMNNZ = C_POM(:,2);
-x_C_POMNNZ = C_POM(:,1);
+y_C_POMNNZ = C_POM(startValue:end,2);
+x_C_POMNNZ = C_POM(startValue:end,1);
 end
 
 fileID = fopen( root + 'CO2Vector.txt','r');
 formatSpec = '%f %f';
 CO2 = fscanf(fileID,formatSpec,  [2 last_value])';
-y_CO2 = CO2(:,2)/nof_cells;
-x_CO2 = CO2(:,1);
+y_CO2 = CO2(startValue:end,2)/nof_cells;
+x_CO2 = CO2(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'CO2VectorNNZ.txt','r');
 formatSpec = '%f %f';
 CO2 = fscanf(fileID,formatSpec,  [2 last_value])';
-y_CO2NNZ = CO2(:,2);
-x_CO2NNZ = CO2(:,1);
+y_CO2NNZ = CO2(startValue:end,2);
+x_CO2NNZ = CO2(startValue:end,1);
 end
+
+fileID = fopen( root + 'CO2Vector_over.txt','r');
+formatSpec = '%f %f';
+CO2_over = fscanf(fileID,formatSpec,  [2 last_value])';
+y_CO2_over = CO2_over(startValue:end,2)/nof_cells;
+x_CO2_over = CO2_over(startValue:end,1);
+
+if(isNNZ)
+fileID = fopen( root + 'CO2Vector_overNNZ.txt','r');
+formatSpec = '%f %f';
+CO2_over = fscanf(fileID,formatSpec,  [2 last_value])';
+y_CO2_overNNZ = CO2_over(startValue:end,2);
+x_CO2_overNNZ = CO2_over(startValue:end,1);
+end
+
 
 x = x_C_MN;
 y_C = [];
@@ -147,7 +163,7 @@ for i = 1:numel(y_C_MN)
    y_C_add = [y_C_B(i), y_C_MN_old(i),y_C_MN_new(i),y_C_POM(i),  y_C_S(i),y_CO2(i)];
    %y_C_add = [y_C_B(i)/y_C_BNNZ(i), y_C_S(i)/y_C_SNNZ(i),y_C_MN_old(i)/y_C_MN_oldNNZ(i),y_C_MN_new(i)/y_C_MN_newNNZ(i), y_C_POM(i)/y_C_POMNNZ(i), y_CO2(i)/y_CO2NNZ(i)];
    sum_C = y_C_B(i)+ y_C_MN_old(i)+y_C_MN_new(i)+y_C_POM(i)+  y_C_S(i);
-   y_C_add = y_C_add./( soil_particleNNZ * soilParticleDensity/1000 );% / soilParticleDensity;
+   y_C_add = y_C_add./soilfactor;% / soilParticleDensity;
    y_C = [y_C; y_C_add];
    y_C_sum = [y_C_sum; sum_C];
 
@@ -169,107 +185,102 @@ CO2_hour_avag = mean(CO2_days);
 fileID = fopen(root + 'N_BVector.txt','r');
 formatSpec = '%f %f';
 N_B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_B = N_B(:,2)/nof_cells;
-x_N_B = N_B(:,1);
+y_N_B = N_B(startValue:end,2)/nof_cells;
+x_N_B = N_B(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen(root + 'N_BVectorNNZ.txt','r');
 formatSpec = '%f %f';
 N_B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_BNNZ = N_B(:,2);
-x_N_BNNZ = N_B(:,1);
+y_N_BNNZ = N_B(startValue:end,2);
+x_N_BNNZ = N_B(startValue:end,1);
 end
 
 fileID = fopen(root + 'N_SVector.txt','r');%NNZ
 formatSpec = '%f %f';
 N_S = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_S = N_S(:,2)/nof_cells;
-x_N_S = N_S(:,1);
+y_N_S = N_S(startValue:end,2)/nof_cells;
+x_N_S = N_S(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen(root + 'N_SVectorNNZ.txt','r');
 formatSpec = '%f %f';
 N_S = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_SNNZ = N_S(:,2);
-x_N_SNNZ = N_S(:,1);
+y_N_SNNZ = N_S(startValue:end,2);
+x_N_SNNZ = N_S(startValue:end,1);
 end
 
 fileID = fopen( root + 'N_MNVector.txt','r');
 formatSpec = '%f %f';
 N_MN = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN = N_MN(:,2)/nof_cells;
-x_N_MN = N_MN(:,1);
+y_N_MN = N_MN(startValue:end,2)/nof_cells;
+x_N_MN = N_MN(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'N_MNVectorNNZ.txt','r');
 formatSpec = '%f %f';
 N_MNNNZ = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MNNNZ = N_MNNNZ(:,2);
-x_N_MNNNZ = N_MNNNZ(:,1);
+y_N_MNNNZ = N_MNNNZ(startValue:end,2);
+x_N_MNNNZ = N_MNNNZ(startValue:end,1);
 end
 
 fileID = fopen( root + 'N_MNVector_old.txt','r');
 formatSpec = '%f %f';
 N_MN_old = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN_old = N_MN_old(:,2)/nof_cells;
-x_N_MN_old = N_MN_old(:,1);
+y_N_MN_old = N_MN_old(startValue:end,2)/nof_cells;
+x_N_MN_old = N_MN_old(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'N_MNVector_oldNNZ.txt','r');
 formatSpec = '%f %f';
 N_MN_old = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN_oldNNZ = N_MN_old(:,2);
-x_N_MN_oldNNZ = N_MN_old(:,1);
+y_N_MN_oldNNZ = N_MN_old(startValue:end,2);
+x_N_MN_oldNNZ = N_MN_old(startValue:end,1);
 end
 
 fileID = fopen( root + 'N_MNVector_new.txt','r');
 formatSpec = '%f %f';
 N_MN_new = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN_new = N_MN_new(:,2)/nof_cells;
-x_N_MN_new = N_MN_new(:,1);
+y_N_MN_new = N_MN_new(startValue:end,2)/nof_cells;
+x_N_MN_new = N_MN_new(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'N_MNVector_newNNZ.txt','r');
 formatSpec = '%f %f';
 N_MN_new = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN_newNNZ = N_MN_new(:,2);
-x_N_MN_newNNZ = N_MN_new(:,1);
+y_N_MN_newNNZ = N_MN_new(startValue:end,2);
+x_N_MN_newNNZ = N_MN_new(startValue:end,1);
 end
 
 fileID = fopen( root + 'N_POMconcVector.txt','r');
 formatSpec = '%f %f';
 N_POM = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_POM = N_POM(:,2)/nof_cells;
-x_N_POM = N_POM(:,1);
+y_N_POM = N_POM(startValue:end,2)/nof_cells;
+x_N_POM = N_POM(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'N_POMconcVectorNNZ.txt','r');
 formatSpec = '%f %f';
 N_POM = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_POMNNZ = N_POM(:,2);
-x_N_POMNNZ = N_POM(:,1);
+y_N_POMNNZ = N_POM(startValue:end,2);
+x_N_POMNNZ = N_POM(startValue:end,1);
 end
 
 
 fileID = fopen( root + 'leakedNVector.txt','r');
 formatSpec = '%f %f';
 leakedN = fscanf(fileID,formatSpec,  [2 Inf])';
-y_sumleakedC_N = leakedN(:,2)/nof_cells;
-x_leakedN = leakedN(:,1);
+y_sumleakedC_N = leakedN(startValue:end,2)/nof_cells;
+x_leakedN = leakedN(startValue:end,1);
 
 if(isNNZ)
 fileID = fopen( root + 'leakedNVectorNNZ.txt','r');
 formatSpec = '%f %f';
-leakedNNNZ = fscanf(fileID,formatSpec,  [2 Inf])';
-y_leakedNNNZ = leakedNNNZ(:,2);
-x_leakedNNNZ = leakedNNNZ(:,1);
+leakedNNNZ = fscanf(fileID,formatSpec,  [2 last_value])';
+y_leakedNNNZ = leakedNNNZ(startValue:end,2);
+x_leakedNNNZ = leakedNNNZ(startValue:end,1);
 end
 
-% fileID = fopen( root + 'sumleakedN_S.txt','r');
-% formatSpec = '%f %f';
-% sumleakedC_N = fscanf(fileID,formatSpec,  [2 last_value])';
-% y_sumleakedC_N = sumleakedC_N(:,2)/nof_cells;
-% x_sumleakedC_N = sumleakedC_N(:,1);
 
 x = x_N_MN;
 y_N = [];
@@ -278,7 +289,7 @@ for i = 1:numel(y_N_MN)
    y_N_add = [y_N_B(i), y_N_MN_old(i),y_N_MN_new(i), y_N_POM(i),y_N_S(i),  y_sumleakedC_N(i)];
    %y_N_add = [y_N_B(i)/y_N_BNNZ(i), y_N_MN_old(i)/y_N_MN_oldNNZ(i),y_N_MN_new(i)/y_N_MN_newNNZ(i), y_N_POM(i)/y_N_POMNNZ(i),y_N_S(i)/y_N_SNNZ(i),  y_leakedN(i)/y_leakedNNNZ(i)];
    %sum_N = y_N_B(i) + y_N_S(i) + y_N_MN(i) + y_N_POM(i) + y_sumleakedC_N(i);
-   y_N_add = y_N_add./( soil_particleNNZ * soilParticleDensity/1000 );%/ soilParticleDensity;
+   y_N_add = y_N_add./soilfactor;%/ soilParticleDensity;
    y_N = [y_N; y_N_add];
 end
 
@@ -363,17 +374,17 @@ saveas(figure2, fullfile(outputfolder, "N_dist_" + appendix + ".png"));
 figure5 = figure('visible', isVisible) 
 names = {'biomass', 'Necromass old','Necromass new', 'POM', 'dissolved substrate', 'leaked N'};
 linewidth = 4;
-plot(x,y_N_B,'LineWidth', linewidth)
+plot(x,y_N_B./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_N_MN_old,'LineWidth', linewidth)
+plot(x,y_N_MN_old./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_N_MN_new,'LineWidth', linewidth)
+plot(x,y_N_MN_new./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_N_POM,'LineWidth', linewidth)
+plot(x,y_N_POM./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_N_S,'LineWidth', linewidth)
+plot(x,y_N_S./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_sumleakedC_N,'LineWidth', linewidth)
+plot(x,y_sumleakedC_N./soilfactor,'LineWidth', linewidth)
 legend(names, 'FontSize', 14, 'Location','southeast')
 xlabel('days', 'FontSize', 14)
 %ylabel('amount nitrogen g cm^{-3} (log scale)', 'FontSize', 14)
@@ -412,18 +423,21 @@ linewidth = 4;
 % y_CO2(y_CO2 <threshold)= NaN;
 
 
-plot(x,y_C_B,'LineWidth', linewidth)
+plot(x,y_C_B./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_MN_old,'LineWidth', linewidth)
+plot(x,y_C_MN_old./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_MN_new,'LineWidth', linewidth)
+plot(x,y_C_MN_new./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_POM,'LineWidth', linewidth)
+plot(x,y_C_POM./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_S,'LineWidth', linewidth)
+plot(x,y_C_S./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_CO2,'LineWidth', linewidth)
+plot(x,y_CO2./soilfactor,'LineWidth', linewidth)
+%hold on
+%plot(x,y_CO2_over,'LineWidth', linewidth)
 
+%names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate','CO2', 'CO2_over'};
 names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate','CO2'};
 legend(names, 'FontSize', 14, 'Location','southeast')
 xlabel('days', 'FontSize', 14)
@@ -449,102 +463,108 @@ end
 fileID = fopen( root + 'CUE.txt','r');
 formatSpec = '%f %f';
 CUE = fscanf(fileID,formatSpec,  [2 last_value])';
-y_CUE = CUE(:,2);
-x_CUE = CUE(:,1);
+y_CUE = CUE(startValue:end,2);
+x_CUE = CUE(startValue:end,1);
 
 
 fileID = fopen( root + 'f_B_C.txt','r');
 formatSpec = '%f %f';
 f_B_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_B_C = f_B_C(:,2);
-x_f_B_C = f_B_C(:,1);
+y_f_B_C = f_B_C(startValue:end,2);
+x_f_B_C = f_B_C(startValue:end,1);
 
 fileID = fopen( root + 'f_B_N.txt','r');
 formatSpec = '%f %f';
 f_B_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_B_N = f_B_N(:,2);
-x_f_B_N = f_B_N(:,1);
+y_f_B_N = f_B_N(startValue:end,2);
+x_f_B_N = f_B_N(startValue:end,1);
 
 fileID = fopen( root + 'R.txt','r');
 formatSpec = '%f %f';
 R = fscanf(fileID,formatSpec,  [2 last_value])';
-y_R = R(:,2);
-x_R = R(:,1);
+y_R = R(startValue:end,2);
+x_R = R(startValue:end,1);
 
 fileID = fopen( root + 'R_O.txt','r');
 formatSpec = '%f %f';
 R_O = fscanf(fileID,formatSpec,  [2 last_value])';
-y_R_O = R_O(:,2);
-x_R_O = R_O(:,1);
+y_R_O = R_O(startValue:end,2);
+x_R_O = R_O(startValue:end,1);
 
 fileID = fopen( root + 'f_BD_C.txt','r');
 formatSpec = '%f %f';
 f_BD_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_BD_C = f_BD_C(:,2);
-x_f_BD_C = f_BD_C(:,1);
+y_f_BD_C = f_BD_C(startValue:end,2);
+x_f_BD_C = f_BD_C(startValue:end,1);
 
 fileID = fopen( root + 'f_BD_N.txt','r');
 formatSpec = '%f %f';
 f_BD_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_BD_N = f_BD_N(:,2);
-x_f_BD_N = f_BD_N(:,1);
+y_f_BD_N = f_BD_N(startValue:end,2);
+x_f_BD_N = f_BD_N(startValue:end,1);
 
 
 fileID = fopen( root + 'f_C.txt','r');
 formatSpec = '%f %f';
 f_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_C = f_C(:,2);
-x_f_C = f_C(:,1);
+y_f_C = f_C(startValue:end,2);
+x_f_C = f_C(startValue:end,1);
 
 fileID = fopen( root + 'f_N.txt','r');
 formatSpec = '%f %f';
 f_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_N = f_N(:,2);
-x_f_N = f_N(:,1);
+y_f_N = f_N(startValue:end,2);
+x_f_N = f_N(startValue:end,1);
 
 
 
 fileID = fopen( root + 'f_MN_C.txt','r');
 formatSpec = '%f %f';
 f_MN_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_MN_C = f_MN_C(:,2);
-x_f_MN_C = f_MN_C(:,1);
+y_f_MN_C = f_MN_C(startValue:end,2);
+x_f_MN_C = f_MN_C(startValue:end,1);
 
 fileID = fopen( root + 'f_MN_N.txt','r');
 formatSpec = '%f %f';
 f_MN_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_MN_N = f_MN_N(:,2);
-x_f_MN_N = f_MN_N(:,1);
+y_f_MN_N = f_MN_N(startValue:end,2);
+x_f_MN_N = f_MN_N(startValue:end,1);
 
 
 
 fileID = fopen( root + 'f_POM_C.txt','r');
 formatSpec = '%f %f';
 f_POM_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_POM_C = f_POM_C(:,2);
-x_f_POM_C = f_POM_C(:,1);
+y_f_POM_C = f_POM_C(startValue:end,2);
+x_f_POM_C = f_POM_C(startValue:end,1);
 
 fileID = fopen( root + 'f_POM_N.txt','r');
 formatSpec = '%f %f';
 f_POM_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_POM_N = f_POM_N(:,2);
-x_f_POM_N = f_POM_N(:,1);
+y_f_POM_N = f_POM_N(startValue:end,2);
+x_f_POM_N = f_POM_N(startValue:end,1);
 
+fileID = fopen( root + 'sumleakedN_S.txt','r');
+formatSpec = '%f %f';
+R_leaked = fscanf(fileID,formatSpec,  [2 last_value])';
+y_R_leaked = R_leaked(startValue:end,2)/nof_cells;
+x_R_leaked = R_leaked(startValue:end,1);
 
 
 
 figure8 = figure('visible', isVisible) 
 %plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
-CUE_A = 1 - y_R./y_f_C;
+CUE_A = 1 - y_R./abs(y_f_C);
 plot(x_CUE,CUE_A,'LineWidth', linewidth)
-hold on 
-CUE_B = 1 - (y_R+ y_f_BD_C)./y_f_C;
-plot(x_CUE,CUE_B,'LineWidth', linewidth)
+%hold on 
+CUE_B = 1 - (y_R+ y_f_BD_C)./abs(y_f_C);
+%plot(x_CUE,CUE_B,'LineWidth', linewidth)
 xlabel('days', 'FontSize', 14)
 ylabel('Carbon Use Efficiency Microbes', 'FontSize', 14)
-set(gca,'ylim', [-2 1]);
-legend(["CUE_A", "CUE_B"])
+%set(gca,'ylim', [-2 1]);
+%set(gca,'xlim', [0 numel(x_CUE)]);
+%legend(["CUE_A", "CUE_B"], 'Interpreter', 'none')
 set(gca, 'FontSize', 14)
 title(titel, 'Interpreter', 'none')
 set(figure8, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
@@ -553,55 +573,151 @@ saveas(figure8, fullfile(outputfolder, "CUE_" + appendix + ".png"));
 
 
 
-
+if false
 
 figure9 = figure('visible', isVisible) 
 %plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
 xlabel('days', 'FontSize', 14)
-plot(x_CUE,y_R,'LineWidth', linewidth)
+plot(x_CUE,y_R./soilfactor,'LineWidth', linewidth)
+%hold on 
+%plot(x_CUE,y_R_O./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_R_O,'LineWidth', linewidth)
+plot(x_CUE,y_f_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_C,'LineWidth', linewidth)
+plot(x_CUE,y_f_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_N,'LineWidth', linewidth)
+plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_BD_C,'LineWidth', linewidth)
+plot(x_CUE,y_f_BD_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_BD_N,'LineWidth', linewidth)
+plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_MN_C,'LineWidth', linewidth)
+plot(x_CUE,y_f_MN_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_MN_N,'LineWidth', linewidth)
+plot(x_CUE,y_f_POM_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_POM_C,'LineWidth', linewidth)
-hold on 
-plot(x_CUE,y_f_POM_N,'LineWidth', linewidth)
+plot(x_CUE,y_f_POM_N./soilfactor,'LineWidth', linewidth)
 
 ylabel('g cm 3 ', 'FontSize', 14)
 
 
 
 %set(gca,'ylim', [-2 1]);
-legend(["R","R_O", "f_C", "f_N", "f_BD_C", "f_BD_C", "f_MN_C", "f_MN_N", "f_POM_C", "f_POM_N", "C_N"])
+legend(["R", "f_C", "f_N", "f_BD_C", "f_BD_N", "f_MN_C", "f_MN_N", "f_POM_C", "f_POM_N"], 'Interpreter', 'none')
 set(gca, 'FontSize', 14)
 title(titel, 'Interpreter', 'none')
 set(figure9, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure9, fullfile(outputfolder, "fluxes_" + appendix + ".png"));
 
+end
 
 
-figure10= figure('visible', isVisible) 
-C_N = y_f_B_C;
-plot(x_CUE,C_N,'LineWidth', linewidth)
+
+
+figure10 = figure('visible', isVisible) 
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
+%hold on 
 xlabel('days', 'FontSize', 14)
-ylabel('C_N ', 'FontSize', 14)
-legend(["C_N"])
+plot(x_CUE,y_R./soilfactor,'LineWidth', linewidth)
+hold on 
+y_R_O_abs =  y_R_O;
+y_R_O_abs(y_R_O_abs > 0) = 0;
+y_R_O_abs = abs(y_R_O_abs);
+plot(x_CUE,y_R_O./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_C./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_POM_C./soilfactor,'LineWidth', linewidth)
+%hold on 
+%plot(x_CUE,y_f_B_C./soilfactor,'LineWidth', linewidth)
+ylabel('amount carbon mg C g soil^{-1} per day ', 'FontSize', 14)
+
+%set(gca,'ylim', [-2 1]);
+legend(["R","R_O","f_C","f_BD_C", "f_MN_C", "f_POM_C"], 'Interpreter', 'none') % , "f_B_growth"
 set(gca, 'FontSize', 14)
 title(titel, 'Interpreter', 'none')
 set(figure10, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
-saveas(figure10, fullfile(outputfolder, "growth_" + appendix + ".png"));
+saveas(figure10, fullfile(outputfolder, "fluxesC_" + appendix + ".png"));
+
+
+
+
+
+
+
+figure11 = figure('visible', isVisible) 
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
+%hold on 
+xlabel('days', 'FontSize', 14)
+plot(x_CUE,y_R_leaked./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_N./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_BD_N./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_MN_N./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_POM_N./soilfactor,'LineWidth', linewidth)
+
+ylabel('amount nitrogen mg N g soil^{-1} per day', 'FontSize', 14)
+
+%set(gca,'ylim', [-2 1]);
+legend(["R_leaked", "f_N", "f_BD_N", "f_MN_N", "f_POM_N"], 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
+set(figure11, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+saveas(figure11, fullfile(outputfolder, "fluxesN_" + appendix + ".png"));
+
+
+
+
+
+figure12= figure('visible', isVisible) 
+growth = y_f_B_C - y_f_C + y_f_BD_C + y_R;
+phi = y_f_C./(y_C_S./y_N_S) - y_f_N;
+C_N_uptake =  y_f_C./y_f_N
+growth_N = -y_f_B_N + y_f_C/10 - y_f_BD_N;
+plot(x_CUE,phi,'LineWidth', linewidth)
+xlabel('days', 'FontSize', 14)
+ylabel('growth y_f_B_C ', 'FontSize', 14)
+%legend(["C_N"], 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
+set(figure12, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+saveas(figure12, fullfile(outputfolder, "growth_" + appendix + ".png"));
+
+figure13= figure('visible', isVisible) 
+C_N = y_C_S./y_N_S;
+plot(x_CUE,C_N,'LineWidth', linewidth)
+xlabel('days', 'FontSize', 14)
+ylabel('C_N ', 'FontSize', 14)
+legend(["C_N"], 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
+set(figure13, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+saveas(figure13, fullfile(outputfolder, "C_N_" + appendix + ".png"));
+
+
+
+
+figure14 = figure('visible', isVisible) 
+xlabel('days', 'FontSize', 14)
+plot(x_CUE,y_R_O,'LineWidth', linewidth)
+%plot(x_CUE,y_R_O./soilfactor,'LineWidth', linewidth)
+ylabel('amount nitrogen mg N g soil^{-1} per day ', 'FontSize', 14)
+
+%set(gca,'ylim', [-2 1]);
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
+set(figure14, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+saveas(figure14, fullfile(outputfolder, "phi_" + appendix + ".png"));
+
+
 
 close all
 

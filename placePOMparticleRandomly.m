@@ -1,5 +1,5 @@
  function [bulkVector, bulkTypeVector, POMVector, POMconcVector, POMageVector, POMParticleList, totalPOMinputConc] = ...
-     placePOMparticleRandomly(g, bulkVector, bulkTypeVector, POMVector, POMconcVector, POMageVector, POMParticleList, ...
+     placePOMparticleRandomly(g, parameters, bulkVector, bulkTypeVector, POMVector, POMconcVector, POMageVector, POMParticleList, ...
      randomPOMparticles, randomPOMparticlesSizes, totalPOMinputConc)
     
     distFromSolidThreshold = 0;
@@ -48,7 +48,7 @@
     bulkVector(globalIndNewPOMparticle) = 1;
     POMVector(globalIndNewPOMparticle) = 1;
     bulkTypeVector(globalIndNewPOMparticle) = -1;
-    POMconcVector(globalIndNewPOMparticle) = 1;
+    POMconcVector(globalIndNewPOMparticle) = parameters.startConcPOM;
     POMageVector(globalIndNewPOMparticle) = 1;
     POMParticleList{length(POMParticleList) + 1} = globalIndNewPOMparticle;
     totalPOMinputConc = totalPOMinputConc + length(globalIndNewPOMparticle);

@@ -9,7 +9,8 @@ exceedMaximium_ind = find(concentrationVector > (maxValueVector + minValueVector
         if(isOverlapped)
             overshoot_value = concentrationVector(overshoot_candidate);
         else
-            overshoot_value =  concentrationVector(overshoot_candidate)/2;% - maxValueVector(overshoot_candidate);
+            %overshoot_value =  concentrationVector(overshoot_candidate)/2;% - maxValueVector(overshoot_candidate);
+            overshoot_value =  concentrationVector(overshoot_candidate)- maxValueVector(overshoot_candidate);
         end
         
         %candidates = candidates(randperm(length(candidates)));

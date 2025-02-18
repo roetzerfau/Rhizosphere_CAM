@@ -20,7 +20,7 @@
             concOld = sum(C_POMconcVector(POMParticleList{i}));
             particleDecayRate = parameters.POMdecayRate;
             particleDecayRate = particleDecayRate* sum(numFluidNeighVector(POMParticleList{i})) / ...
-                (sum(numFluidNeighVector(POMParticleList{i})) + length(POMsolidEdgeList{i}));
+                (sum(numFluidNeighVector(POMParticleList{i})) + length( {i}));
             concNew = concOld * exp(- particleDecayRate * MBfactor* tau);
             concDiff = concOld - concNew;
             concDiff_part = concDiff * numFluidNeighVector(POMParticleList{i}) / sum(numFluidNeighVector(POMParticleList{i}));

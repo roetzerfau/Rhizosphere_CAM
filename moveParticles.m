@@ -170,10 +170,16 @@ if ~isempty( candidates )
         % if current position is the most&& maximo < 0 attractive
 %         if aim(1)==maximo
 		if mucilageMemorySurfAttrInd == 1 % TODO check
-		       maximo = 1; 
-               indMax = 1;
-               aim( : )= 0;
-               aim(1) = 1;
+                randNum = randi(100,1);
+                if randNum > 50
+                 aim(1) = -1;
+                  aim( aim >= 0 ) = 0;     
+                  [maximo , indMax] = max( aim( : ) );
+                end
+		       % maximo = 1; 
+               % indMax = 1;
+               % aim( : )= 0;
+               % aim(1) = 1;
         elseif solidPOMmemoryEdgeIndicator == 1
                randNum = randi(100,1);
                %randNum = 0;

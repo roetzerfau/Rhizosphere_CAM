@@ -11,7 +11,7 @@ function concentrationVector = easyDiffusiveStep(g, concentrationVector, restric
     % freeSpaceIdx = find(restrictVector == 0); 
     % concentrationVector(:) = 0;
     % concentrationVector(freeSpaceIdx) = sumConc / numel(freeSpaceIdx);     
-    % return 
+    %return 
     % range
     for i = 1:numel(Concentration_Phase_Occupied)
         diffusive_area = [];

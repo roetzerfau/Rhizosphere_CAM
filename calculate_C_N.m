@@ -1,6 +1,6 @@
-function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector, CO2Vector,leakedNVector, C_EXTVector_t, C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, CUE, ...
+    function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector, CO2Vector,CO2Vector_over, leakedNVector, C_EXTVector_t, C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, CUE, ...
     f_C,f_BD_C,B_C,R, R_O, f_N,f_BD_N,B_N, R_leaked, f_POM_C, f_POM_N, f_MN_C, f_MN_N ] = ...
-    calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector, leakedNVector,outerRootBorderInd, isMBfactor)
+    calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,CO2Vector_over, leakedNVector,outerRootBorderInd, isMBfactor)
     
     dayinseconds = 24 * 60 * 60;% 
     numberoftstps = dayinseconds/parameters.tau_ode;
@@ -48,7 +48,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     
     decaystep=tic;
     if(isMBfactor)
-        MBfactor= 1 + sum(C_BVector)/10;
+        MBfactor= 1 + sum(C_BVector)/6.3360;%6.3360 %10
     else 
         MBfactor= 1;
     end
@@ -82,8 +82,8 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     % fprintf('Time for Rootex_step: %d \n', toc(Rootex_step))
     % sumC_S_avai = sum(C_SVector)
     RootExudates = RootExudates + (sumC_S - sumC_S_before);
-    CO2Vector_over = CO2Vector;
-    CO2Vector_over(:) = 0;
+    %CO2Vector_over = CO2Vector;
+    %CO2Vector_over(:) = 0;
      C_Nstep = tic;
      C_EXTVector =0;
      sumC_B_before = sum(C_BVector);
@@ -96,7 +96,7 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
      sumN_S_before = sum(N_SVector);
      sumN_MN_before = sum(N_MNVector);
      %TODO nur EPS produzieren wenn solid dran ist
-  [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector, C_EXTVector,CO2Vector_over] = ...
+  [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector,CO2Vector_over, C_EXTVector] = ...
     calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector,CO2Vector_over);
      sumC_B = sum(C_BVector);
      sumC_S = sum(C_SVector);
@@ -108,27 +108,32 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
      sumN_S = sum(N_SVector);
      sumN_MN = sum(N_MNVector);
      
-     f_C = f_C + (sumC_S - sumC_S_before);
+     f_C = f_C - (sumC_S - sumC_S_before);
+     Psi = (sumCO2 - sumCO2_before);
+     if(Psi > 0)
+        %parameters.N_leakage = Psi/sumN_S;
+     end
      R = R + (sumCO2 - sumCO2_before);
      R_O = R_O + (sumCO2_over - sumCO2_over_before);
+     
      f_BD_C = f_BD_C + (sumC_MN - sumC_MN_before);
      B_C = B_C + (sumC_B - sumC_B_before);
 
-     f_N = f_N + (sumN_S - sumN_S_before);
+     f_N = f_N - (sumN_S - sumN_S_before);
      f_BD_N = f_BD_N + (sumN_MN - sumN_MN_before);
      B_N = B_N + (sumN_B - sumN_B_before);
 
      if(isnan(sumC_S))
          falsch = 1;
      end
-     
+
      CO2Add = CO2Add + abs(sumCO2_before - sumCO2);
      CUE = (f_C - CO2Add)/f_C
      
     % if(numel(find(C_SVector < 0)) > 0)
     %     error('Falsch C_S')
     % end
-    sumC_B_after = sum(C_BVector);
+    hallo = - R + f_C - f_BD_C - B_C;
     fprintf('Time for MB step: %d \n', toc(C_Nstep))
     C_EXTVector_t = C_EXTVector_t + C_EXTVector;
     
@@ -145,13 +150,14 @@ function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_M
     f_BD_C = f_BD_C + sum(C_BVector .* (C_BVector < parameters.minConC_B));
     f_BD_N = f_BD_N + sum(N_BVector .* (C_BVector < parameters.minConC_B));
 
-
+    %if( sum(C_BVector < parameters.minConC_B) > parameters.N_initialMicrobes)
     C_SVector = C_SVector + C_BVector .* (C_BVector < parameters.minConC_B); 
     C_BVector(C_BVector < parameters.minConC_B) = 0;
 
     N_SVector = N_SVector + N_BVector .* (C_BVector < parameters.minConC_B); 
     N_BVector(C_BVector < parameters.minConC_B) = 0;
-    
+   % end
+    %MB_Vector =  C_BVector > 0;
     MB_Vector =  C_BVector >= parameters.minConC_B;
     n_MB = sum(MB_Vector)
     %MN not part of MB -> POM

@@ -1,4 +1,4 @@
-function printInfoBayreuth(k, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector, leakedNVector,...
+function printInfoBayreuth(k, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, C_POMconcVector,N_POMconcVector,CO2Vector,CO2Vector_over, leakedNVector,...
     CUE, f_C,f_BD_C,B_C,R,R_O, f_N,f_BD_N,B_N, sumleakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N ,POMageVector,soil_particle_NNZ, folder_output)
 
 if k == 0
@@ -67,6 +67,15 @@ fprintf(fileID_k, '%d %e \n', k, sum(CO2Vector > 0));
 fclose(fileID_k);
 
 
+fileName    =  folder_output + '/CO2Vector_over.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, sum(CO2Vector_over));
+fclose(fileID_k);
+
+fileName    =  folder_output + '/CO2Vector_overNNZ.txt';
+fileID_k = fopen(fileName,flag);
+fprintf(fileID_k, '%d %e \n', k, sum(CO2Vector_over > 0));
+fclose(fileID_k);
 
 total_C = sum(C_BVector) + sum(C_SVector) + sum(C_POMconcVector) + sum(C_MNVector)+sum(CO2Vector);
 fileName    =  folder_output + '/total_C.txt';
