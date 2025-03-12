@@ -1,4 +1,4 @@
-function Main_Bayreuth3(isMove,C_N_root,name_, isMBFactor, MNfraction, POM, leak)
+function Main_Bayreuth3(isMove,C_N_root,timing,name_, isMBFactor, MNfraction, POM, leak)
 clc;
 diary('mydiary.txt')
 %% Compiling the C++ Components, necessary to determine the particle size distribution
@@ -12,6 +12,7 @@ attraction_type = 5; % 1: old volume charges, 2: no charges, 3: edge Charges, 4:
 % Input files
 inputMat = 'Input/BlankDomain_250.mat'; % contains initial state testMain250.mat   example_20.mat BlankDomain_20.mat  PaperConfigs/por05_34_500.mat  
 inputMat = 'Input/loam_bayreuth_45_005.mat'; %sehr feinteilig
+inputMat = 'Input/loam_bayreuth_411_005.mat';
 %inputMat = 'Input/loam_bayreuth_30_1.mat';
 %inputMat = 'Input/C_gradient_45.mat';
 %inputMat = 'Input/config.90.mat';
@@ -181,7 +182,7 @@ end
 %% Test End
 %% Test 2
 parameters.v_Cliquid = 1.6*10^-5;%1.2 * 10^-1;%-4
-parameters.K_Cliquid =  4.1237* 10^-4;%5 * 10^-4 * 1/1000;%* ;% ; TODO
+parameters.K_Cliquid =  3.9232* 10^-4;%5 * 10^-4 * 1/1000;%* ;% ; TODO
 parameters.Resp_E = 0.10;
 parameters.Resp_GE = 0.26;
 parameters.Resp_Maint = 0.3*10^-6;%2.31*10^-6;%0.008;
@@ -190,10 +191,10 @@ parameters.eta_PAR = 1;
 
 
 parameters.minConC_B = 0.0132/8; %0.00001;%%0.001;%;TODO!!!!!!!!!!!!!!!!!!!!!  0.0132   0.000132
-parameters.initConC_B = 0.3168;%0.0539
+parameters.initConC_B = 0.3168/5;%0.0539
 parameters.maxConcC_B = 0.3168;
 %parameters.initConC_B = parameters.maxConcC_B;
-parameters.mucilageC = 0.0360;%parameters.constantMucilageDeposition;%parameters.startConcPOM/100;/NZd
+parameters.mucilageC = 0.036;%3.6 * 10^-6;%;0.0360;%parameters.constantMucilageDeposition;%parameters.startConcPOM/100;/NZd
 
 parameters.N_leakage = 0.0001;%per timestep
 %parameters.N_leakage = 0.0042;
@@ -206,7 +207,7 @@ parameters.C_N_B = 10;%15
 parameters.C_N_NM = 10;
 parameters.C_N_POM = 100;
 parameters.C_N_Root = C_N_root;%TODO 100
-parameters.N_initialMicrobes = 45;%267/3;%45;
+parameters.N_initialMicrobes = 216;%267/3;%45;
 parameters.DOC = 10^-5;%-4  100 mg C/L 
 parameters.tau_ode = 3600; %12 * 60;
 C_SVector_normal = ones(g.numT, 1) .* ~bulkVector .* 10^-4;
@@ -238,7 +239,7 @@ for i = 1: numel(candidates)
     mystencil = stencil(g.NX,g.NX,candidates(i),1);
     istrue = sum(C_BVector > 0) < parameters.N_initialMicrobes && sum(bulkVector(mystencil)) == 2 &&  sum(C_BVector(mystencil)) == 0;
     if(istrue)
-        mystencil = mystencil(bulkVector(mystencil) == 0);
+        mystencil = mystencil(bulkVector(mystencil) == 0);%stencil5: 3 cellen biomasse und 2 cellen bulk 
         C_BVector(mystencil) = parameters.initConC_B;% ; * 3 
     end
 end
@@ -333,7 +334,7 @@ MNVector_all = C_MNVector_all > 0;
 %| C_N_S == inf
 MB_Vector_vis = MB_Vector > ((parameters.maxConcC_B - parameters.minConC_B)/2);
 MN_Vector_vis = (MB_Vector > 0 & MB_Vector <= (parameters.maxConcC_B - parameters.minConC_B)/2);
-%visualizeDataSub(g, bulkVector + POMVector + MNVector + MN_Vector_vis *3 + MB_Vector_vis *4 , 'cellType', 'solu',0, output_file_vtk);
+visualizeDataSub(g, bulkVector + POMVector + MNVector + MN_Vector_vis *3 + MB_Vector_vis *4 , 'cellType', 'solu',0, output_file_vtk);
 %visualizeDataSub(g, C_BVector, 'C_BVector', 'C_BVector', 0,output_file_vtk);
 %visualizeDataSub(g, C_MNVector, 'C_MNVector', 'C_MNVector', 0,output_file_vtk);
 %visualizeDataSub(g, C_SVector, 'C_SVector', 'C_SVector', 0,output_file_vtk);
@@ -751,7 +752,7 @@ end
 
 exudatesDays = [200:5:249];
 exudatesDays = [exudatesDays, 590:5:639]; 
-exudatesDays = [200];
+exudatesDays = timing;
 %exudatesDays = [1,2,3,4,5];
 if(ismember(k,exudatesDays))
         parameters.mucilageGrowing = 1;

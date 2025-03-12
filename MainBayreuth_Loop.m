@@ -37,8 +37,32 @@
 %Main_Bayreuth3(true,100, "move_mucilageCN100_PaperReady_2POM_leak_0_0001",true, 0.5, 2, 0.0001);
 %Main_Bayreuth3(true,100, "move_mucilageCN100_PaperReady_2POM_leak_0_0042",true, 0.5, 2, 0.0042);
 %Main_Bayreuth3(true,100, "move_mucilageCN100_PaperReady_2POM_leak_0_01",true, 0.5, 2, 0.01);
+exudatesDays = [200:5:249];
+%Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10_zuwenigexudate",true, 0.5, 10, 0.0001);
+%Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10",true, 0.5, 10, 0.0001);
+%Main_Bayreuth3(false,50,[200], "paperReady_test_19_02_POM10_movefalse",true, 0.5, 10, 0.0001);
+%Main_Bayreuth3(true,50,exudatesDays, "paperReady_test_19_02_POM10_exudationDays",true, 0.5, 10, 0.0001);
+Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10_duengen_0",true, 0.5, 10, -10^-5);
+% parfor i = 1:4
+% if(i == 1)
+% Main_Bayreuth3(true,10,[200], "paperReady_test_19_02_POM10_CN10",true, 0.5, 10, 0.0001);
+% end
+% if(i == 2)
+% Main_Bayreuth3(true,100,[200], "paperReady_test_19_02_POM10_CN100",true, 0.5, 10, 0.0001);
+% end
+% if(i == 3)
+% Main_Bayreuth3(true,10,exudatesDays, "paperReady_test_19_02_POM10_CN10_exudationDays",true, 0.5, 10, 0.0001);
+% end
+% if(i == 4)
+% Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10_leak_0",true, 0.5, 10, 0);
+% end
+% %if(i == 5)
+% %Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10_duengen_0",true, 0.5, 10, -10^-5);
+% %end
+% end
 
-Main_Bayreuth3(true,50, "paperReady_test",true, 0.5, 2, 0.0001);
+%Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10_leak_0_01",true, 0.5, 10, 0.01);
+%Main_Bayreuth3(true,50,[200], "paperReady_test_19_02_POM10_leak_0",true, 0.5, 10, 0);
 
 %Main_Bayreuth3(true,100, "move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_Vmax_11_02",true, 0.5, 2, 0.0001);
 

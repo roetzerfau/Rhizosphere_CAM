@@ -7,6 +7,22 @@
 
 %PlotTxtdata2("Nomove_mucilageCN100_PaperReady","Nomove_mucilageCN100_PaperReady")
 %PlotTxtdata2("Nomove_mucilageCN100_PaperReady_leak1percent","Nomove_mucilageCN100_PaperReady_leak1percent")
+
+%PlotTxtdata2("paperReady_test_19_02_POM10_CN10", "paperReady_test_19_02_POM10_CN10")
+PlotTxtdata2("paperReady_test_19_02_POM10_CN10_exudationDays", "paperReady_test_19_02_POM10_CN10_exudationDays")
+
+
+PlotTxtdata2("paperReady_test_19_02_POM10_leak_0_01","paperReady_test_19_02_POM10_leak_0_01")
+PlotTxtdata2("paperReady_test_19_02_POM10_leak_0","paperReady_test_19_02_POM10_leak_0")
+
+PlotTxtdata2("paperReady_test_19_02_POM10","paperReady_test_19_02_POM10")
+PlotTxtdata2("paperReady_test_19_02_POM10_movefalse","paperReady_test_19_02_POM10_movefalse")
+PlotTxtdata2("paperReady_test_19_02_POM10_exudationDays","paperReady_test_19_02_POM10_exudationDays")
+
+
+
+
+
 PlotTxtdata2("move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_Vmax_11_02","move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_Vmax_11_02")
 PlotTxtdata2("move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_10_02","move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_10_02")
 % PlotTxtdata2("move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_oldPOM_10_02","move_mucilageCN100_PaperReady_1puls_POM2_testValues_newbase_oldPOM_10_02")

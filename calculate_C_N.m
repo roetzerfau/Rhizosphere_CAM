@@ -193,9 +193,13 @@
     N_SVector = easyDiffusiveStep(g, N_SVector, bulkVector, MB_Vector, range);
     leakedN_S = sum(N_SVector .* parameters.N_leakage);
     R_leaked= R_leaked  + leakedN_S;
-
-    N_SVector = N_SVector .* (1-parameters.N_leakage);
-    leakedNVector = leakedNVector + N_SVector .* parameters.N_leakage;
+    
+    if(parameters.N_leakage >= 0)
+        N_SVector = N_SVector .* (1-parameters.N_leakage);
+        leakedNVector = leakedNVector + N_SVector .* parameters.N_leakage;
+    else
+        N_SVector = N_SVector +  abs(parameters.N_leakage);
+    end
     %N_SVector = C_SVector ./ parameters.C_N_S;
     fprintf('Time for diffstep: %d \n', toc(diffstep))
 

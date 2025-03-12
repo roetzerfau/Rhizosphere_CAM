@@ -15,19 +15,19 @@ if ~exist(outputfolder, 'dir')  % Check if the folder exists
 else
     disp(['Folder already exists at: ', outputfolder]);
 end
-%ANNZ / SNNZ    * (sum(C_A)/ANNZ)*  (C_SNNZ/sum(C_S)  
+%ANNZ / SNNZ    * (sum(C_A)/ANNZ)*  (C_SNNZ/sum(C_Solid)  
 %fläche anteil/ fläche soil   *  anteil densitiy/solid density 
-porosity = 0.45;
+porosity = 0.411;
 soil_particleNNZ = 250 * 250 * (1-porosity);
-soilParticleDensity = 2.65;
+soilParticleDensity = 2.36;
 isNNZ = false;
-startValue = 5;
+startValue = 1;
 soilfactor = ( soil_particleNNZ * soilParticleDensity/1000 );
 root = "/home.local/roetzer/C_N/txtdata_" + appendix +"/"
 titel = description;
 percentage_plot = 50;%;%25;
 isVisible = 'on';
-nof_cells = 1;
+average_factor = 1;
 if file.contains("2years")
     last_value = 2000;
 else
@@ -44,7 +44,7 @@ ylim_N = [10^-8 10^0 ];
 fileID = fopen(root + 'C_BVector.txt','r');
 formatSpec = '%f %f';
 C_B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_B = C_B(startValue:end,2)/nof_cells;
+y_C_B = C_B(startValue:end,2)/average_factor;
 x_C_B = C_B(startValue:end,1);
 
 if(isNNZ)
@@ -58,7 +58,7 @@ end
 fileID = fopen(root + 'C_SVector.txt','r');
 formatSpec = '%f %f';
 C_S = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_S = C_S(startValue:end,2)/nof_cells;
+y_C_S = C_S(startValue:end,2)/average_factor;
 x_C_S = C_S(startValue:end,1);
 
 if(isNNZ)
@@ -72,7 +72,7 @@ end
 fileID = fopen( root + 'C_MNVector.txt','r');
 formatSpec = '%f %f';
 C_MN = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN = C_MN(startValue:end,2)/nof_cells;
+y_C_MN = C_MN(startValue:end,2)/average_factor;
 x_C_MN = C_MN(startValue:end,1);
 
 
@@ -87,7 +87,7 @@ end
 fileID = fopen( root + 'C_MNVector_old.txt','r');
 formatSpec = '%f %f';
 C_MN_old = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN_old = C_MN_old(startValue:end,2)/nof_cells;
+y_C_MN_old = C_MN_old(startValue:end,2)/average_factor;
 x_C_MN_old = C_MN_old(startValue:end,1);
 
 if(isNNZ)
@@ -101,7 +101,7 @@ end
 fileID = fopen( root + 'C_MNVector_new.txt','r');
 formatSpec = '%f %f';
 C_MN_new = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_MN_new = C_MN_new(startValue:end,2)/nof_cells;
+y_C_MN_new = C_MN_new(startValue:end,2)/average_factor;
 x_C_MN_new = C_MN_new(startValue:end,1);
 
 if(isNNZ)
@@ -115,7 +115,7 @@ end
 fileID = fopen( root + 'C_POMconcVector.txt','r');
 formatSpec = '%f %f';
 C_POM = fscanf(fileID,formatSpec,  [2 last_value])';
-y_C_POM = C_POM(startValue:end,2)/nof_cells;
+y_C_POM = C_POM(startValue:end,2)/average_factor;
 x_C_POM = C_POM(startValue:end,1);
 
 if(isNNZ)
@@ -129,7 +129,7 @@ end
 fileID = fopen( root + 'CO2Vector.txt','r');
 formatSpec = '%f %f';
 CO2 = fscanf(fileID,formatSpec,  [2 last_value])';
-y_CO2 = CO2(startValue:end,2)/nof_cells;
+y_CO2 = CO2(startValue:end,2)/average_factor;
 x_CO2 = CO2(startValue:end,1);
 
 if(isNNZ)
@@ -143,7 +143,7 @@ end
 fileID = fopen( root + 'CO2Vector_over.txt','r');
 formatSpec = '%f %f';
 CO2_over = fscanf(fileID,formatSpec,  [2 last_value])';
-y_CO2_over = CO2_over(startValue:end,2)/nof_cells;
+y_CO2_over = CO2_over(startValue:end,2)/average_factor;
 x_CO2_over = CO2_over(startValue:end,1);
 
 if(isNNZ)
@@ -185,7 +185,7 @@ CO2_hour_avag = mean(CO2_days);
 fileID = fopen(root + 'N_BVector.txt','r');
 formatSpec = '%f %f';
 N_B = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_B = N_B(startValue:end,2)/nof_cells;
+y_N_B = N_B(startValue:end,2)/average_factor;
 x_N_B = N_B(startValue:end,1);
 
 if(isNNZ)
@@ -199,7 +199,7 @@ end
 fileID = fopen(root + 'N_SVector.txt','r');%NNZ
 formatSpec = '%f %f';
 N_S = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_S = N_S(startValue:end,2)/nof_cells;
+y_N_S = N_S(startValue:end,2)/average_factor;
 x_N_S = N_S(startValue:end,1);
 
 if(isNNZ)
@@ -213,7 +213,7 @@ end
 fileID = fopen( root + 'N_MNVector.txt','r');
 formatSpec = '%f %f';
 N_MN = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN = N_MN(startValue:end,2)/nof_cells;
+y_N_MN = N_MN(startValue:end,2)/average_factor;
 x_N_MN = N_MN(startValue:end,1);
 
 if(isNNZ)
@@ -227,7 +227,7 @@ end
 fileID = fopen( root + 'N_MNVector_old.txt','r');
 formatSpec = '%f %f';
 N_MN_old = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN_old = N_MN_old(startValue:end,2)/nof_cells;
+y_N_MN_old = N_MN_old(startValue:end,2)/average_factor;
 x_N_MN_old = N_MN_old(startValue:end,1);
 
 if(isNNZ)
@@ -241,7 +241,7 @@ end
 fileID = fopen( root + 'N_MNVector_new.txt','r');
 formatSpec = '%f %f';
 N_MN_new = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_MN_new = N_MN_new(startValue:end,2)/nof_cells;
+y_N_MN_new = N_MN_new(startValue:end,2)/average_factor;
 x_N_MN_new = N_MN_new(startValue:end,1);
 
 if(isNNZ)
@@ -255,7 +255,7 @@ end
 fileID = fopen( root + 'N_POMconcVector.txt','r');
 formatSpec = '%f %f';
 N_POM = fscanf(fileID,formatSpec,  [2 last_value])';
-y_N_POM = N_POM(startValue:end,2)/nof_cells;
+y_N_POM = N_POM(startValue:end,2)/average_factor;
 x_N_POM = N_POM(startValue:end,1);
 
 if(isNNZ)
@@ -270,7 +270,7 @@ end
 fileID = fopen( root + 'leakedNVector.txt','r');
 formatSpec = '%f %f';
 leakedN = fscanf(fileID,formatSpec,  [2 Inf])';
-y_sumleakedC_N = leakedN(startValue:end,2)/nof_cells;
+y_sumleakedC_N = leakedN(startValue:end,2)/average_factor;
 x_leakedN = leakedN(startValue:end,1);
 
 if(isNNZ)
@@ -463,57 +463,57 @@ end
 fileID = fopen( root + 'CUE.txt','r');
 formatSpec = '%f %f';
 CUE = fscanf(fileID,formatSpec,  [2 last_value])';
-y_CUE = CUE(startValue:end,2);
+y_CUE = CUE(startValue:end,2)/average_factor;
 x_CUE = CUE(startValue:end,1);
 
 
 fileID = fopen( root + 'f_B_C.txt','r');
 formatSpec = '%f %f';
 f_B_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_B_C = f_B_C(startValue:end,2);
+y_f_B_C = f_B_C(startValue:end,2)/average_factor;
 x_f_B_C = f_B_C(startValue:end,1);
 
 fileID = fopen( root + 'f_B_N.txt','r');
 formatSpec = '%f %f';
 f_B_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_B_N = f_B_N(startValue:end,2);
+y_f_B_N = f_B_N(startValue:end,2)/average_factor;
 x_f_B_N = f_B_N(startValue:end,1);
 
 fileID = fopen( root + 'R.txt','r');
 formatSpec = '%f %f';
 R = fscanf(fileID,formatSpec,  [2 last_value])';
-y_R = R(startValue:end,2);
+y_R = R(startValue:end,2)/average_factor;
 x_R = R(startValue:end,1);
 
 fileID = fopen( root + 'R_O.txt','r');
 formatSpec = '%f %f';
 R_O = fscanf(fileID,formatSpec,  [2 last_value])';
-y_R_O = R_O(startValue:end,2);
+y_R_O = R_O(startValue:end,2)/average_factor;
 x_R_O = R_O(startValue:end,1);
 
 fileID = fopen( root + 'f_BD_C.txt','r');
 formatSpec = '%f %f';
 f_BD_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_BD_C = f_BD_C(startValue:end,2);
+y_f_BD_C = f_BD_C(startValue:end,2)/average_factor;
 x_f_BD_C = f_BD_C(startValue:end,1);
 
 fileID = fopen( root + 'f_BD_N.txt','r');
 formatSpec = '%f %f';
 f_BD_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_BD_N = f_BD_N(startValue:end,2);
+y_f_BD_N = f_BD_N(startValue:end,2)/average_factor;
 x_f_BD_N = f_BD_N(startValue:end,1);
 
 
 fileID = fopen( root + 'f_C.txt','r');
 formatSpec = '%f %f';
 f_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_C = f_C(startValue:end,2);
+y_f_C = f_C(startValue:end,2)/average_factor;
 x_f_C = f_C(startValue:end,1);
 
 fileID = fopen( root + 'f_N.txt','r');
 formatSpec = '%f %f';
 f_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_N = f_N(startValue:end,2);
+y_f_N = f_N(startValue:end,2)/average_factor;
 x_f_N = f_N(startValue:end,1);
 
 
@@ -521,13 +521,13 @@ x_f_N = f_N(startValue:end,1);
 fileID = fopen( root + 'f_MN_C.txt','r');
 formatSpec = '%f %f';
 f_MN_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_MN_C = f_MN_C(startValue:end,2);
+y_f_MN_C = f_MN_C(startValue:end,2)/average_factor;
 x_f_MN_C = f_MN_C(startValue:end,1);
 
 fileID = fopen( root + 'f_MN_N.txt','r');
 formatSpec = '%f %f';
 f_MN_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_MN_N = f_MN_N(startValue:end,2);
+y_f_MN_N = f_MN_N(startValue:end,2)/average_factor;
 x_f_MN_N = f_MN_N(startValue:end,1);
 
 
@@ -535,19 +535,19 @@ x_f_MN_N = f_MN_N(startValue:end,1);
 fileID = fopen( root + 'f_POM_C.txt','r');
 formatSpec = '%f %f';
 f_POM_C = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_POM_C = f_POM_C(startValue:end,2);
+y_f_POM_C = f_POM_C(startValue:end,2)/average_factor;
 x_f_POM_C = f_POM_C(startValue:end,1);
 
 fileID = fopen( root + 'f_POM_N.txt','r');
 formatSpec = '%f %f';
 f_POM_N = fscanf(fileID,formatSpec,  [2 last_value])';
-y_f_POM_N = f_POM_N(startValue:end,2);
+y_f_POM_N = f_POM_N(startValue:end,2)/average_factor;
 x_f_POM_N = f_POM_N(startValue:end,1);
 
 fileID = fopen( root + 'sumleakedN_S.txt','r');
 formatSpec = '%f %f';
 R_leaked = fscanf(fileID,formatSpec,  [2 last_value])';
-y_R_leaked = R_leaked(startValue:end,2)/nof_cells;
+y_R_leaked = R_leaked(startValue:end,2)/average_factor;
 x_R_leaked = R_leaked(startValue:end,1);
 
 
@@ -573,7 +573,7 @@ saveas(figure8, fullfile(outputfolder, "CUE_" + appendix + ".png"));
 
 
 
-if false
+if true
 
 figure9 = figure('visible', isVisible) 
 %plot(x_CUE,y_CUE,'LineWidth', linewidth)
