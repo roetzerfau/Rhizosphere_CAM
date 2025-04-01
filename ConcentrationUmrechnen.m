@@ -8,7 +8,7 @@ porosity = 0.411;
 soil_particleNNZ = 250 * 250 * (1-porosity);
 soilParticleDensity = 2.36;
 
-soilfactor = ( soil_particleNNZ * soilParticleDensity/1000 );
+soilfactor = ( soil_particleNNZ * soilParticleDensity/1000 )
 %massdrySoil = 2.65 * 10^-12* 500* 500 * (1- 0.45) %gsoil
 massdrySoil = soilParticleDensity * 10^-12* 500* 500 * (1- porosity) %gsoil
 %eine zelle: 2 * 2 * 1 = 4 (micron)^3; 

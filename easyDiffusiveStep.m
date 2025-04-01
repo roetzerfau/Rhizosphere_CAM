@@ -4,7 +4,8 @@ function concentrationVector = easyDiffusiveStep(g, concentrationVector, restric
     Concentration_Phase = find(concentrationVector > 0);
     Concentration_Phase = Concentration_Phase(randperm(length(Concentration_Phase)));
     
-    Concentration_Phase_Occupied = Concentration_Phase(restrictVector(Concentration_Phase) > 0 );
+    Concentration_Phase_Occupied = Concentration_Phase(restrictVector(Concentration_Phase) > 0);
+    Concentration_Phase_Occupied = [Concentration_Phase_Occupied; find(concentrationVector > 0.01)];
     Concentration_Phase_NotOccupied = Concentration_Phase(restrictVector(Concentration_Phase) == 0);
     % gleich verteilen
     % sumConc = sum(concentrationVector);

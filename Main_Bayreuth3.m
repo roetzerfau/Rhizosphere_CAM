@@ -210,7 +210,7 @@ parameters.C_N_Root = C_N_root;%TODO 100
 parameters.N_initialMicrobes = 216;%267/3;%45;
 parameters.DOC = 10^-5;%-4  100 mg C/L 
 parameters.tau_ode = 3600; %12 * 60;
-C_SVector_normal = ones(g.numT, 1) .* ~bulkVector .* 10^-4;
+C_SVector_normal = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
 C_SVector = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
 N_SVector =  C_SVector_normal ./ parameters.C_N_S;
 sumleakedN_S = 0;
@@ -286,7 +286,10 @@ POMconcVector(POMconcVector > 0) = parameters.startConcPOM;
     end
 %end
 parameters.mucilageGrowing = 0;
-outerRootBorderInd = 1:250; 
+outerRootBorderInd =g.numT/2 + 1:g.numT/2 +250; 
+%test = C_BVector * 0;
+%test(outerRootBorderInd) = 1;
+%imshow(reshape(test,[g.NX g.NX]))
 %outerRootBorderInd = unique(stencil(g.NX,g.NX,outerRootBorderInd,1));
 
 % for j = 1:100

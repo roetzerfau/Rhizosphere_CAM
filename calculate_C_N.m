@@ -48,11 +48,12 @@
     
     decaystep=tic;
     if(isMBfactor)
-        MBfactor= 1 + sum(C_BVector)/6.3360;%6.3360 %10
+        MBfactor= 0.5 + sum(C_BVector)/(parameters.initConC_B * parameters.N_initialMicrobes);%6.3360 %10
+       % MBfactor= 1 + sum(C_BVector)/6.3360;
     else 
         MBfactor= 1;
     end
-   MBfactor;
+   MBfactor
 
     [bulkVector,  POMVector, MNVector, C_POMconcVector, POMageVector, POMParticleList, C_SVector, N_SVector] = calculateonlyPOMdecay(g, parameters, bulkVector, POMVector,MNVector, C_POMconcVector,reactiveSurfaceVector, POMParticleList, POMageVector, C_SVector, N_SVector, MBfactor);
     fprintf('Time for POM MN Decay: %d \n', toc(decaystep))
@@ -97,8 +98,8 @@
      sumN_MN_before = sum(N_MNVector);
      %TODO nur EPS produzieren wenn solid dran ist
   [ N_SVector, C_SVector, N_BVector, C_BVector,C_MNVector, N_MNVector, CO2Vector,CO2Vector_over, C_EXTVector] = ...
-    calculateMBSolid(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector,CO2Vector_over);
-     sumC_B = sum(C_BVector);
+    calculateMBSolid_new(g,parameters, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, CO2Vector,CO2Vector_over);
+     sumC_B = sum(C_BVector)
      sumC_S = sum(C_SVector);
      sumCO2 = sum(CO2Vector);
      sumCO2_over = sum(CO2Vector_over);
@@ -191,6 +192,8 @@
     C_SVector = easyDiffusiveStep(g, C_SVector, bulkVector, MB_Vector, range);
     %sumC_S_after= sum(C_SVector)
     N_SVector = easyDiffusiveStep(g, N_SVector, bulkVector, MB_Vector, range);
+
+    
     leakedN_S = sum(N_SVector .* parameters.N_leakage);
     R_leaked= R_leaked  + leakedN_S;
     
@@ -198,7 +201,8 @@
         N_SVector = N_SVector .* (1-parameters.N_leakage);
         leakedNVector = leakedNVector + N_SVector .* parameters.N_leakage;
     else
-        N_SVector = N_SVector +  abs(parameters.N_leakage);
+        poreSpace =  bulkVector == 0;
+        N_SVector = N_SVector +  poreSpace * abs(parameters.N_leakage);
     end
     %N_SVector = C_SVector ./ parameters.C_N_S;
     fprintf('Time for diffstep: %d \n', toc(diffstep))

@@ -8,12 +8,73 @@
 %PlotTxtdata2("Nomove_mucilageCN100_PaperReady","Nomove_mucilageCN100_PaperReady")
 %PlotTxtdata2("Nomove_mucilageCN100_PaperReady_leak1percent","Nomove_mucilageCN100_PaperReady_leak1percent")
 
-%PlotTxtdata2("paperReady_test_19_02_POM10_CN10", "paperReady_test_19_02_POM10_CN10")
+
+% files = ["paperReady_referenceSetting", "paperReady_referenceSetting_duengen","paperReady_referenceSetting_leaked_0","paperReady_referenceSetting_leaked_0_01"];
+% names_appendix = [" CN50"," duengen"," leaked0", " leaked001"];
+% PlotTxtdataCompare(files, "compareLeak", names_appendix)
+% 
+% files = ["paperReady_referenceSetting", "paperReady_referenceSetting_POM2"];
+% names_appendix = [" 10"," 2"];
+% PlotTxtdataCompare(files, "comparePOM", names_appendix)
+% 
+% files = ["paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN10","paperReady_referenceSetting_50dayspulstimesteps","paperReady_referenceSetting_exudationDays"];
+% names_appendix = [" CN40"," CN10"," 50dayspuls", " exudationDays"];
+% PlotTxtdataCompare(files, "compareExudateTiming2", names_appendix)
+% 
+files = ["paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN10","paperReady_referenceSetting_exudationDays"];
+names_appendix = [" CN40"," CN10", " exudationDays"];
+PlotTxtdataCompare(files, "compareExudateTiming", names_appendix)
+% % 
+% 
+% % 
+% files = ["paperReady_referenceSetting", "paperReady_referenceSetting_without_particle_Movement"];
+% names_appendix = [" withMovement"," withoutMovement"];
+% PlotTxtdataCompare(files, "compareParticleMovement", names_appendix)
+
+files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting_CN20","paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN100"];
+names_appendix = [ " CN10"," CN20", " CN40" ," CN100"];
+PlotTxtdataCompare(files, "compareExudateQuality", names_appendix)
+
+files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting_CN20",...
+    "paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN100", ...
+    "paperReady_referenceSetting_exudationDays"];%, "paperReady_referenceSetting_CN100"
+names_appendix = [" CN10", " CN20", " CN40", " CN100", " exudationDays"];%," CN100"
+PlotTxtdataCompare(files, "compareAll", names_appendix)
+
+% 
+% files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting", "paperReady_referenceSetting_CN100"];
+% names_appendix = [" reference"," CN10", " CN100"];
+% PlotTxtdataCompare(files, "compareAll", names_appendix)
+
+PlotTxtdata2("paperReady_referenceSetting", "paperReady_referenceSetting")
+PlotTxtdata2("paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN40")
+PlotTxtdata2("paperReady_referenceSetting_without_particle_Movement", "paperReady_referenceSetting_without_particle_Movement")
+% PlotTxtdata2("paperReady_referenceSetting_exudationDays", "paperReady_referenceSetting_exudationDays")
+% PlotTxtdata2("paperReady_referenceSetting_CN10", "paperReady_referenceSetting_CN10")
+% 
+% PlotTxtdata2("paperReady_referenceSetting_leaked_0", "paperReady_referenceSetting_leaked_0")
+% PlotTxtdata2("paperReady_referenceSetting_duengen", "paperReady_referenceSetting_duengen")
+% PlotTxtdata2("paperReady_referenceSetting_CN100", "paperReady_referenceSetting_CN100")
+PlotTxtdata2("paperReady_referenceSetting_leaked_0_01", "paperReady_referenceSetting_leaked_0_01")
+PlotTxtdata2("paperReady_referenceSetting_POM2", "paperReady_referenceSetting_POM2")
+
+
+
+PlotTxtdata2("paperReady_test_18_03_POM10", "paperReady_test_18_03_POM10")
+PlotTxtdata2("paperReady_test_18_03_POM10_alterMBfactor", "paperReady_test_18_03_POM10_alterMBfactor")
+PlotTxtdata2("paperReady_test_18_03_POM10_kPom_0_1", "paperReady_test_18_03_POM10_kPom_0_1")
+PlotTxtdata2("paperReady_test_18_03_POM10_kPom_0_5", "paperReady_test_18_03_POM10_kPom_0_5")
+PlotTxtdata2("paperReady_test_18_03_POM10_kPom_0_9", "paperReady_test_18_03_POM10_kPom_0_9")
+
+PlotTxtdata2("paperReady_test_19_02_POM10_CN100", "paperReady_test_19_02_POM10_CN100")
+PlotTxtdata2("paperReady_test_19_02_POM10_CN10", "paperReady_test_19_02_POM10_CN10")
 PlotTxtdata2("paperReady_test_19_02_POM10_CN10_exudationDays", "paperReady_test_19_02_POM10_CN10_exudationDays")
+PlotTxtdata2("paperReady_test_19_02_POM10_leak_0","paperReady_test_19_02_POM10_leak_0")
+PlotTxtdata2("paperReady_test_19_02_POM10_duengen_0","paperReady_test_19_02_POM10_duengen_0")
 
 
 PlotTxtdata2("paperReady_test_19_02_POM10_leak_0_01","paperReady_test_19_02_POM10_leak_0_01")
-PlotTxtdata2("paperReady_test_19_02_POM10_leak_0","paperReady_test_19_02_POM10_leak_0")
+
 
 PlotTxtdata2("paperReady_test_19_02_POM10","paperReady_test_19_02_POM10")
 PlotTxtdata2("paperReady_test_19_02_POM10_movefalse","paperReady_test_19_02_POM10_movefalse")
