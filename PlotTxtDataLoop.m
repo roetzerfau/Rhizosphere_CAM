@@ -21,25 +21,30 @@
 % names_appendix = [" CN40"," CN10"," 50dayspuls", " exudationDays"];
 % PlotTxtdataCompare(files, "compareExudateTiming2", names_appendix)
 % 
-files = ["paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN10","paperReady_referenceSetting_exudationDays"];
-names_appendix = [" CN40"," CN10", " exudationDays"];
-PlotTxtdataCompare(files, "compareExudateTiming", names_appendix)
+% files = ["paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN10","paperReady_referenceSetting_exudationDays"];
+% names_appendix = [" CN40"," CN10", " exudationDays"];
+% PlotTxtdataCompare(files, "compareExudateTiming", names_appendix)
 % % 
 % 
 % % 
-% files = ["paperReady_referenceSetting", "paperReady_referenceSetting_without_particle_Movement"];
-% names_appendix = [" withMovement"," withoutMovement"];
-% PlotTxtdataCompare(files, "compareParticleMovement", names_appendix)
+files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting_CN22",...
+    "paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN100", ...
+    "paperReady_CN40_referenceSetting_exudationDays"];%, "paperReady_referenceSetting_CN100"
+names_appendix = [" CN10", " CN22", " CN40", " CN100", " timing"];%," CN100"
+PlotTxtdataCompare(files, "compareAll", names_appendix)
+
+
+PlotTxtdata2("paperReady_referenceSetting_CN40", "paperReady_CN40_referenceSetting_CN40")
+
+files = ["paperReady_CN40_referenceSetting", "paperReady_referenceSetting_CN40_without_particle_Movement"];
+names_appendix = [" withMovement"," withoutMovement"];
+PlotTxtdataCompare(files, "compareParticleMovement", names_appendix)
 
 files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting_CN20","paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN100"];
 names_appendix = [ " CN10"," CN20", " CN40" ," CN100"];
 PlotTxtdataCompare(files, "compareExudateQuality", names_appendix)
 
-files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting_CN20",...
-    "paperReady_referenceSetting_CN40", "paperReady_referenceSetting_CN100", ...
-    "paperReady_referenceSetting_exudationDays"];%, "paperReady_referenceSetting_CN100"
-names_appendix = [" CN10", " CN20", " CN40", " CN100", " exudationDays"];%," CN100"
-PlotTxtdataCompare(files, "compareAll", names_appendix)
+
 
 % 
 % files = ["paperReady_referenceSetting_CN10","paperReady_referenceSetting", "paperReady_referenceSetting_CN100"];

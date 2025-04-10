@@ -54,22 +54,28 @@ exudatesDays = [200:5:249];
 
 %Main_Bayreuth3(false,50,[200], "paperReady_test_18_03_POM10_noMove_oldMB",true, 0.5, 10, 0.0001);
 %Main_Bayreuth3(true,50,[200], "paperReady_test_18_03_POM10",true, 0.5, 10, 0.0001);
-
-
-parfor i = 1:3
-if(i == 1)
-Main_Bayreuth3(false,40,[200], "paperReady_referenceSetting_CN40_without_particle_Movement",true, 0.5, 10, 0.0001);
-end
-if(i == 2)
+parfor i = 1:2
+    if(i == 1)
 Main_Bayreuth3(true,40,[200], "paperReady_CN40_referenceSetting",true, 0.5, 10, 0.0001);
+    end
+    if(i == 2)
+Main_Bayreuth3(true,40,[200], "paperReady_CN10_referenceSetting",true, 0.5, 10, 0.0001);
+    end
 end
-if(i == 3)
-Main_Bayreuth3(true,40,exudatesDays, "paperReady_CN40_referenceSetting_exudationDays",true, 0.5, 10, 0.0001);
-end
-% if(i == 4)
-% Main_Bayreuth3(true,10,[200], "paperReady_referenceSetting_CN10",true, 0.5, 10, 0.0001);
+% parfor i = 1:3
+% if(i == 1)
+% Main_Bayreuth3(false,40,[200], "paperReady_referenceSetting_CN40_without_particle_Movement",true, 0.5, 10, 0.0001);
 % end
-end
+% if(i == 2)
+% Main_Bayreuth3(true,40,[200], "paperReady_CN40_referenceSetting",true, 0.5, 10, 0.0001);
+% end
+% if(i == 3)
+% Main_Bayreuth3(true,40,exudatesDays, "paperReady_CN40_referenceSetting_exudationDays",true, 0.5, 10, 0.0001);
+% end
+% % if(i == 4)
+% % Main_Bayreuth3(true,10,[200], "paperReady_referenceSetting_CN10",true, 0.5, 10, 0.0001);
+% % end
+% end
 
 
 
