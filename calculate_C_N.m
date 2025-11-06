@@ -1,9 +1,10 @@
-    function [bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector, CO2Vector,CO2Vector_over, leakedNVector, C_EXTVector_t, C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, CUE, ...
+    function [dfp,dfp_C_S,dfp_N_S,bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, POMParticleList, POMageVector, CO2Vector,CO2Vector_over, leakedNVector, C_EXTVector_t, C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, CUE, ...
     f_C,f_BD_C,B_C,R, R_O, f_N,f_BD_N,B_N, R_leaked, f_POM_C, f_POM_N, f_MN_C, f_MN_N ] = ...
-    calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,CO2Vector_over, leakedNVector,outerRootBorderInd, isMBfactor)
+    calculate_C_N(g, parameters,dfp,dfp_C_S,dfp_N_S, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector, C_MNVector, N_MNVector, MNVector, POMVector, C_POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,CO2Vector_over, leakedNVector,outerRootBorderInd, isMBfactor)
     
     dayinseconds = 24 * 60 * 60;% 
     numberoftstps = dayinseconds/parameters.tau_ode;
+    dfp.tau = parameters.tau_ode;
     range =5; % sqrt(1.94* 10^-8 cm^2/s*3600s)*10^4 (convert cm to microm) 
     C_EXTVector_t =  zeros(g.numT, 1);
     
@@ -29,6 +30,31 @@
     CO2Add = 0;
     %loop
     tolerance = 0.000001;
+
+    dfp = setupDiffusion_specific_domain(g,dfp, bulkVector);
+
+    if isempty(dfp_C_S.uDG)
+        zero        = @(x,y) x-x + 0;
+        one         = @(x,y) x-x + 1;  
+        one_Cu         = @(x,y) x-x + 1 * parameters.DOC;
+        one_Nu         = @(x,y) x-x + 1 * parameters.DOC/parameters.C_N_S;
+        dfp_C_S.uDG         = zeros(g.numTsub, dfp.N);
+        dfp_C_S.q1DG         = zeros(g.numTsub, dfp.N);
+        dfp_C_S.q2DG         = zeros(g.numTsub, dfp.N);
+        dfp_N_S.uDG         = zeros(g.numTsub, dfp.N);
+        dfp_N_S.q1DG         = zeros(g.numTsub, dfp.N);
+        dfp_N_S.q2DG         = zeros(g.numTsub, dfp.N);
+
+
+        dfp_C_S.uDG(dfp.airVectorSub,:)         = projectAlg2DGsub(g, one_Cu, dfp.p, dfp.ord, dfp.hatMc, dfp.airVectorSub);
+        dfp_C_S.q1DG(dfp.airVectorSub,:)        = projectAlg2DGsub(g, zero, dfp.p, dfp.ord, dfp.hatMc, dfp.airVectorSub);
+        dfp_C_S.q2DG(dfp.airVectorSub,:)        = projectAlg2DGsub(g, zero, dfp.p, dfp.ord, dfp.hatMc, dfp.airVectorSub);
+        dfp_N_S.uDG(dfp.airVectorSub,:)         = projectAlg2DGsub(g, one_Nu, dfp.p, dfp.ord, dfp.hatMc, dfp.airVectorSub);
+        dfp_N_S.q1DG(dfp.airVectorSub,:)        = projectAlg2DGsub(g, zero, dfp.p, dfp.ord, dfp.hatMc, dfp.airVectorSub);
+        dfp_N_S.q2DG(dfp.airVectorSub,:)        = projectAlg2DGsub(g, zero, dfp.p, dfp.ord, dfp.hatMc, dfp.airVectorSub);
+     end
+
+
     for i = 1:numberoftstps%numberoftstps
         
     fprintf("step %d \n", i)
@@ -44,7 +70,9 @@
     previousConcentration_N =sum(N_MNVector+ N_SVector + N_BVector + N_PMNVector_before + N_PPlantVector_before) + leakedN_S;
 
     before_C = sum(C_SVector + C_POMconcVector);     
-   
+    
+    C_SVector_before = C_SVector;
+    N_SVector_before = N_SVector;
     
     decaystep=tic;
     if(isMBfactor)
@@ -189,11 +217,21 @@
 
     diffstep = tic;
     %sumC_S_before = sum(C_SVector)
-    C_SVector = easyDiffusiveStep(g, C_SVector, bulkVector, MB_Vector, range);
-    %sumC_S_after= sum(C_SVector)
-    N_SVector = easyDiffusiveStep(g, N_SVector, bulkVector, MB_Vector, range);
-
+    C_SVector = easyDiffusiveStep_occupied(g, C_SVector, bulkVector);
+    C_S_diff =  C_SVector - C_SVector_before;
     
+    dfp_C_S.uDG(:,1) = dfp_C_S.uDG(:,1) + C_S_diff;
+    [dfp,dfp_C_S.uDG,dfp_C_S.q1DG,dfp_C_S.q2DG] = DiffusiveStep(g,parameters,dfp,dfp_C_S.uDG,dfp_C_S.q1DG,dfp_C_S.q2DG, bulkVector);
+    C_SVector = computeConcAir(g, dfp_C_S.uDG, dfp.ord);
+    %C_SVector = easyDiffusiveStep(g, C_SVector, bulkVector, MB_Vector, range);
+    %sumC_S_after= sum(C_SVector)
+
+
+
+
+    N_SVector = easyDiffusiveStep_occupied(g, N_SVector, bulkVector);
+
+
     leakedN_S = sum(N_SVector .* parameters.N_leakage);
     R_leaked= R_leaked  + leakedN_S;
     
@@ -204,6 +242,18 @@
         poreSpace =  bulkVector == 0;
         N_SVector = N_SVector +  poreSpace * abs(parameters.N_leakage);
     end
+
+
+
+    N_S_diff =  N_SVector - N_SVector_before;
+    
+    dfp_N_S.uDG(:,1) = dfp_N_S.uDG(:,1) + N_S_diff;
+    [dfp,dfp_N_S.uDG,dfp_N_S.q1DG,dfp_N_S.q2DG] = DiffusiveStep(g,parameters,dfp,dfp_N_S.uDG,dfp_N_S.q1DG,dfp_N_S.q2DG, bulkVector);
+    N_SVector = computeConcAir(g, dfp_N_S.uDG, dfp.ord);
+    %N_SVector = easyDiffusiveStep(g, N_SVector, bulkVector, MB_Vector, range);
+
+    
+
     %N_SVector = C_SVector ./ parameters.C_N_S;
     fprintf('Time for diffstep: %d \n', toc(diffstep))
 

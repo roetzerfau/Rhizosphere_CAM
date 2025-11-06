@@ -1,5 +1,5 @@
 %folder = "/home.local/roetzer/C_N/FinalConfig_Nomove_mucilageCN100_PaperReady_spreadNoDivide_leak/";
-folder = "/home.local/roetzer/C_N/FinalConfig_paperSimulation_referenceSetting_CN40_without_particle_Movement/" % 
+folder = "/home.local/roetzer/C_N/FinalConfig_paperReady_referenceSetting_exudationDays/" % 
 
 parameters.K_Cliquid =  3.9232* 10^-4;
 parameters.minConC_B = 0.0132/8; 
@@ -33,7 +33,7 @@ mkdir(output_file_vtk)
 output_file_vtk = folder + "paperBilder/test/";
 mkdir(output_file_vtk) 
 
-for i =150:156
+for i = 455:5:500
     data = load(folder +"config." + string(i) + ".mat");
     value2vector = ones(data.g.numT, 1);
    % carbon = data.C_BVector + data.C_SVector + C_MNVector + C_PMNVector;
@@ -45,8 +45,8 @@ for i =150:156
      output_file_vtk = folder + "paperBilder/C_N_SVector/";
      visualizeDataSub(data.g, data.C_SVector./data.N_SVector, 'C_N_SVector', 'C_N_SVector', i,char(output_file_vtk));
     % 
-    output_file_vtk = folder + "paperBilder/C_SVector/";
-    visualizeDataSub(data.g, data.C_SVector, 'C_SVector', 'C_SVector', i,char(output_file_vtk));
+    % output_file_vtk = folder + "paperBilder/C_SVector/";
+    % visualizeDataSub(data.g, data.C_SVector, 'C_SVector', 'C_SVector', i,char(output_file_vtk));
     % 
      output_file_vtk = folder + "paperBilder/UVector/";
      UVector =((data.C_SVector)./(data.C_SVector + value2vector .* parameters.K_Cliquid));

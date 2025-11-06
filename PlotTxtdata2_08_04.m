@@ -7,7 +7,6 @@ if nargin < 1
     file = "noMove_longterm";
 end
 imageFolder = "bilder/CN/paperReady/";
-%imageFolder = "final_pics/";
 appendix = file%"noMove_longterm_noreactiveEdgesforDecay" %"noMove_longterm" %mucilageC_after100stepsCN01
 outputfolder = imageFolder + appendix +"/";
 if ~exist(outputfolder, 'dir')  % Check if the folder exists
@@ -17,7 +16,7 @@ else
     disp(['Folder already exists at: ', outputfolder]);
 end
 %ANNZ / SNNZ    * (sum(C_A)/ANNZ)*  (C_SNNZ/sum(C_Solid)  
-%flÃ¤che anteil/ flÃ¤che soil   *  anteil densitiy/solid density 
+%fläche anteil/ fläche soil   *  anteil densitiy/solid density 
 porosity = 0.411;
 soil_particleNNZ = 250 * 250 * (1-porosity);
 soilParticleDensity = 2.36;
@@ -25,7 +24,6 @@ isNNZ = false;
 startValue = 5;
 soilfactor = ( soil_particleNNZ * soilParticleDensity/1000 );
 root = "/home.local/roetzer/C_N/txtdata_" + appendix +"/"
-%root = "/home.other/fauamlx5g/roetzer/C_N/txtdata_" + appendix +"/"
 titel = description;
 percentage_plot = 50;%;%25;
 isVisible = 'on';
@@ -34,55 +32,8 @@ if file.contains("2years")
     last_value = 2000;
 else
 last_value = Inf;
-%last_value = 300;
 end
 % DOC ist zu hoch
-
-colors = struct(...
-    'microbial_biomass', hex2rgb('#AAFF00'), ...
-    'new_microbial_necromass', hex2rgb('#CC9922'), ...
-    'old_microbial_necromass', hex2rgb('#AA5500'), ...
-    'sum_microbial_necromass', hex2rgb('#FF8800'), ...
-    'pom', hex2rgb('#84CC83'), ...
-    'pom_added', hex2rgb('#B4E0B4'), ...
-    'dissolved_substrate', hex2rgb('#E64640'), ...
-    'leakage_co2', hex2rgb('#000000'), ...
-    'leakage_co2_text', hex2rgb('#FFFFFF'), ... % for barplot text
-    'r_o', hex2rgb('#79C7F7'), ...
-    'r', hex2rgb('#000000'), ...  % also r_leak
-    'cue', hex2rgb('#000000'), ...
-    'c_n', hex2rgb('#000000'), ...
-    'unknown', hex2rgb('#FC08EC') ...  
-);
-% fontsizes = struct(...
-%     'xlabel', 16, ...
-%     'ylabel', 16, ...
-%     'xaxis', 16, ...
-%     'yaxis', 16, ... 
-%     'legend', 16, ...
-%     'title', 18, ...
-%     'bartext', 12, ...
-%     'bartext_arrow', 12 ...
-% );
-fontsizes = struct(...
-    'xlabel', 39, ...
-    'ylabel', 39, ...
-    'xaxis', 40, ...
-    'yaxis', 40, ... 
-    'legend', 40, ...
-    'title', 18, ...
-    'bartext', 30, ...
-    'bartext_arrow', 25, ...
-    'line_width',5, ...
-    'line_width_legend',12 ...
-);
-
-% (days mod mod_days) for text in stacked bar graph
-mod_days = [50,200,325,450];%50
-
-title_on = false;
-tick_dir = 'out'; %or 'in'
-
 
 ylim_C_stacked = [0 0.2];
 ylim_N_stacked = [0 4*10^-3];
@@ -348,106 +299,61 @@ TON_percent = y_N_sum./(y_N_sum + soil_particleNNZ * soilParticleDensity);
 TON = y_N_sum./(soil_particleNNZ * soilParticleDensity/1000); 
 %% Plots 
 percentage_plot = round(numel(x_N_POM)/20);%;%25;
-
+linewidth = 4;
 if true
 
 %% figure 1
 figure1 = figure('visible', isVisible)
 names = {'biomass', 'dissolved substrate', 'Necromass', 'POM', 'CO2'};
-names = {'biomass ',  'necromass old ', 'necromass new ', 'POM ', 'dissolved substrate '};%,'CO2'
-colornames = {'microbial_biomass',  'old_microbial_necromass', 'new_microbial_necromass', 'pom', 'dissolved_substrate'};
-
-b1 = bar(x(1:end), y_C, 'stacked')
-for i = 1:numel(b1)
-    b1(i).FaceColor = 'flat';
-    b1(i).CData = getfield(colors, colornames{i})
-end
-legend(names, 'FontSize', fontsizes.legend, 'Location','northoutside','NumColumns', 3)
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
+names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate'};%,'CO2'
+bar(x(1:end), y_C, 'stacked')
+legend(names, 'FontSize', 14, 'Location','southeast')
+xlabel('days', 'FontSize', 14)
 %ylabel('amount carbon g cm^{-3}', 'FontSize', 14)
-ylabel('amount carbon mg C g^{-1} soil', 'FontSize', fontsizes.ylabel)
+ylabel('amount carbon mg C g soil^{-1}', 'FontSize', 14)
 %set(gca,'ylim',ylim_C_stacked);
-if title_on
-    title(titel , 'Interpreter', 'none','FontSize',fontsizes.title)
-end
-%set(gca, 'FontSize', 14)
+title(titel , 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
 
 % Add percentage annotations
-temp_counter = 0;
 for k = 1:size(y_C, 1)
-    temp_counter = temp_counter +1;
     for j = 1:size(y_C, 2)
-        %if mod(temp_counter, mod_days) == 0 %|| mod(k, percentage_plot) == 0 
-        if ismember(temp_counter,mod_days)
+        if mod(k, percentage_plot) == 0 || k == 1
             percentage = y_C(k, j) / sum(y_C(k, :)) * 100;
-            if y_C(k, j) ==0
-                continue
-            end
-            tmp_color = 'black';
-            if strcmp(colornames{j}, 'leakage_co2')
-                tmp_color = colors.leakage_co2_text;
-            end
-            vertAlign = 'middle';
-            if percentage <= 3
-                vertAlign = 'bottom';
-            end
-            text(x(k), sum(y_C(k, 1:j)) - y_C(k, j)/2, sprintf('%.2f (%i%%)',y_C(k, j), ceil(percentage)), ...
-                'HorizontalAlignment', 'center', 'VerticalAlignment', vertAlign, 'FontSize', fontsizes.bartext,'Color', tmp_color)%12
-
+            text(x(k), sum(y_C(k, 1:j)) - y_C(k, j)/2, sprintf('%.2f \n (%i%%)',y_C(k, j), ceil(percentage)), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', 12)%12
         end
     end
 end
-set(gca,'TickDir',tick_dir);
 set(figure1, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure1, fullfile(outputfolder, "C_dist_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "C_dist_" + appendix))
 
 
+
 %% figure 2
 figure2 = figure('visible', isVisible)
-names = {'biomass', 'dissolved substrate', 'necromass', 'POM', 'leaked N'};
-names = {'biomass ', 'necromass old ','necromass new ', 'POM ', 'dissolved substrate '};%, 'leaked N'
-colornames = {'microbial_biomass',  'old_microbial_necromass', 'new_microbial_necromass', 'pom', 'dissolved_substrate'};
-
-b2 = bar(x(1:end), y_N, 'stacked')
-for i = 1:numel(b2)
-    b2(i).FaceColor = 'flat';
-    b2(i).CData = getfield(colors, colornames{i})
-end
-legend(names, 'FontSize', fontsizes.legend, 'Location','northoutside','NumColumns', 3)
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
+names = {'biomass', 'dissolved substrate', 'Necromass', 'POM', 'leaked N'};
+names = {'biomass', 'Necromass old','Necromass new', 'POM', 'dissolved substrate'};%, 'leaked N'
+bar(x(1:end), y_N, 'stacked')
+legend(names, 'FontSize', 14, 'Location','southeast')
+xlabel('days', 'FontSize', 14)
 %ylabel('amount nitrogen g cm^{-3}', 'FontSize', 14)
-ylabel('amount nitrogen mg N g^{-1} soil', 'FontSize', fontsizes.ylabel)
-if title_on
-    title(titel, 'Interpreter', 'none','FontSize', fontsizes.title)
-end
+ylabel('amount nitrogen mg N g soil^{-1}', 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 %set(gca,'ylim',ylim_N_stacked);
-%set(gca, 'FontSize', 14)
+set(gca, 'FontSize', 14)
 
 % Add percentage annotations
-temp_counter = 0;
 for k = 1:size(y_N, 1)
-    temp_counter = temp_counter + 1;
     for j = 1:size(y_N, 2)
-        %if mod(temp_counter, mod_days) == 0 % if mod(k, percentage_plot) == 0 || k == 1
-        if ismember(temp_counter,mod_days)
+        if mod(k, percentage_plot) == 0 || k == 1
             percentage = y_N(k, j) / sum(y_N(k, :)) * 100;
-            vertAlign = 'middle';
-            if percentage <= 3
-                vertAlign = 'bottom';
-            end
-            text(x(k), sum(y_N(k, 1:j)) - y_N(k, j)/2, sprintf('%.2f (%i%%)',y_N(k, j), ceil(percentage)), ...
-                'HorizontalAlignment', 'center', 'VerticalAlignment', vertAlign, 'FontSize', fontsizes.bartext)
+            text(x(k), sum(y_N(k, 1:j)) - y_N(k, j)/2, sprintf('%.2f \n (%i%%)',y_N(k, j), ceil(percentage)), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', 12)
         end
     end
 end
-set(gca,'TickDir',tick_dir);
 set(figure2, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure2, fullfile(outputfolder, "N_dist_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "N_dist_" + appendix))
@@ -470,67 +376,42 @@ savefig(fullfile(outputfolder, "N_dist_" + appendix))
 % y_sumleakedC_N(y_sumleakedC_N <threshold)= NaN;
 
 figure5 = figure('visible', isVisible) 
-names = {'biomass ', 'necromass old ','necromass new ', 'POM ', 'dissolved substrate ', 'necromass total '};% 'leaked N',, 'POM added'
+names = {'biomass', 'Necromass old','Necromass new', 'POM', 'dissolved substrate', 'leaked N', 'necromass total'};
+linewidth = 4;
+plot(x,y_N_B./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,y_N_MN_old./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,y_N_MN_new./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,y_N_POM./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,y_N_S./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,y_sumleakedC_N./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,(y_N_MN_new + y_N_MN_old)./soilfactor,'LineWidth', linewidth)
 
-plot(x,y_N_B./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.microbial_biomass,'LineWidth', fontsizes.line_width)
-hold on
-plot(x,y_N_MN_old./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.old_microbial_necromass,'LineWidth', fontsizes.line_width)
-hold on
-plot(x,y_N_MN_new./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.new_microbial_necromass,'LineWidth', fontsizes.line_width)
-hold on
-plot(x,y_N_POM./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.pom,'LineWidth', fontsizes.line_width)
-hold on
-plot(x,y_N_S./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.dissolved_substrate,'LineWidth', fontsizes.line_width)
-hold on
-%plot(x,y_sumleakedC_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.leakage_co2)
-%hold on
-plot(x,(y_N_MN_new + y_N_MN_old)./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width)
-POM_added = floor([1:numel(y_C_B)]./10) * 0.083/100;
-%hold on
-%plot(x,POM_added,'LineWidth', fontsizes.line_width, 'Color', colors.pom_added)
-
-%legend(names, 'FontSize', fontsizes.legend, 'Location','northoutside','NumColumns', 3)% numel(names)
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
-ylabel('amount nitrogen mg N g^{-1} soil', 'FontSize', fontsizes.ylabel)
-%ylabel('amount nitrogen mg N g soil^{-1} ', 'FontSize', fontsizes.ylabel)%(log scale)
+legend(names, 'FontSize', 14, 'Location','southeast')
+xlabel('days', 'FontSize', 14)
+%ylabel('amount nitrogen g cm^{-3} (log scale)', 'FontSize', 14)
+ylabel('amount nitrogen mg N g soil^{-1} ', 'FontSize', 14)%(log scale)
 % if(~(file.contains("normal") || file.contains("noPOMDecay")))
 % set(gca,'ylim',ylim_N);
 % end
-set(gca, 'YScale', 'log');  % Set y-axis to log scale
+%set(gca, 'YScale', 'log');  % Set y-axis to log scale
 
-
-
-
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color', colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.old_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.new_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h4 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend);  
-h5 = plot(NaN, NaN, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width_legend); 
-h6 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-leg = [h1, h2, h3,h4,h5,h6];%h4,
-legend1 = legend(leg,names, 'NumColumns', 3);
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northoutside');
 
 %ylim = mylimits;
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none','FontSize',fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure5, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure5, fullfile(outputfolder, "N_log_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "N_log_" + appendix))
 
 %% figure 6
 figure6 = figure('visible', isVisible) 
-
+linewidth = 4;
 
 % smallest_value = 10^-2;
 % threshold = 10^-2;
@@ -551,89 +432,60 @@ figure6 = figure('visible', isVisible)
 
 POM_added = floor([1:numel(y_C_B)]./10) * 0.083;
 
-plot(x,y_C_B./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.microbial_biomass,'LineWidth', fontsizes.line_width)%, 'MarkerSize', 10, 'LineWidth', 2
+plot(x,y_C_B./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_MN_old./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.old_microbial_necromass,'LineWidth', fontsizes.line_width)
+plot(x,y_C_MN_old./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_MN_new./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.new_microbial_necromass,'LineWidth', fontsizes.line_width)
+plot(x,y_C_MN_new./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_POM./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.pom,'LineWidth', fontsizes.line_width)
+plot(x,y_C_POM./soilfactor,'LineWidth', linewidth)
 hold on
-plot(x,y_C_S./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.dissolved_substrate,'LineWidth', fontsizes.line_width)
+plot(x,y_C_S./soilfactor,'LineWidth', linewidth)
 hold on
-%plot(x,y_CO2./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.leakage_co2)
+plot(x,y_CO2./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,(y_C_MN_new + y_C_MN_old)./soilfactor,'LineWidth', linewidth)
+hold on
+plot(x,POM_added,'LineWidth', linewidth)
 %hold on
-plot(x,(y_C_MN_new + y_C_MN_old)./soilfactor,'LineWidth', fontsizes.line_width, 'Color', colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width)
-%hold on
-%plot(x,POM_added,'LineWidth', fontsizes.line_width, 'Color', colors.pom_added,'LineWidth', fontsizes.line_width)
-%hold on
-%plot(x,y_CO2_over,'LineWidth', fontsizes.line_width)
+%plot(x,y_CO2_over,'LineWidth', linewidth)
 
 %names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate','CO2', 'CO2_over'};
-names = {'biomass ',  'necromass old ', 'necromass new ', 'POM ', 'dissolved substrate ', 'necromass total '};%'CO2',, 'POM added'
-%legend(names, 'FontSize', fontsizes.legend, 'Location','northoutside','NumColumns', 3);%[lgd, obj]
-%lgd.ItemTokenSize = [10, 20];  % [length, height]
-%drawnow;  % Forces graphics update
-%lines = cellfun( @(x)findobj(gcf,'displayname',x), lgd.String );
-% Find the line objects and change their marker properties
-%lines = findobj(obj,'type','line');
-%set(lines,'LineWidth', 20);
-
-
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color', colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.old_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.new_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h4 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend);  
-h5 = plot(NaN, NaN, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width_legend); 
-h6 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-leg = [h1, h2, h3,h4,h5,h6];%h4,
-legend1 = legend(leg,names, 'NumColumns', 3);
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northoutside');
-
-
-
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
+names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate','CO2', 'necromass total', 'POM added'};
+legend(names, 'FontSize', 14, 'Location','southeast')
+xlabel('days', 'FontSize', 14)
 %ylim(mylimits);
-%ylabel('amount carbon g cm^{-3} (log scale)', 'FontSize', fontsizes.ylabel)
-ylabel('amount carbon mg C g^{-1} soil', 'FontSize', fontsizes.ylabel)%(log scale)
+%ylabel('amount carbon g cm^{-3} (log scale)', 'FontSize', 14)
+ylabel('amount carbon mg C g soil^{-1} ', 'FontSize', 14)%(log scale)
 % if(~(file.contains("normal") || file.contains("noPOMDecay")))
 % set(gca,'ylim',ylim_C);
 % end
-set(gca, 'YScale', 'log');  % Set y-axis to log scale
+%set(gca, 'YScale', 'log');  % Set y-axis to log scale
 %ylim([-0.1,1.1])
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none','FontSize',fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure6, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure6, fullfile(outputfolder, "C_log_" + appendix + ".png"));
 %print(fullfile(outputfolder, 'figure_large_dpi.png'), '-dpng', '-r300');
 savefig(fullfile(outputfolder, "C_log_" + appendix))
+
 %% figure 7
 % figure7 = figure('visible', isVisible) 
+% linewidth = 4;
 % 
-% 
-% plot(x,gradient(y_C_B./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient(y_C_B./soilfactor),'LineWidth', linewidth)
 % hold on
-% plot(x,gradient(y_C_MN_old./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient(y_C_MN_old./soilfactor),'LineWidth', linewidth)
 % hold on
-% plot(x,gradient(y_C_MN_new./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient(y_C_MN_new./soilfactor),'LineWidth', linewidth)
 % hold on
-% plot(x,gradient(y_C_POM./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient(y_C_POM./soilfactor),'LineWidth', linewidth)
 % hold on
-% plot(x,gradient(y_C_S./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient(y_C_S./soilfactor),'LineWidth', linewidth)
 % hold on
-% plot(x,gradient(y_CO2./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient(y_CO2./soilfactor),'LineWidth', linewidth)
 % hold on
-% plot(x,gradient((y_C_MN_new + y_C_MN_old)./soilfactor),'LineWidth', fontsizes.line_width)
+% plot(x,gradient((y_C_MN_new + y_C_MN_old)./soilfactor),'LineWidth', linewidth)
 % 
 % names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate','CO2', 'necromass total'};
 % legend(names, 'FontSize', 14, 'Location','southeast')
@@ -647,7 +499,6 @@ savefig(fullfile(outputfolder, "C_log_" + appendix))
 
 
 end
-
 
 fileID = fopen( root + 'CUE.txt','r');
 formatSpec = '%f %f';
@@ -742,27 +593,21 @@ x_R_leaked = R_leaked(startValue:end,1);
 
 
 figure8 = figure('visible', isVisible) 
-%plot(x_CUE,y_CUE,'LineWidth', fontsizes.line_width)
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
 CUE_A = 1 - y_R./abs(y_f_C);
-plot(x_CUE,CUE_A,'LineWidth', fontsizes.line_width, 'Color',colors.cue)
+plot(x_CUE,CUE_A,'LineWidth', linewidth)
 %hold on 
-%mean(CUE_A(100:200))
+mean(CUE_A(100:200))
 CUE_B = 1 - (y_R+ y_f_BD_C)./abs(y_f_C);
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-%plot(x_CUE,CUE_B,'LineWidth', fontsizes.line_width)
-xlabel('days', 'FontSize', fontsizes.xlabel)
-ylabel('Carbon Use Efficiency Microbes', 'FontSize', fontsizes.ylabel)
+%plot(x_CUE,CUE_B,'LineWidth', linewidth)
+xlabel('days', 'FontSize', 14)
+ylabel('Carbon Use Efficiency Microbes', 'FontSize', 14)
 %set(gca,'ylim', [-2 1]);
 %set(gca,'xlim', [0 numel(x_CUE)]);
 %legend(["CUE_A", "CUE_B"], 'Interpreter', 'none')
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none','FontSize',fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure8, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure8, fullfile(outputfolder, "CUE_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "CUE_" + appendix))
@@ -772,43 +617,37 @@ savefig(fullfile(outputfolder, "CUE_" + appendix))
 if false
 
 figure9 = figure('visible', isVisible) 
-%plot(x_CUE,y_CUE,'LineWidth', fontsizes.line_width)
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
-plot(x_CUE,y_R./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.r)
+xlabel('days', 'FontSize', 14)
+plot(x_CUE,y_R./soilfactor,'LineWidth', linewidth)
 %hold on 
-%plot(x_CUE,y_R_O./soilfactor,'LineWidth', fontsizes.line_width)
+%plot(x_CUE,y_R_O./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.dissolved_substrate)
+plot(x_CUE,y_f_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.dissolved_substrate)
+plot(x_CUE,y_f_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass)
+plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_BD_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass)
+plot(x_CUE,y_f_BD_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.new_microbial_necromass)
+plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_MN_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.new_microbial_necromass)
+plot(x_CUE,y_f_MN_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_POM_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.pom)
+plot(x_CUE,y_f_POM_C./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_POM_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.pom)
+plot(x_CUE,y_f_POM_N./soilfactor,'LineWidth', linewidth)
 
-%ylabel('g cm 3 ', 'FontSize', fontsizes.ylabel)
-ylabel('amount carbon mg C g^{-1} soil per day', 'FontSize', fontsizes.ylabel)
+ylabel('g cm 3 ', 'FontSize', 14)
 
-names = ["R ", "f_C ", "f_N ", "f_BD_C ", "f_BD_N ", "f_Nec_C ", "f_MN_N ", "f_POM_C ", "f_POM_N "];
+
+
 %set(gca,'ylim', [-2 1]);
-legend(names, 'Interpreter', 'none', 'FontSize', fontsizes.legend,'Location','northoutside','NumColumns', numel(names))
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none','FontSize', fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+legend(["R", "f_C", "f_N", "f_BD_C", "f_BD_N", "f_Nec_C", "f_MN_N", "f_POM_C", "f_POM_N"], 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure9, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure9, fullfile(outputfolder, "fluxes_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "fluxes_" + appendix))
@@ -818,125 +657,62 @@ end
 
 
 figure10 = figure('visible', isVisible) 
-%plot(x_CUE,y_CUE,'LineWidth', fontsizes.line_width)
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
-
-
-
-
-
-plot(x_CUE,y_f_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width)
+xlabel('days', 'FontSize', 14)
+plot(x_CUE,y_R./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass,'LineWidth', fontsizes.line_width)
-hold on 
-plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width)
-hold on 
-plot(x_CUE,y_f_POM_C./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.pom,'LineWidth', fontsizes.line_width)
-%hold on 
-%plot(x_CUE,y_f_B_C./soilfactor,'LineWidth', fontsizes.line_width)
-hold on 
-plot(x_CUE,y_R./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.r,'LineWidth', fontsizes.line_width)
-hold on 
-plot(x_CUE,y_R_O./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.r_o,'LineWidth', fontsizes.line_width)
-
-niedeggen_basal = mean(y_R(75:199)./soilfactor);
-niedeggen_peak = max(y_R(199:400)./soilfactor);
-% y_R_O_abs =  y_R_O;
-% y_R_O_abs(y_R_O_abs > 0) = 0;
-% y_R_O_abs = abs(y_R_O_abs);
+y_R_O_abs =  y_R_O;
+y_R_O_abs(y_R_O_abs > 0) = 0;
+y_R_O_abs = abs(y_R_O_abs);
 fract = y_R_O./y_R;
-fract_perc = mean(fract(75:199));
-%max(fract([100:200]))
+max(fract([100:200]))
+plot(x_CUE,y_R_O./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_C./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_POM_C./soilfactor,'LineWidth', linewidth)
+%hold on 
+%plot(x_CUE,y_f_B_C./soilfactor,'LineWidth', linewidth)
+ylabel('amount carbon mg C g soil^{-1} per day ', 'FontSize', 14)
 
-
-
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
-ylabel('amount carbon mg C g^{-1} soil per day ', 'FontSize', fontsizes.ylabel)
-
-names = ['f$_{\textrm{U}}$ ','f$_{\textrm{BD}}$ ', 'f$_{\textrm{Nec}}$ ', 'f$_{\textrm{POM}}$ ',"R ",'R$_{\textrm{O}}$ '];%
 %set(gca,'ylim', [-2 1]);
-%legend(names, 'Interpreter', 'none', 'FontSize', fontsizes.legend, 'Location','northoutside','NumColumns', numel(names)) % , "f_B_growth"
-
-
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color', colors.dissolved_substrate,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h4 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend);  
-h5 = plot(NaN, NaN, 'Color',colors.r,'LineWidth', fontsizes.line_width_legend); 
-h6 = plot(NaN, NaN, 'Color',colors.r_o,'LineWidth', fontsizes.line_width_legend); 
-leg = [h1, h2, h3,h4,h5,h6];%h4,
-legend1 = legend(leg,names, 'Interpreter', 'latex','NumColumns', numel(names));
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northoutside');
-
-
-
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none','FontSize', fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+legend(["R","R_O","f_C","f_BD_C", "f_Nec_C", "f_POM_C"], 'Interpreter', 'none') % , "f_B_growth"
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure10, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure10, fullfile(outputfolder, "fluxesC_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "fluxesC_" + appendix))
 
-R_O;
+
+
 
 
 
 figure11 = figure('visible', isVisible) 
-%plot(x_CUE,y_CUE,'LineWidth', fontsizes.line_width)
+%plot(x_CUE,y_CUE,'LineWidth', linewidth)
 %hold on 
-
- 
-plot(x_CUE,y_f_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width)
+xlabel('days', 'FontSize', 14)
+plot(x_CUE,y_R_leaked./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_BD_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass,'LineWidth', fontsizes.line_width)
+plot(x_CUE,y_f_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_MN_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width)
+plot(x_CUE,y_f_BD_N./soilfactor,'LineWidth', linewidth)
 hold on 
-plot(x_CUE,y_f_POM_N./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.pom,'LineWidth', fontsizes.line_width)
-hold on
-plot(x_CUE,y_R_leaked./soilfactor,'LineWidth', fontsizes.line_width, 'Color',colors.r,'LineWidth', fontsizes.line_width)
+plot(x_CUE,y_f_MN_N./soilfactor,'LineWidth', linewidth)
+hold on 
+plot(x_CUE,y_f_POM_N./soilfactor,'LineWidth', linewidth)
 
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
-ylabel('amount nitrogen mg N g^{-1} soil per day', 'FontSize', fontsizes.ylabel)
+ylabel('amount nitrogen mg N g soil^{-1} per day', 'FontSize', 14)
 
-names = {'f$_{\textrm{N}}$ ', 'f$_{\textrm{BD}}$ ', 'f$_{\textrm{Nec}}$ ', 'f$_{\textrm{POM}}$ ','R$_{\textrm{leak}}$ '};
-
-%names = ['f$_{\textrm{U}}$ ', 'f$_{\textrm{BD}}$ ', 'f$_{\textrm{Nec}}$ ', 'f$_{\textrm{POM}}$ ',"R ",'R$_{\textrm{leak}}$ '];%
 %set(gca,'ylim', [-2 1]);
-%legend(names, 'Interpreter', 'latex', 'FontSize', fontsizes.legend, 'Location','northoutside','NumColumns', numel(names))
-
-
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color', colors.dissolved_substrate,'LineWidth',fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h4 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend);  
-h5 = plot(NaN, NaN, 'Color',colors.r,'LineWidth', fontsizes.line_width_legend); 
-leg = [h1,h2, h3,h4,h5];
-legend1 = legend(leg,names, 'Interpreter', 'latex','NumColumns', numel(names));
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northoutside');
-
-
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none', 'FontSize', fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+legend(["R_leaked", "f_N", "f_BD_N", "f_Nec_N", "f_POM_N"], 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure11, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure11, fullfile(outputfolder, "fluxesN_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "fluxesN_" + appendix))
@@ -949,7 +725,7 @@ savefig(fullfile(outputfolder, "fluxesN_" + appendix))
 % phi = y_f_C./(y_C_S./y_N_S) - y_f_N;
 % C_N_uptake =  y_f_C./y_f_N
 % growth_N = -y_f_B_N + y_f_C/10 - y_f_BD_N;
-% plot(x_CUE,phi,'LineWidth', fontsizes.line_width)
+% plot(x_CUE,phi,'LineWidth', linewidth)
 % xlabel('days', 'FontSize', 14)
 % ylabel('growth y_f_B_C ', 'FontSize', 14)
 % %legend(["C_N"], 'Interpreter', 'none')
@@ -960,27 +736,22 @@ savefig(fullfile(outputfolder, "fluxesN_" + appendix))
 
 figure13= figure('visible', isVisible) 
 C_N = y_C_S./y_N_S;
-plot(x_CUE,C_N,'LineWidth', fontsizes.line_width, 'Color', colors.c_n)
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
-xlabel('days', 'FontSize', fontsizes.xlabel)
-ylabel('C/N ratio of dissolved substrate in pore space [-]', 'FontSize', fontsizes.ylabel)
-%legend(["C_N"], 'Interpreter', 'none', 'FontSize', fontsizes.legend)
-%set(gca, 'FontSize', 14)
-if title_on
-    title(titel, 'Interpreter', 'none', 'FontSize', fontsizes.title)
-end
-set(gca,'TickDir',tick_dir);
+plot(x_CUE,C_N,'LineWidth', linewidth)
+xlabel('days', 'FontSize', 14)
+ylabel('C_N ', 'FontSize', 14)
+legend(["C_N"], 'Interpreter', 'none')
+set(gca, 'FontSize', 14)
+title(titel, 'Interpreter', 'none')
 set(figure13, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure13, fullfile(outputfolder, "C_N_" + appendix + ".png"));
 savefig(fullfile(outputfolder, "C_N_" + appendix))
-%pause
+
+
 
 % figure14 = figure('visible', isVisible) 
 % xlabel('days', 'FontSize', 14)
-% plot(x_CUE,y_R_O,'LineWidth', fontsizes.line_width)
-% %plot(x_CUE,y_R_O./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x_CUE,y_R_O,'LineWidth', linewidth)
+% %plot(x_CUE,y_R_O./soilfactor,'LineWidth', linewidth)
 % ylabel('amount nitrogen mg N g soil^{-1} per day ', 'FontSize', 14)
 % 
 % %set(gca,'ylim', [-2 1]);
@@ -1035,18 +806,18 @@ end
 
 % if false
 % figure3 = figure('visible', isVisible) 
-% 
-% plot(x,y_N_B./max(y_N_B),'LineWidth', fontsizes.line_width)
+% linewidth = 4;
+% plot(x,y_N_B./max(y_N_B),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_MN_old./max(y_N_MN_old),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_MN_old./max(y_N_MN_old),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_MN_new./max(y_N_MN_new),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_MN_new./max(y_N_MN_new),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_POM./max(y_N_POM),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_POM./max(y_N_POM),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_S./max(y_N_S),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_S./max(y_N_S),'LineWidth', linewidth)
 % hold on
-% plot(x,y_sumleakedC_N./max(y_sumleakedC_N),'LineWidth', fontsizes.line_width)
+% plot(x,y_sumleakedC_N./max(y_sumleakedC_N),'LineWidth', linewidth)
 % legend(names, 'FontSize', 14, 'Location','southeast')
 % xlabel('days', 'FontSize', 14)
 % ylabel('amount nitrogen normalized by the maximum value', 'FontSize', 14)
@@ -1057,18 +828,18 @@ end
 % saveas(figure3, fullfile(outputfolder, "C_norm_" + appendix + ".png"));
 % 
 % figure4 = figure('visible', isVisible) 
-% 
-% plot(x,y_C_B./max(y_C_B),'LineWidth', fontsizes.line_width)
+% linewidth = 4;
+% plot(x,y_C_B./max(y_C_B),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_MN_old./max(y_C_MN_old),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_MN_old./max(y_C_MN_old),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_MN_new./max(y_C_MN_new),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_MN_new./max(y_C_MN_new),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_POM./max(y_C_POM),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_POM./max(y_C_POM),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_S./max(y_C_S),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_S./max(y_C_S),'LineWidth', linewidth)
 % hold on
-% plot(x,y_CO2./max(y_CO2),'LineWidth', fontsizes.line_width)
+% plot(x,y_CO2./max(y_CO2),'LineWidth', linewidth)
 % legend(names, 'FontSize', 14, 'Location','southeast')
 % xlabel('days', 'FontSize', 14)
 % ylabel('amount carbon normalized by the maximum value', 'FontSize', 14)
@@ -1084,18 +855,18 @@ end
 % 
 % 
 % figure6 = figure('visible', isVisible) 
-% 
-% plot(x,y_N_B./max(y_N_B),'LineWidth', fontsizes.line_width)
+% linewidth = 4;
+% plot(x,y_N_B./max(y_N_B),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_MN_old./y_N_MN_old(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_MN_old./y_N_MN_old(end),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_MN_new./y_N_MN_new(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_MN_new./y_N_MN_new(end),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_POM./y_N_POM(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_POM./y_N_POM(end),'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_S./max(y_N_S),'LineWidth', fontsizes.line_width)
+% plot(x,y_N_S./max(y_N_S),'LineWidth', linewidth)
 % hold on
-% plot(x,y_sumleakedC_N./y_sumleakedC_N(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_sumleakedC_N./y_sumleakedC_N(end),'LineWidth', linewidth)
 % legend(names, 'FontSize', 14, 'Location','southeast')
 % xlabel('days', 'FontSize', 14)
 % ylabel('amount nitrogen normalized by the steady state value', 'FontSize', 14)
@@ -1106,18 +877,18 @@ end
 % saveas(figure6, fullfile(outputfolder, "C_norm_last_" + appendix + ".png"));
 % 
 % figure7 = figure('visible', isVisible) 
-% 
-% plot(x,y_C_B./max(y_C_B),'LineWidth', fontsizes.line_width)
+% linewidth = 4;
+% plot(x,y_C_B./max(y_C_B),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_MN_old./y_C_MN_old(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_MN_old./y_C_MN_old(end),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_MN_new./y_C_MN_new(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_MN_new./y_C_MN_new(end),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_POM./y_C_POM(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_POM./y_C_POM(end),'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_S./max(y_C_S),'LineWidth', fontsizes.line_width)
+% plot(x,y_C_S./max(y_C_S),'LineWidth', linewidth)
 % hold on
-% plot(x,y_CO2./y_CO2(end),'LineWidth', fontsizes.line_width)
+% plot(x,y_CO2./y_CO2(end),'LineWidth', linewidth)
 % legend(names, 'FontSize', 14, 'Location','southeast')
 % xlabel('days', 'FontSize', 14)
 % ylabel('amount carbon normalized by the steady state value', 'FontSize', 14)

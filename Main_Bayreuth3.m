@@ -35,6 +35,7 @@ output_file = "/home.local/roetzer/C_N/";
 %name = "_noMove_mucilageCN100_10x5thdayShoot_factor_10" %mucilageC_every100steps";%_mass_balance_move mucilageC_after100steps
 name="_move_mucilageCN100_10x5thdayShoot_rangeDiff_por45_bayreuth_noextraPOM";
 name="_Nomove_mucilageCN10_10x5thdayShoot_rangeDiff_por45";
+name="_diffusion_test";
 name = "_" +name_;
 diaryname = 'mydiary' + name + '.txt';
 if(isfile(diaryname))
@@ -191,7 +192,7 @@ parameters.eta_PAR = 1;
 
 
 parameters.minConC_B = 0.0132/8; %0.00001;%%0.001;%;TODO!!!!!!!!!!!!!!!!!!!!!  0.0132   0.000132
-parameters.initConC_B = 0.3168/5;%0.0539
+parameters.initConC_B = 0.3168/(5);%0.0539
 parameters.maxConcC_B = 0.3168;
 %parameters.initConC_B = parameters.maxConcC_B;
 parameters.mucilageC = 0.036;%3.6 * 10^-6;%;0.0360;%parameters.constantMucilageDeposition;%parameters.startConcPOM/100;/NZd
@@ -213,6 +214,12 @@ parameters.tau_ode = 3600; %12 * 60;
 C_SVector_normal = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
 C_SVector = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
 N_SVector =  C_SVector_normal ./ parameters.C_N_S;
+dfp_C_S.uDG = [];
+dfp_C_S.q1DG = [];
+dfp_C_S.q2DG = [];
+dfp_N_S.uDG = [];
+dfp_N_S.q1DG = [];
+dfp_N_S.q2DG = [];
 sumleakedN_S = 0;
 
 previousConcentration = sum(C_SVector)
@@ -411,7 +418,7 @@ printInfoBayreuth(0,N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector_all, 
 
 sumAgent = sum(concAgent);
 
-
+dfp = setupDiffusion_general(g);
 
 for k = k_start + 1 : numOuterIt
 fprintf('k %d \n', k)
@@ -511,7 +518,7 @@ end
 % aging of memory edges
 %POMagentAge = calculatePOMagentAge(parameters, POMagentAge, edgeChargeVector, concPOMAgent );
 
-EPSVector = (C_SVector > 0.01) |  (MB_Vector == 1);%
+EPSVector = (C_SVector > parameters.K_Cliquid * 10) |  (MB_Vector == 1);%
 EPSInd = find(EPSVector == 1);
 EPSParticleList = cell(numel(EPSInd),1);
 for i = 1:numel(EPSInd)
@@ -598,9 +605,13 @@ for POMParticle = 1 : length( POMParticleList )
     %if(sum(MNVector(POMParticleList{ POMParticle })) > 1)
      %   continue;
     %end
+   
     if(numel(POMParticleList{ POMParticle }) == 1)
+       helper = stencil( g.NX , g.NX , POMParticleList{ POMParticle } , 1);
+       if(sum(MB_Vector(helper)> 0) > 0)
        fprintf("necromass")
        continue;
+       end
     end
     % calculate stencil of POM particle depending on its area
 %     bigParticleStencilLayers_individual = 1;
@@ -630,7 +641,17 @@ if bigJumping == 1
     
 % identify all aggregates consisting of solid building units and POM
 % particles
-[particleList, particleContent] = particleInfoTUM(bulkVector-(rootVector), solidParticleList, POMParticleList);
+%mb plus 2, alle necromass particle weg
+index_MB = find(MB_Vector > 0);
+helper = reshape(stencil( g.NX , g.NX , index_MB , 1),1,[]);
+%POMParticleList = [POMParticleList, {helper(2)}];
+filteredCells =  POMParticleList(cellfun(@numel,  POMParticleList) == 1);
+filteredCells = [filteredCells{:}];
+aa =intersect(filteredCells,helper);
+helpVector = rootVector;
+helpVector(:) = 0;
+helpVector(aa) = 1;
+[particleList, particleContent] = particleInfoTUM(bulkVector-(rootVector)-helpVector, solidParticleList, POMParticleList);
 for particle = 1 : length( particleList )
     particleSize = length( particleList{ particle } ); 
     if(size(particleContent{particle},1)<2)% kein Verbund
@@ -641,9 +662,12 @@ for particle = 1 : length( particleList )
     end
     % neu
     %if(sum(MNVector(particleList{particle})) <  particleSize)
-    if(sum(MNVector(particleList{particle})) >  0)
-        continue;
-    end
+    
+    
+    %if(sum(MNVector(particleList{particle})) >  0)
+    %    continue;
+    %end
+
     test_ind = particleList{particle}(1);
     
     bigParticleStencilLayers_individual = min(5, ceil(20/(particleSize)^0.5));
@@ -770,9 +794,9 @@ N_PMNVector =  zeros(g.numT, 1);
 C_PPlantVector =  zeros(g.numT, 1);
 N_PPlantVector =  zeros(g.numT, 1);
 
-[bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, POMParticleList, POMageVector,CO2Vector, CO2Vector_over,leakedNVector, EPSconcVector_MB,  C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, ...
+[dfp,dfp_C_S,dfp_N_S, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector ,C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, POMParticleList, POMageVector,CO2Vector, CO2Vector_over,leakedNVector, EPSconcVector_MB,  C_PPlantVector,N_PPlantVector, C_PMNVector, N_PMNVector, ...
     CUE, f_C,f_BD_C,B_C,R,R_O, f_N,f_BD_N,B_N, leakedN_S, f_POM_C, f_POM_N, f_MN_C, f_MN_N] = ...
-   calculate_C_N(g, parameters, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,CO2Vector_over, leakedNVector, outerRootBorderInd,isMBFactor);
+   calculate_C_N(g, parameters,dfp,dfp_C_S,dfp_N_S, bulkVector, MB_Vector, N_SVector, C_SVector, N_BVector, C_BVector , C_MNVector, N_MNVector, MNVector, POMVector, POMconcVector, reactiveSurfaceVector, POMParticleList, POMageVector,CO2Vector,CO2Vector_over, leakedNVector, outerRootBorderInd,isMBFactor);
 
 %C_SVector = ones(g.numT, 1) .* ~bulkVector .* parameters.DOC;
 %N_SVector =  C_SVector_normal ./ parameters.C_N_S;%Weg TODO

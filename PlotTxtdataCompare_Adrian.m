@@ -1,8 +1,7 @@
-function PlotTxtdataCompare(files, description, names_appendix)
+function PlotTxtdataCompare_Adrian(files, description, names_appendix)
 close all
-
 imageFolder = "bilder/CN/paperReady/";
-%imageFolder = "final_pics/";
+%imageFolder = "final_pics2/";
 outputfolder = imageFolder + description + "/";
 if ~exist(outputfolder, 'dir')  % Check if the folder exists
     mkdir(outputfolder);        % Create the folder
@@ -10,14 +9,6 @@ if ~exist(outputfolder, 'dir')  % Check if the folder exists
 else
     disp(['Folder already exists at: ', outputfolder]);
 end
-
-if(description == "paperSimulation_compareParticleMovement")
-extendedLegend = 0;
-else
-extendedLegend = 1;
-end
-extendedLegend = 0;
-
 %ANNZ / SNNZ    * (sum(C_A)/ANNZ)*  (C_SNNZ/sum(C_Solid)  
 %flÃ¤che anteil/ flÃ¤che soil   *  anteil densitiy/solid density 
 porosity = 0.411;
@@ -25,7 +16,6 @@ soil_particleNNZ = 250 * 250 * (1-porosity);
 soilParticleDensity = 2.36;
 isNNZ = false;
 startValue = 5;
-startValue = 181;
 soilfactor = ( soil_particleNNZ * soilParticleDensity/1000 );
 
 titel = description;
@@ -36,7 +26,6 @@ if files.contains("2years")
     last_value = 2000;
 else
 last_value = Inf;
-last_value = 351;
 end
 % DOC ist zu hoch
 
@@ -67,22 +56,21 @@ colors = struct(...
 );
 
 fontsizes = struct(...
-    'xlabel', 39, ...
-    'ylabel', 39, ...
-    'xaxis', 40, ...
-    'yaxis', 40, ... 
-    'legend', 35, ...
+    'xlabel', 26, ...
+    'ylabel', 26, ... 
+    'xaxis', 26, ...
+    'yaxis', 26, ... 
+    'legend', 26, ...
     'title', 18, ...
-    'bartext', 20, ...
-    'bartext_arrow', 20, ...
-    'line_width',5, ...
-    'line_width_legend',12 ...
+    'bartext', 26, ...
+    'bartext_arrow', 26 ...
 );
 title_on = false;
 tick_dir = 'out'; %or 'in'
     
 close all
 %% Plots 
+linewidth = 2;
 markers = ["-", "--", ":","-."];
 if numel(files) <= numel(markers)
 %% figure 5
@@ -90,8 +78,8 @@ figure5 = figure('visible', isVisible)
 names = {};
 for file = 1:numel(files)
 appendix = files(file);
-root = "/home.local/roetzer/C_N/txtdata_" + appendix +"/"
-%root = "/home.other/fauamlx5g/roetzer/C_N/txtdata_" + appendix +"/"
+%root = "/home.local/roetzer/C_N/txtdata_" + appendix +"/"
+root = "/home.other/fauamlx5g/roetzer/C_N/txtdata_" + appendix +"/"
     
 %% carbon data
 fileID = fopen(root + 'C_BVector.txt','r');
@@ -211,24 +199,24 @@ x = x_C_MN;
 
 POM_added = floor([1:numel(y_C_B)]./10) * 0.083;
 
-plot(x,y_C_B./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass)
+plot(x,y_C_B./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.microbial_biomass)
 hold on
-% plot(x,y_C_MN_old./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x,y_C_MN_old./soilfactor,'LineWidth', linewidth)
 % hold on
-% plot(x,y_C_MN_new./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x,y_C_MN_new./soilfactor,'LineWidth', linewidth)
 % hold on
-plot(x,y_C_POM./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.pom)
+plot(x,y_C_POM./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.pom)
 hold on
-plot(x,y_C_S./soilfactor,markers(file),'LineWidth', fontsizes.line_width,'Color',colors.dissolved_substrate)
+plot(x,y_C_S./soilfactor,markers(file),'LineWidth', linewidth,'Color',colors.dissolved_substrate)
 hold on
-%plot(x,y_CO2./soilfactor,markers(file),'LineWidth', fontsizes.line_width,'Color',colors.leakage_co2)
+plot(x,y_CO2./soilfactor,markers(file),'LineWidth', linewidth,'Color',colors.leakage_co2)
+hold on
+plot(x,(y_C_MN_new + y_C_MN_old)./soilfactor,markers(file),'LineWidth', linewidth,'Color',colors.sum_microbial_necromass)
+hold on
+qw{file} = plot(x,(y_C_MN_new + y_C_MN_old)./soilfactor * 0,markers(file),'LineWidth', 0.01,'Color',[0 0 0]);
+% plot(x,POM_added,'LineWidth', linewidth)
 %hold on
-plot(x,(y_C_MN_new + y_C_MN_old)./soilfactor,markers(file),'LineWidth', fontsizes.line_width,'Color',colors.sum_microbial_necromass)
-hold on
-qw{file} = plot(NaN, NaN,markers(file),'LineWidth', fontsizes.line_width,'Color',[0 0 0]);
-% plot(x,POM_added,'LineWidth', fontsizes.line_width)
-%hold on
-%plot(x,y_CO2_over,'LineWidth', fontsizes.line_width)
+%plot(x,y_CO2_over,'LineWidth', linewidth)
 name = {'biomass' + names_appendix(file),  ...%'Necromass old'+names_appendix(file), 'Necromass new'+names_appendix(file),...
     'POM'+names_appendix(file), 'dissolved substrate'+names_appendix(file),'CO2'+names_appendix(file), ...
     'necromass total'+names_appendix(file)}; %, 'POM added'+names_appendix(file)};
@@ -236,83 +224,27 @@ names = [names,name];
 
 
 
-%meanC_B = (mean(y_C_B(200:350))- mean(y_C_B(100:199)))./soilfactor
+meanC_B = (mean(y_C_B(200:350))- mean(y_C_B(100:199)))./soilfactor
 
 
 end % files
-%legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend, 'Location','southeast')
 
-ax = gca;
-ax.XAxis.FontSize = fontsizes.xaxis;
-ax.YAxis.FontSize = fontsizes.yaxis;
+%legend(names, 'FontSize', 14, 'Location','southeast')
+legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend, 'Location','southeast')
+ax = gca
+ax.XAxis.FontSize = fontsizes.xaxis
+ax.YAxis.FontSize = fontsizes.yaxis
 xlabel('days', 'FontSize',fontsizes.xlabel)
 
-ylabel('amount carbon mg C g^{-1} soil', 'FontSize', fontsizes.ylabel)
+ylabel('amount carbon mg C g soil^{-1} (log scale)', 'FontSize', fontsizes.ylabel)
 set(gca, 'YScale', 'log');  % Set y-axis to log scale
 set(gca,'TickDir',tick_dir);
-set(gca, 'xLim', [x(1) x(end)]);
-ax.XAxis.TickValues = unique([x(1), ax.XAxis.TickValues,  x(end)]) ;
-%set(gca,'XTick',[180,200,250,300,350])
 
 %set(gca, 'FontSize', 14)
 
 if title_on
     title(titel, 'Interpreter', 'none', 'FontSize',fontsizes.title)
 end
-
-
-%--------------------------
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color', colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width_legend); 
-%h4 = plot(NaN, NaN, 'Color',colors.leakage_co2,'LineWidth', fontsizes.line_width);  
-h5 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-leg = [h1, h2, h3,h5];%h4,
-names =  {'microbial biomass', 'POM','dissolved substrate', 'necromass total'};%'CO2',
-component_names = names;
-nof_names = numel(names);
-for file = 1:numel(files)
-hd = plot(NaN, NaN, markers(file), 'Color',[0,0,0],'LineWidth', fontsizes.line_width);  
-leg = [leg,hd];
-names = [names,{names_appendix(file)}];
-end
-for file = 1:(nof_names-numel(files))
-    leg = [leg,h_dummy];
-names = [names,{""}];
-end
-hold off
-
-
-first_half = names(1:nof_names);
-second_half = names(nof_names +1:numel(names));
-
-% Interleave them
-interleaved_names = cell(1, numel(names));
-interleaved_names(1:2:end) = first_half;
-interleaved_names(2:2:end) = second_half;
-
-first_half = leg(1:nof_names);
-second_half = leg(nof_names +1:numel(names));
-
-% Interleave them
-interleaved = leg;
-interleaved(1:2:end) = first_half;
-interleaved(2:2:end) = second_half;
-
-if(extendedLegend)
-legend1 = legend(interleaved,interleaved_names, 'NumColumns', nof_names);
-else
-legend1 = legend(leg,component_names, 'NumColumns', nof_names);
-end
-
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northoutside');
-%--------------------------
-
-
 set(figure5, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure5, fullfile(outputfolder, "C_log_" +description + ".png"));
 savefig(fullfile(outputfolder, "C_log_" + description))
@@ -413,7 +345,7 @@ end
 
 fileID = fopen( root + 'leakedNVector.txt','r');
 formatSpec = '%f %f';
-leakedN = fscanf(fileID,formatSpec,  [2 last_value])';
+leakedN = fscanf(fileID,formatSpec,  [2 Inf])';
 y_sumleakedC_N = leakedN(startValue:end,2)/average_factor;
 x_leakedN = leakedN(startValue:end,1);
 
@@ -426,21 +358,21 @@ x_leakedNNNZ = leakedNNNZ(startValue:end,1);
 end
 
 x = x_N_B;
-plot(x,y_N_B./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass)
+plot(x,y_N_B./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.microbial_biomass)
 hold on
-% plot(x,y_N_MN_old./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x,y_N_MN_old./soilfactor,'LineWidth', linewidth)
 % hold on
-% plot(x,y_N_MN_new./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x,y_N_MN_new./soilfactor,'LineWidth', linewidth)
 % hold on
-plot(x,y_N_POM./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.pom)
+plot(x,y_N_POM./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.pom)
 hold on
-plot(x,y_N_S./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.dissolved_substrate)
+plot(x,y_N_S./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.dissolved_substrate)
 hold on
-% plot(x,y_sumleakedC_N./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.leakage_co2)
-% hold on
-plot(x,(y_N_MN_new + y_N_MN_old)./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.sum_microbial_necromass)
+plot(x,y_sumleakedC_N./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.leakage_co2)
 hold on
-qw{file} = plot(NaN, NaN,markers(file),'LineWidth', fontsizes.line_width,'Color',[0 0 0]);
+plot(x,(y_N_MN_new + y_N_MN_old)./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.sum_microbial_necromass)
+hold on
+qw{file} = plot(x,x* 0,markers(file),'LineWidth', 0.01,'Color',[0 0 0]);
 name = {'biomass' + names_appendix(file),  ...
     'POM'+names_appendix(file), 'dissolved substrate'+names_appendix(file),'leaked N'+names_appendix(file), ...
     'necromass total'+names_appendix(file)};
@@ -449,77 +381,20 @@ names = [names,name];
 end %files
 %names = {'biomass', 'Necromass old','Necromass new', 'POM', 'dissolved substrate', 'leaked N', 'necromass total'};
 %legend(names, 'FontSize', 14, 'Location','southeast')
-
-%alternative legende
-%legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend, 'Location','southeast')
-
+legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend, 'Location','southeast')
 ax = gca
 ax.XAxis.FontSize = fontsizes.xaxis
 ax.YAxis.FontSize = fontsizes.yaxis
 xlabel('days', 'FontSize', fontsizes.xlabel)
 
-ylabel('amount nitrogen mg N g^{-1} soil', 'FontSize', fontsizes.ylabel)
+ylabel('amount nitrogen mg N g soil^{-1} (log scale)', 'FontSize', fontsizes.ylabel)
 
 set(gca, 'YScale', 'log');  % Set y-axis to log scale
 set(gca,'TickDir',tick_dir);
-set(gca, 'xLim', [x(1) x(end)]);
-ax.XAxis.TickValues = unique([x(1), ax.XAxis.TickValues,  x(end)]);
 %set(gca, 'FontSize', 14)
 if title_on
     title(titel, 'Interpreter', 'none', 'FontSize',fontsizes.title)
 end
-
-%--------------------------
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color', colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width_legend); 
-%h4 = plot(NaN, NaN, 'Color',colors.leakage_co2,'LineWidth', fontsizes.line_width);  
-h5 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-leg = [h1, h2, h3,h5];%h4,
-names =  {'microbial biomass', 'POM','dissolved substrate',  'necromass total'};%'leakage',
-nof_names = numel(names);
-for file = 1:numel(files)
-hd = plot(NaN, NaN, markers(file), 'Color',[0,0,0],'LineWidth', fontsizes.line_width);  
-leg = [leg,hd];
-names = [names,{names_appendix(file)}];
-end
-for file = 1:(nof_names-numel(files))
-    leg = [leg,h_dummy];
-names = [names,{""}];
-end
-hold off
-
-
-first_half = names(1:1:nof_names);
-second_half = names(nof_names +1:numel(names));
-
-% Interleave them
-interleaved_names = cell(1, numel(names));
-interleaved_names(1:2:end) = first_half;
-interleaved_names(2:2:end) = second_half;
-
-first_half = leg(1:1:nof_names);
-second_half = leg(nof_names +1:numel(names));
-
-% Interleave them
-interleaved = leg;
-interleaved(1:2:end) = first_half;
-interleaved(2:2:end) = second_half;
-
-if(extendedLegend)
-legend1 = legend(interleaved,interleaved_names, 'NumColumns', nof_names);
-else
-legend1 = legend(leg,component_names, 'NumColumns', nof_names);
-end
-
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northoutside');
-%--------------------------
-
-
 set(figure6, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 saveas(figure6, fullfile(outputfolder, "N_log_" + description + ".png"));
 savefig(fullfile(outputfolder, "N_log_" + description))
@@ -621,21 +496,20 @@ x_f_POM_C = f_POM_C(startValue:end,1);
 
 x = x_f_B_C;
 
-plot(x_CUE,y_R./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.r)
+plot(x_CUE(195:300),y_R(195:300)./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.r)
 hold on 
-plot(x_CUE,y_R_O./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.r_o)
-%plot(x_CUE(195:300),y_R_O(195:300)/y_R(195:300),markers(file),'LineWidth', fontsizes.line_width, 'Color',colorCode(2,:))
+plot(x_CUE(195:300),y_R_O(195:300)./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.r_o)
+%plot(x_CUE(195:300),y_R_O(195:300)/y_R(195:300),markers(file),'LineWidth', linewidth, 'Color',colorCode(2,:))
 hold on 
-% plot(x_CUE,y_f_C./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x_CUE,y_f_C./soilfactor,'LineWidth', linewidth)
 % hold on 
-% plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x_CUE,y_f_BD_C./soilfactor,'LineWidth', linewidth)
 % hold on 
-% plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', fontsizes.line_width)
+% plot(x_CUE,y_f_MN_C./soilfactor,'LineWidth', linewidth)
 % hold on 
-% plot(x_CUE,y_f_POM_C./soilfactor, markers(file),'LineWidth', fontsizes.line_width, 'Color',colorCode(2,:))
+% plot(x_CUE,y_f_POM_C./soilfactor, markers(file),'LineWidth', linewidth, 'Color',colorCode(2,:))
 % hold on
-
-%----qw{file} = plot(NaN, NaN,markers(file),'LineWidth', fontsizes.line_width,'Color',[0 0 0]);
+qw{file} = plot(x(195:300),(y_C_MN_new(195:300) + y_C_MN_old(195:300))./soilfactor * 0,markers(file),'LineWidth', 0.01,'Color',[0 0 0]);
 hold on
 
 name = {"R"+names_appendix(file),"R_O"+names_appendix(file),...
@@ -643,27 +517,10 @@ name = {"R"+names_appendix(file),"R_O"+names_appendix(file),...
     % "f_Nec_C"+names_appendix(file), "f_POM_C"+names_appendix(file)};
     };
 names = [names,name];
-%f_POM_increae = max(y_f_POM_C)/mean(y_f_POM_C(100:199))
+f_POM_increae = max(y_f_POM_C)/mean(y_f_POM_C(100:199))
 end %files
-% legend(names, 'FontSize', 14, 'Location','southeast', 'Interpreter', 'none')
-%-----legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend,
-%'Location','northeast') %weg
-
-
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-h1 = plot(NaN, NaN,'Color',colors.r,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.r_o,'LineWidth', fontsizes.line_width_legend); 
-
-leg = [h1, h2]
-legend1 = legend(leg,{'R', 'R$_{\textrm{O}}$'},'Interpreter', 'latex', 'NumColumns', 1);
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northeast');
-
-
-
-
+%legend(names, 'FontSize', 14, 'Location','southeast', 'Interpreter', 'none')
+legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend, 'Location','southeast')
 ax = gca
 ax.XAxis.FontSize = fontsizes.xaxis
 ax.YAxis.FontSize = fontsizes.yaxis
@@ -672,8 +529,6 @@ xlabel('days', 'FontSize', fontsizes.xlabel)
 ylabel('amount carbon mg C g soil^{-1} per day ', 'FontSize', fontsizes.ylabel)
 %set(gca, 'FontSize', 14)
 set(gca,'TickDir',tick_dir);
-set(gca, 'xLim', [x(1) x(end)]);
-ax.XAxis.TickValues = unique([x(1), ax.XAxis.TickValues,  x(end)]) ;
 if title_on
     title(titel, 'Interpreter', 'none', 'FontSize',fontsizes.title)
 end
@@ -732,58 +587,36 @@ x_R_leaked = R_leaked(startValue:end,1);
 
 
 X = x_f_POM_N;
-plot(x_CUE,y_R_leaked./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.r)
+plot(x_CUE,y_R_leaked./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.r)
 hold on 
-plot(x_CUE,y_f_N./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.dissolved_substrate)
+plot(x_CUE,y_f_N./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.dissolved_substrate)
 hold on 
-plot(x_CUE,y_f_BD_N./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.microbial_biomass)
+plot(x_CUE,y_f_BD_N./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.microbial_biomass)
 hold on 
-plot(x_CUE,y_f_MN_N./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.new_microbial_necromass)
+plot(x_CUE,y_f_MN_N./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.new_microbial_necromass)
 hold on 
-plot(x_CUE,y_f_POM_N./soilfactor,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.pom)
+plot(x_CUE,y_f_POM_N./soilfactor,markers(file),'LineWidth', linewidth, 'Color',colors.pom)
 hold on
-qw{file} = plot(NaN, NaN,markers(file),'LineWidth', fontsizes.line_width ,'Color',[0 0 0]);
+qw{file} = plot(x,(y_C_MN_new + y_C_MN_old)./soilfactor * 0,markers(file),'LineWidth', 0.01,'Color',[0 0 0]);
 
 name = {"R_leaked"+names_appendix(file), "f_N"+names_appendix(file), ...
-    "f_BD"+names_appendix(file), "f_Nec"+names_appendix(file), "f_POM"+names_appendix(file)
+    "f_BD_N"+names_appendix(file), "f_Nec_N"+names_appendix(file), "f_POM_N"+names_appendix(file)
     };
 names = [names,name];
 
-%f_POM_increase = max(y_f_POM_N)/mean(y_f_POM_N(100:199))
+f_POM_increase = max(y_f_POM_N)/mean(y_f_POM_N(100:199))
 end
 ax = gca
 ax.XAxis.FontSize = fontsizes.xaxis
 ax.YAxis.FontSize = fontsizes.yaxis
 xlabel('days', 'FontSize', fontsizes.xlabel)
-ylabel('amount nitrogen mg N g^{-1} soil per day', 'FontSize', fontsizes.ylabel)
+ylabel('amount nitrogen mg N g soil^{-1} per day', 'FontSize', fontsizes.ylabel)
 set(gca,'TickDir',tick_dir);
-set(gca, 'xLim', [x(1) x(end)]);
-ax.XAxis.TickValues = unique([x(1), ax.XAxis.TickValues,  x(end)]) ;
 
 %set(gca,'ylim', [-2 1]);
 %legend(names, 'FontSize', 14, 'Location','southeast', 'Interpreter', 'none')
-%--------lgd = legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend,'Location','northeast')%weg
-%lgd.IconColumnWidth  = lgd.FontSize;
+legend([qw{:}],  names_appendix, 'FontSize', fontsizes.legend, 'Location','southeast')
 %set(gca, 'FontSize', 14)
-
-
-
-h_dummy = plot(NaN, NaN, 'w'); % invisible dummy
-set(h_dummy, 'HandleVisibility', 'off'); % hide from legend interaction
-
-hold on
-
-h1 = plot(NaN, NaN,'Color',colors.r,'LineWidth', fontsizes.line_width_legend); 
-h2 = plot(NaN, NaN, 'Color',colors.dissolved_substrate,'LineWidth', fontsizes.line_width_legend); 
-h3 = plot(NaN, NaN, 'Color',colors.microbial_biomass,'LineWidth', fontsizes.line_width_legend); 
-h4 = plot(NaN, NaN, 'Color',colors.sum_microbial_necromass,'LineWidth', fontsizes.line_width_legend); 
-h5 = plot(NaN, NaN, 'Color',colors.pom,'LineWidth', fontsizes.line_width_legend); 
-
-leg = [h1, h2,h3,h4,h5]
-legend1 = legend(leg,{'R_leak', 'f_N', 'f_BD', 'f_Nec', 'f_POM'},'Interpreter', 'latex', 'NumColumns', 1);
-set(legend1, 'FontSize', fontsizes.legend,'Location', 'northeast');
-
-
 if title_on
     title(titel, 'Interpreter', 'none', 'FontSize',fontsizes.title)
 end
@@ -822,26 +655,24 @@ x_f_C = f_C(startValue:end,1);
 x_R = x_f_C;
 
 CUE_A = 1 - y_R./abs(y_f_C);
-plot(x_CUE,CUE_A,markers(file),'LineWidth', fontsizes.line_width, 'Color',colors.cue)
+plot(x_CUE,CUE_A,markers(file),'LineWidth', linewidth, 'Color',colors.cue)
 hold on 
-%mean(CUE_A(100:200))
+mean(CUE_A(100:200))
 name = {"CUE"+names_appendix(file)};
 names = [names,name];
 
 
 end
 %CUE_B = 1 - (y_R+ y_f_BD_C)./abs(y_f_C);
-%plot(x_CUE,CUE_B,'LineWidth', fontsizes.line_width)
+%plot(x_CUE,CUE_B,'LineWidth', linewidth)
 ax = gca;
 ax.XAxis.FontSize = fontsizes.xaxis;
 ax.YAxis.FontSize = fontsizes.yaxis;
 xlabel('days', 'FontSize', fontsizes.xlabel)
 ylabel('Carbon Use Efficiency Microbes', 'FontSize', fontsizes.ylabel)
 set(gca,'TickDir',tick_dir);
-set(gca, 'xLim', [x(1) x(end)]);
-ax.XAxis.TickValues = unique([x(1), ax.XAxis.TickValues,  x(end)]) ;
 
-%legend(names, 'FontSize', fontsizes.legend, 'Location','northeast', 'Interpreter', 'none')%weg
+legend(names, 'FontSize', fontsizes.legend, 'Location','southeast', 'Interpreter', 'none')
 %set(gca,'ylim', [-2 1]);
 %set(gca,'xlim', [0 numel(x_CUE)]);
 %legend(["CUE_A", "CUE_B"], 'Interpreter', 'none')
@@ -857,7 +688,6 @@ end
 if true
 %% figure 10
 startValue = 1;
-last_value = Inf;
 figure10 = figure('visible', isVisible) 
 add_bar = [];
 timesteps = [200,201, 500];
@@ -969,10 +799,10 @@ add_bar = [add_bar,[2,4,6]];
 %     ,names_appendix(1) + ' day200', "add POM2"...
 %     ,names_appendix + ' day500']
 
-names_xlabel = ['d 0', sprintf('d 1-199')...
-    ,'d 199', sprintf('d 200')...
-    ,'d 200', sprintf('d 201 -500')...
-    , names_appendix]%sprintf('500:') + 
+names_xlabel = ['day 0', sprintf('addition\\newlineday 1-199')...
+    ,'day 199', sprintf('addition\\newlineday 200')...
+    ,'day 200', sprintf('addition\\newlineday 201 -500')...
+    ,names_appendix + sprintf('\\newlineday 500')]
 
 % names_xlabel = {'day 0', sprintf('addition\\newlineday 1-199')...
 %     ,'day 199', sprintf('addition\\newlineday 200')...
@@ -983,16 +813,14 @@ b1 = bar(y_compare, 'stacked');
 names = {'biomass',  'Necromass old', 'Necromass new', 'POM', 'dissolved substrate','CO2'};
 colornames = {'microbial_biomass',  'old_microbial_necromass', 'new_microbial_necromass', 'pom', 'dissolved_substrate','leakage_co2'};
 opt_ax = [0.1300 0.1476 0.7750 0.7774];
-opt_ax = [0.1300 0.2 0.7750 0.7774];
+
 ax = gca;
 ax.Units ='normalized';
 ax.Position = opt_ax;
-%ax.ActivePositionProperty = 'position';
-ax.PositionConstraint = 'innerposition';
-ax.XAxis.FontSize = fontsizes.xaxis * 0.75;
-ax.XTickLabel = names_xlabel;
+ax.ActivePositionProperty = 'position';
+ax.XAxis.FontSize = fontsizes.xaxis;
+ax.XTickLabel = names_xlabel
 ax.YAxis.FontSize = fontsizes.yaxis;
-%set(gca, 'xLim', [x(1) x(end)]);
 set(figure10, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 
 for i = 1:numel(b1)
@@ -1000,17 +828,13 @@ for i = 1:numel(b1)
     b1(i).CData = getfield(colors, colornames{i});
 end
 
-%xlabel('days', 'FontSize', fontsizes.xlabel)
+xlabel('days', 'FontSize', fontsizes.xlabel)
 %ylabel('amount carbon g cm^{-3}', 'FontSize', 14)
-ylabel('amount carbon mg C g^{-1} soil', 'FontSize', fontsizes.ylabel)
-
+ylabel('amount carbon mg C g soil^{-1}', 'FontSize', fontsizes.ylabel)
 %set(gca,'ylim',ylim_C_stacked);
 if title_on
     title(titel , 'Interpreter', 'none','FontSize',fontsizes.title)
 end
-
-xapf = @(x,pos,xl) pos(3)*(x-(min(xl)))/(diff(xl))+pos(1);                % 'x' Annotation Position Function
-yapf = @(y,pos,yl) pos(4)*(y-min(yl))/diff(yl)+pos(2);                % 'y' Annotation Position Function
 %set(gca, 'FontSize', 14)
 percentage_plot = 1;
 % Add percentage annotations
@@ -1022,154 +846,42 @@ for k = 1:size(y_compare, 1)
                 continue
             end
             tmp_color = 'black';
-            %tmp_color = '#3366FF';
-
-            % arrow
-            if (y_compare(k, j) <0.03 || (y_compare(k, j) <0.5 && k == 1) ) && percentage ~=0 && 0%percentage < 3
+            if y_compare(k, j) <0.03 && percentage ~=0 
                 
-                if(k >= 8 && k ~= size(y_compare, 1))
-                   continue;
-                end
-                
-                End   = [k, sum(y_compare(k, 1:j)) - y_compare(k, j)/2];  % x , y
-                % if(strcmp(colornames{j}, 'dissolved_substrate'))
-                %     Start = [End(1)-0.15, End(2)+0.5]; % x, y   y: oben unten, x: rechts links
-                
-                if(k == 1)
-                    Start = [End(1)-0.15*3, End(2)+0.5*2]; % x, y   y: oben unten, x: rechts links
-                elseif(k == size(y_compare, 1))
-                    Start = [End(1)+0.15*3, End(2)+0.5*2]; % x, y   y: oben unten, x: rechts links
-                else
-                    Start = [End(1)-0.15*4, End(2)+0.5*2]; % x, y   y: oben unten, x: rechts links
-                end
-                Offset = 0.35;%0.35;
 
                 
-                xl = [0 length(names_xlabel)+1+Offset];%double(xlim) + [-1 1]
+                End   = [k, sum(y_compare(k, 1:j)) - y_compare(k, j)/2]  % x , y
+                Start = [End(1)-0.15, End(2)+0.5]; % x, y
+                Offset = 0.35
+
+                xapf = @(x,pos,xl) pos(3)*(x-(min(xl)))/(diff(xl))+pos(1);                % 'x' Annotation Position Function
+                yapf = @(y,pos,yl) pos(4)*(y-min(yl))/diff(yl)+pos(2);                % 'y' Annotation Position Function
+                xl = [0 length(names_xlabel)+1+Offset]%double(xlim) + [-1 1]
 
                 
-                yl = ylim;
+                yl = ylim
                 %pause
-                ax.Position
-                pos = opt_ax;
-                pos = ax.Position;
-                ax;
+                pos = opt_ax
+                ax
+                %annotation('textarrow', [0.1 0.1300], [0.13 0.1476])
+                %a=0.1476+0.7774
+                %annotation('textarrow', [0.1 0.1300], [0.13 a])
+                annotation('textarrow', xapf([Start(1) End(1)+Offset/2],pos,xl), yapf([Start(2) End(2)],pos,yl))
+                xVal=1
+                yVal=5
                 
-                % Pfeile für kleine Werte 
-                if(percentage < 1)
-                    offset_arrow = 0.2;
-                else
-                    offset_arrow = 0.1;
-                end
-                annotation('textarrow', xapf([Start(1)+offset_arrow End(1)+Offset/2],pos,xl), yapf([Start(2) End(2)],pos,yl),'LineWidth',2)
-                xVal=1;
-                yVal=5;
                 
-                %text box muss rechts von säule
-                if(k == size(y_compare, 1))
-                    Offset = -Offset;
-                end
                 set(figure10, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
-                if(percentage < 1)
-                    text(Start(1)-Offset, Start(2), sprintf('%.2f\n(<1%%)',y_compare(k, j)), ...
-                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize',...
-                fontsizes.bartext_arrow,'Color', tmp_color)%, 'EdgeColor',tmp_color,'Margin',0.1
-                else
-                    text(Start(1)-Offset, Start(2), sprintf('%.2f\n(%i%%)',y_compare(k, j), ceil(percentage)), ...
-                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize',...
-                fontsizes.bartext_arrow,'Color', tmp_color)%, 'EdgeColor',tmp_color,'Margin',0.1
-                end
-                
+                text(Start(1)-Offset, Start(2), sprintf('%.2f\n(%i%%)',y_compare(k, j), ceil(percentage)), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', fontsizes.bartext_arrow,'Color', tmp_color)%12
                 continue
-            end % arrow
-
-            HorAli = 'center';
-            VertAli = 'middle';
-            if strcmp(colornames{j}, 'leakage_co2') || strcmp(colornames{j}, 'old_microbial_necromass')%strcmp(colornames{j}, 'dissolved_substrate')
-                tmp_color = colors.leakage_co2_text;               
-                %tmp_color = '#3366FF';
             end
-           
-            if strcmp(colornames{j}, 'leakage_co2')
-                VertAli = 'middle';
+            if strcmp(colornames{j}, 'leakage_co2') || strcmp(colornames{j}, 'dissolved_substrate')
+                tmp_color = colors.leakage_co2_text;
             end
-             if strcmp(colornames{j}, 'dissolved_substrate')
-                VertAli = 'top';
-            end
-            if strcmp(colornames{j}, 'old_microbial_necromass') 
-                VertAli = 'middle';
-            end
-            if strcmp(colornames{j}, 'new_microbial_necromass') 
-                 VertAli = 'bottom';
-            end
-            if strcmp(colornames{j}, 'pom') 
-                VertAli = 'middle';
-            end
-
-% 'microbial_biomass',  'old_microbial_necromass', 'new_microbial_necromass', 'pom', 'dissolved_substrate','leakage_co2'
-  
-            % if(mod(j,2) == 0)
-            %     HorAli = 'left';
-            % else
-            %     HorAli = 'right';
-            % end
-            % if(strcmp(colornames{j}, 'pom')|| k == 11)
-            %     HorAli = 'center';
-            % end
-
-offset_bar_vert = 0; 
-          if(k == 5 )
-              if(strcmp(colornames{j}, 'dissolved_substrate'))
-              offset_bar_vert = 0.8; 
-              VertAli = 'top';
-              end
-              if (strcmp(colornames{j}, 'leakage_co2'))
-                   offset_bar_vert = 1.5;
-                   VertAli = 'bottom';
-              end
-              if (strcmp(colornames{j}, 'pom'))
-                   offset_bar_vert = 0.2;%0.66;
-                   VertAli = 'middle';
-              end
-          end
-          if(k==3)
-
-              if(strcmp(colornames{j}, 'dissolved_substrate'))
-              offset_bar_vert = 1.1; 
-              VertAli = 'top';
-              end
-              if (strcmp(colornames{j}, 'leakage_co2'))
-                   offset_bar_vert = 1.5;
-                   VertAli = 'bottom';
-              end
-              if (strcmp(colornames{j}, 'pom'))
-                   offset_bar_vert = 0;%0.66;
-                   VertAli = 'middle';
-              end
-
-
-          
-          end
-
-
-
-            if (k < 8 || y_compare(k, j) > 0.03) && percentage > 2 % day 500 microbial biomass werte verschwindene lassen
-                % if(percentage < 1)
-                %     t = text(k, sum(y_compare(k, 1:j)) - y_compare(k, j)/2, sprintf('%.2f\n(<1%)',y_compare(k, j)), ...
-                %         'HorizontalAlignment', HorAli, 'VerticalAlignment', 'middle', 'FontSize', fontsizes.bartext,...
-                %         'Color', tmp_color, 'EdgeColor',tmp_color,'Margin',0.1);%12
-                % else
-                    t = text(k, sum(y_compare(k, 1:j)) - y_compare(k, j)/2 - offset_bar_vert, sprintf('%.2f\n(%i%%)',y_compare(k, j), ceil(percentage)), ...
-                        'HorizontalAlignment', HorAli, 'VerticalAlignment', VertAli, 'FontSize', fontsizes.bartext,...
-                        'Color', tmp_color);%, 'EdgeColor',tmp_color,'Margin',0.1
-                %end
-            % if(strcmp(colornames{j}, 'leakage_co2'))
-            %  t.BackgroundColor ='white';
-            %  t.Margin = 0.1;
-            % end
-            end
-            
-         end
+            text(k, sum(y_compare(k, 1:j)) - y_compare(k, j)/2, sprintf('%.2f (%i%%)',y_compare(k, j), ceil(percentage)), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', fontsizes.bartext,'Color', tmp_color)%12
+        end
     end
 end
 
@@ -1185,7 +897,7 @@ y_add(add_bar(2),3) = (sum(y_compare(add_bar(3)-1,:)) - sum(y_compare(add_bar(2)
 %sum(y_C(timesteps(2),:)) - sum(y_C(timesteps(1),:))
 y_add(add_bar(3),1) = sum(y_compare(add_bar(3)-1,:));%y_C(timesteps(2)
 y_add(add_bar(3),2) = POM_added(499) - POM_added(200);
-y_add(add_bar(3),3) = (sum(y_compare(end,:)) - sum(y_compare(end-1,:)));
+y_add(add_bar(3),3) = (sum(y_compare(end,:)) - sum(y_compare(end-1,:))); %THIS BAR MAYBE GONE
 
 
 
@@ -1205,53 +917,23 @@ for j = 2:3
             yStartHeight = yStartHeight + y_add(i,k) + epsY;
         end
         % Schraffur-Linien innerhalb des Balkens zeichnen
-        % for yStripe = yStartHeight:0.25:(yHeight+yStartHeight-2*epsY)
-        % 
-        %     x1 = xPos - barWidth;
-        %     x2 = xPos + barWidth;
-        %     y1 = yStripe;
-        %     y2 = yStripe;
-        %     orgColor = 'black';
-        %     alpha = 0.5;
-        %     switch j
-        %         case 2
-        %             orgColor = getfield(colors, colornames{4});
-        %         case 3
-        %             orgColor = getfield(colors, colornames{5});
-        %     end
-        %     hatchColor = (1-alpha) * orgColor + alpha * [1 1 1];
-        %     plot([x1, x2], ...
-        %         [y1, y2], 'k', 'LineWidth', 2, 'Color',hatchColor);
-        % end
-        %Annotation POM/exudate
-        Offset = .35;
-        if(ismember(i,[2]) && j == 3)%,4,6
-            xl = [0 length(names_xlabel)+1+Offset];
-            yl = ylim;
-            pos = opt_ax;
-            pos = ax.Position;
-            annotation('textarrow', xapf([xPos+Offset/2,xPos+Offset/2],pos,xl), ...
-                yapf([yHeight+yStartHeight+10*epsY,yHeight+yStartHeight],pos,yl),...
-                'String','POM','LineWidth',2,'FontSize',fontsizes.bartext_arrow)
-        end
-        if(ismember(i,[4]) && j == 3)%,4,6
-            xl = [0 length(names_xlabel)+1+Offset];
-            yl = ylim;
-            pos = opt_ax;
-            pos = ax.Position;
-            annotation('textarrow', xapf([xPos+Offset/2,xPos+Offset/2],pos,xl),...
-                yapf([yHeight+yStartHeight+10*epsY,yHeight+yStartHeight],pos,yl),...
-                'String','Exudation + POM','LineWidth',2,'FontSize',fontsizes.bartext_arrow)
-        end
-        if(ismember(i,[6]) && j == 3)%,4,6
-            xl = [0 length(names_xlabel)+1+Offset];
-            yl = ylim;
-            pos = opt_ax;
-            pos = ax.Position;
-            annotation('textarrow', xapf([xPos+Offset/2,xPos+Offset/2],pos,xl),...
-                yapf([yHeight+yStartHeight+10*epsY,yHeight+yStartHeight],pos,yl),...
-                'String',{'Exudation (scen. 3Pulse)','+',  'POM (all sub-scen.)'},'LineWidth',2,...
-                'FontSize',fontsizes.bartext_arrow)
+        for yStripe = yStartHeight:0.25:(yHeight+yStartHeight-2*epsY)
+    
+            x1 = xPos - barWidth;
+            x2 = xPos + barWidth;
+            y1 = yStripe;
+            y2 = yStripe;
+            orgColor = 'black';
+            alpha = 0.5;
+            switch j
+                case 2
+                    orgColor = getfield(colors, colornames{4});
+                case 3
+                    orgColor = getfield(colors, colornames{5});
+            end
+            hatchColor = (1-alpha) * orgColor + alpha * [1 1 1];
+            plot([x1, x2], ...
+                [y1, y2], 'k', 'LineWidth', 2, 'Color',hatchColor);
         end
     end
 end
@@ -1269,57 +951,52 @@ b2(2).EdgeColor = 'black';
 b2(3).FaceColor = getfield(colors, colornames{5});
 b2(3).EdgeColor = 'black';
 
-tmp_color = 'black';
-%text in gestreiften bars
+
 for k = 1:size(y_add, 1)
     for j = 1:size(y_add, 2)
-       if(y_add(k, j) > 0 &&j  > 1 && (k ~= 4 || j ~=2))
-        text(k, sum(y_add(k, 1:j)) - y_add(k, j)/2, sprintf('%.2f',y_add(k, j)), ...
-            'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize',...
-            fontsizes.bartext,'Color', tmp_color)%, 'EdgeColor',tmp_color,'Margin',0.1
+        if(y_add(k, j) > 0 &&j  > 1)
+            End   = [k, sum(y_add(k, 1:j))]  % x , y
+            Start = [End(1), End(2)+0.5]; % x, y
+            Offset = 0.35
+
+            xapf = @(x,pos,xl) pos(3)*(x-(min(xl)))/(diff(xl))+pos(1);                % 'x' Annotation Position Function
+            yapf = @(y,pos,yl) pos(4)*(y-min(yl))/diff(yl)+pos(2);       % 'y' Annotation Position Function
+            xl = [0 length(names_xlabel)+1+Offset]%double(xlim) + [-1 1]
+
+            
+            yl = ylim
+            %pause
+            pos = opt_ax
+            text_top = ''
+            y_add(k, j)
+            y_add
+            k
+            j
+            %pause
+
+            if j==2 && y_add(k, 3)==0
+                text_top = 'POM'
+                annotation('textarrow', xapf([Start(1)+Offset/2 End(1)+Offset/2],pos,xl), yapf([Start(2) End(2)],pos,yl),...
+                'String',text_top, 'FontSize', fontsizes.bartext)
+            elseif j==3
+                text_top = 'Exudation'
+                annotation('textarrow', xapf([Start(1)+Offset/2 End(1)+Offset/2],pos,xl), yapf([Start(2) End(2)],pos,yl),...
+                'String',text_top, 'FontSize', fontsizes.bartext)
+            end
+            
+            text(k, sum(y_add(k, 1:j)) - y_add(k, j)/2, sprintf('%.2f \n ',y_add(k, j)), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'FontSize', fontsizes.bartext)%12
         end
     end
 end
 
-legend(names, 'FontSize', fontsizes.legend, 'Location','northwest', 'NumColumns', 1)%'northwest'
-set(gca,'TickDir',tick_dir);
-
-%drawbrace([0,0], [3,5], 10);
-%bracket2 = drawbrace([69 -line1], [69 -line2], 10, 'Color', 'b')
-%set(bracket1,'clipping', 'off')
-%set(bracket2,'clipping', 'off')
-
-% ax.Units = 'centimeters';
-% figure10.Units = 'centimeters';
-% 
-% axPos_cm = ax.Position;          % [x y width height] in cm
-% xAxisLength_cm = axPos_cm(3) - axPos_cm(1);   % width of the axis in cm
-% 
-% xTicks = ax.XTick;               % Get X ticks
-% xLim = ax.XLim;                  % Get X axis limits
-% nTicks = length(xTicks);
-% if nTicks > 1
-%     tickSpacing_data = xTicks(2) - xTicks(1);          % Tick spacing in data units
-%     dataRange = xLim(2) - xLim(1);                     % Total data width
-%     tickSpacing_cm = (tickSpacing_data / dataRange) * xAxisLength_cm;
-% else
-%     tickSpacing_cm = NaN;  % Not enough ticks to compute
-% end
-% length_overbrace = round(tickSpacing_cm);
-% str_length = string(length_overbrace * 5) ;
-% text(11,-4, '$\overbrace{\hspace{'+str_length+'cm}}^{}$',...%
-%     'rotation', 180,'fontsize', fontsizes.xaxis * 0.75, 'interpreter', 'latex');
-% 
-% ax.Units = 'normalized';
-% figure10.Units = 'normalized';
-
 %set(figure10, 'Units', 'normalized', 'OuterPosition', [0 0 1 1], 'Position', opt_ax);
 %[1 0.1841 0.1841]
-
-%set(gca, 'xLim', [x(1) x(end)]);
+legend(names, 'FontSize', fontsizes.legend, 'Location','northwest')
+set(gca,'TickDir',tick_dir);
 saveas(figure10, fullfile(outputfolder, "C_initial_final_" + description + ".png"));
 savefig(fullfile(outputfolder, "C_initial_final_" + description))
-%ax = gca().get;
+ax = gca().get
 %pause;
 end
 
@@ -1369,7 +1046,7 @@ end
 
 % figure13= figure('visible', isVisible) 
 % C_N = y_C_S./y_N_S;
-% plot(x_CUE,C_N,'LineWidth', fontsizes.line_width)
+% plot(x_CUE,C_N,'LineWidth', linewidth)
 % xlabel('days', 'FontSize', 14)
 % ylabel('C_N ', 'FontSize', 14)
 % legend(["C_N"], 'Interpreter', 'none')
